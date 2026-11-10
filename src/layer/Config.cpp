@@ -61,6 +61,7 @@ Config LoadConfig(const std::wstring& path)
     config.crouchPressCommand = ReadNarrow(path, L"crouch", L"press_command", config.crouchPressCommand);
     config.crouchReleaseCommand = ReadNarrow(path, L"crouch", L"release_command", config.crouchReleaseCommand);
     config.crouchMode = ReadNarrow(path, L"crouch", L"mode", config.crouchMode);
+    config.crouchBinding = ReadNarrow(path, L"crouch", L"binding", config.crouchBinding);
     config.crouchUncrouchOnJump = ReadBool(path, L"crouch", L"uncrouch_on_jump", config.crouchUncrouchOnJump);
     config.crouchJumpDelayMs = ReadInt(path, L"crouch", L"jump_delay_ms", config.crouchJumpDelayMs);
     config.tacticalEnabled = ReadBool(path, L"tactical", L"enabled", config.tacticalEnabled);

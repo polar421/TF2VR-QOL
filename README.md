@@ -4,7 +4,9 @@ Extra OpenXR actions and optional features for [CircuitLord's Titanfall 2 VR mod
 
 ## Actions
 
-Bind them in SteamVR → Settings → Controllers → **Manage Controller Bindings** → Titanfall 2 VR → **Edit**. On Linux, bind them in the controller binding editor of the active OpenXR runtime (for example WiVRn or Monado); they are part of the Titanfall 2 VR **gameplay** action set.
+Bind them in SteamVR → Settings → Controllers → **Manage Controller Bindings** → Titanfall 2 VR → **Edit**. On Linux, bind them in the controller binding editor of the active OpenXR runtime if it exposes the app's actions; they are part of the Titanfall 2 VR **gameplay** action set.
+
+WiVRn's dashboard does not expose per-app OpenXR actions, and xrizer is the OpenVR compatibility layer, so neither lists these actions. For those setups, the layer can submit a suggested binding itself. Set `[crouch] binding=right_thumbstick_click` in `TF2VR\packages\Nighteyes-TF2VRBetterBindings-<version>\plugins\layer\TF2VRBetterBindings.ini` (also `left_thumbstick_click`, `both_thumbstick_click`, or `none`). It is applied at startup, so restart the game after changing it.
 
 | Action | What it does | Bind it to |
 |---|---|---|
@@ -57,6 +59,7 @@ Select a row to change its value. The menu writes the same `TF2VRBetterBindings.
 | `[tactical] block_hand_trigger_in_game` | `1` | `0` = the trigger keeps cloaking after you bind **Tactical Ability** (it still never cloaks during a reload while **Reload Grab** is bound) |
 | `[crouch] mode` | `toggle` | Set to `button` if **Crouch** is bound as *Use as Button* and `uncrouch_on_jump` is on |
 | `[crouch] jump_delay_ms` | `250` | Raise it if jumping out of a crouch only stands you up |
+| `[crouch] binding` | `none` | Suggested OpenXR binding for **Crouch**: `none`, `left_thumbstick_click`, `right_thumbstick_click`, or `both_thumbstick_click`. Applied at startup; use it when the runtime has no per-app binding editor |
 | `[sprint] start_below_eyes_cm` | `30` | How far below your eyes the gun must be to sprint |
 | `[sprint] stop_below_eyes_cm` | `20` | How close to your eyes the gun must come to stop |
 | `[reload_grab] enabled` | `1` | `0` = remove the **Reload Grab** action |
@@ -70,15 +73,17 @@ This is an unofficial add-on. It does not modify or include any of CircuitLord's
 1. Download `Nighteyes-TF2VRBetterBindings-<version>.zip` from the [Releases](../../releases) page. You need Titanfall 2 VR installed with CircuitLord's installer.
 2. Delete any older `Nighteyes-TF2VRBetterBindings-<version>` folder (copy its `TF2VRBetterBindings.ini` first to keep your settings). Extract the zip into `<Titanfall 2 folder>\TF2VR\packages\`, so you get `TF2VR\packages\Nighteyes-TF2VRBetterBindings-<version>\plugins\...`.
 3. **START THE GAME, QUIT, AND START IT AGAIN! IT DOES NOT WORK ON THE FIRST START!** This also applies after every update.
-4. Bind the actions you want in SteamVR, or in your OpenXR runtime's binding editor on Linux.
+4. Bind the actions you want in SteamVR, or in your OpenXR runtime's binding editor on Linux. If the editor has no per-app actions, set `[crouch] binding` as described above.
 
 ### Linux / Proton
 
-Titanfall 2 VR uses the Windows OpenXR loader with WineOpenXR as its runtime under Proton. The add-on's Windows layer works there too. Proton runs the game at high integrity, and the OpenXR loader ignores per-user (HKCU) implicit layers in that case, so the plugin registers the layer for the whole Proton prefix under `HKLM` on the first start. Start the game once, quit, and start it again; the extra actions then appear in the runtime's binding editor.
+Titanfall 2 VR uses the Windows OpenXR loader with WineOpenXR as its runtime under Proton. The add-on's Windows layer works there too. Proton runs the game at high integrity, and the OpenXR loader ignores per-user (HKCU) implicit layers in that case, so the plugin registers the layer for the whole Proton prefix under `HKLM` on the first start. Start the game once, quit, and start it again; the extra actions then appear in the runtime's binding editor. If the runtime has no per-app editor (WiVRn's dashboard does not), set `[crouch] binding=right_thumbstick_click` in the layer INI; the layer submits it as a suggested binding at startup. xrizer is the OpenVR compatibility layer and does not see native OpenXR actions.
 
 ## Troubleshooting
 
 - **The actions are missing in the binding editor**: start the game a second time, then reopen the binding editor. On Linux, check that the layer manifest is registered under `HKLM\Software\Khronos\OpenXR\1\ApiLayers\Implicit` in the Proton prefix. `TF2VR\logs\nslog*.txt` has lines tagged `[TF2VRBB]` that say whether the add-on is active.
+- **The actions are missing in xrizer**: xrizer binds OpenVR actions only. Titanfall 2 VR runs on the OpenXR runtime shown in `TF2VR\plugins\Titanfall2VR-data\engine.txt`; use the layer's `[crouch] binding` setting or an OpenXR binding editor instead.
+- **Crouch is unbound on WiVRn/Monado**: set `[crouch] binding=right_thumbstick_click` in the layer INI and restart. The development log next to the layer DLL shows `suggested crouch binding ...` when the game submits its bindings.
 - **Running the game as administrator** stops the add-on from loading. Start it normally.
 
 ## Uninstall

@@ -13,6 +13,7 @@ struct Config
     std::string crouchPressCommand = "+duck";
     std::string crouchReleaseCommand = "-duck";
     std::string crouchMode = "toggle";
+    std::string crouchBinding = "none";
     bool crouchUncrouchOnJump = false;
     int crouchJumpDelayMs = 250;
     bool tacticalEnabled = true;

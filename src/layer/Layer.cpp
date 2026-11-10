@@ -60,6 +60,7 @@ struct NextFunctions
     PFN_xrPathToString pathToString = nullptr;
     PFN_xrCreateActionSet createActionSet = nullptr;
     PFN_xrCreateAction createAction = nullptr;
+    PFN_xrSuggestInteractionProfileBindings suggestInteractionProfileBindings = nullptr;
     PFN_xrSyncActions syncActions = nullptr;
     PFN_xrGetActionStateFloat getActionStateFloat = nullptr;
     PFN_xrGetActionStateBoolean getActionStateBoolean = nullptr;
@@ -181,6 +182,7 @@ struct LayerState
     XrAction reloadGrab = XR_NULL_HANDLE;
     XrAction crouch = XR_NULL_HANDLE;
     XrAction tactical = XR_NULL_HANDLE;
+    std::vector<XrPath> crouchSuggestedProfiles;
     std::vector<GripSlot> grips;
     ButtonState crouchButton;
     CrouchState crouchState;
@@ -270,8 +272,8 @@ void InitializeOnce()
         Log("config: reload_grab=%d grenade_toggle=%d", s.config.reloadGrabEnabled, s.config.grenadeToggle);
         Log("config: crouch=%d press_cmd='%s' release_cmd='%s'", s.config.crouchEnabled, s.config.crouchPressCommand.c_str(),
             s.config.crouchReleaseCommand.c_str());
-        Log("config: crouch mode=%s uncrouch_on_jump=%d jump_delay_ms=%d", s.config.crouchMode.c_str(), s.config.crouchUncrouchOnJump,
-            s.config.crouchJumpDelayMs);
+        Log("config: crouch mode=%s binding=%s uncrouch_on_jump=%d jump_delay_ms=%d", s.config.crouchMode.c_str(), s.config.crouchBinding.c_str(),
+            s.config.crouchUncrouchOnJump, s.config.crouchJumpDelayMs);
         Log("config: tactical=%d hand=%s block_in_game=%d press_cmd='%s' release_cmd='%s'", s.config.tacticalEnabled, s.config.tacticalHand.c_str(),
             s.config.tacticalBlockHandTrigger, s.config.tacticalPressCommand.c_str(), s.config.tacticalReleaseCommand.c_str());
         Log("config: sprint=%d hand=%s start_below_eyes_cm=%d stop_below_eyes_cm=%d mode=%s stop_method=%s stop_frames=%d", s.config.sprintEnabled,
@@ -902,6 +904,7 @@ XrResult XRAPI_CALL HookDestroyInstance(XrInstance instance)
     s.reloadGrab = XR_NULL_HANDLE;
     s.crouch = XR_NULL_HANDLE;
     s.tactical = XR_NULL_HANDLE;
+    s.crouchSuggestedProfiles.clear();
     s.grips.clear();
     s.crouchButton = {};
     s.tacticalButton = {};
@@ -945,6 +948,63 @@ XrResult XRAPI_CALL HookCreateActionSet(XrInstance instance, const XrActionSetCr
     s.reloadGrab = reloadGrab;
     s.tacticalButton = {};
     s.crouchButton = {};
+    s.crouchSuggestedProfiles.clear();
+    return result;
+}
+
+bool SupportsThumbstickClick(const std::string& profile)
+{
+    return profile.find("/touch_controller") != std::string::npos || profile.find("/index_controller") != std::string::npos ||
+           profile.find("/mixed_reality_controller") != std::string::npos || profile.find("/odyssey_controller") != std::string::npos ||
+           profile.find("/vive_cosmos_controller") != std::string::npos;
+}
+
+// WiVRn's dashboard has no per-app OpenXR binding editor, and xrizer is an
+// OpenVR compatibility layer, so neither can bind an action created here.
+// Submit a suggested binding alongside the game's own suggestions instead.
+XrResult XRAPI_CALL HookSuggestInteractionProfileBindings(XrInstance instance, const XrInteractionProfileSuggestedBinding* suggested)
+{
+    LayerState& s = State();
+    if (!s.next.suggestInteractionProfileBindings)
+        return XR_ERROR_FUNCTION_UNSUPPORTED;
+    if (!suggested || !suggested->suggestedBindings || suggested->countSuggestedBindings == 0 || s.crouch == XR_NULL_HANDLE ||
+        s.config.crouchBinding == "none")
+        return s.next.suggestInteractionProfileBindings(instance, suggested);
+
+    std::string profile = PathText(s, suggested->interactionProfile);
+    if (!SupportsThumbstickClick(profile))
+        return s.next.suggestInteractionProfileBindings(instance, suggested);
+    if (std::find(s.crouchSuggestedProfiles.begin(), s.crouchSuggestedProfiles.end(), suggested->interactionProfile) != s.crouchSuggestedProfiles.end())
+        return s.next.suggestInteractionProfileBindings(instance, suggested);
+
+    std::vector<XrActionSuggestedBinding> bindings(suggested->suggestedBindings, suggested->suggestedBindings + suggested->countSuggestedBindings);
+    if (s.config.crouchBinding == "right_thumbstick_click" || s.config.crouchBinding == "both_thumbstick_click")
+    {
+        XrPath path = ToPath(s, "/user/hand/right/input/thumbstick/click");
+        if (path != XR_NULL_PATH)
+            bindings.push_back({s.crouch, path});
+    }
+    if (s.config.crouchBinding == "left_thumbstick_click" || s.config.crouchBinding == "both_thumbstick_click")
+    {
+        XrPath path = ToPath(s, "/user/hand/left/input/thumbstick/click");
+        if (path != XR_NULL_PATH)
+            bindings.push_back({s.crouch, path});
+    }
+    if (bindings.size() == suggested->countSuggestedBindings)
+        return s.next.suggestInteractionProfileBindings(instance, suggested);
+
+    XrInteractionProfileSuggestedBinding copy = *suggested;
+    copy.suggestedBindings = bindings.data();
+    copy.countSuggestedBindings = static_cast<uint32_t>(bindings.size());
+    XrResult result = s.next.suggestInteractionProfileBindings(instance, &copy);
+    if (XR_FAILED(result))
+    {
+        Log("crouch binding for %s was rejected (%d); using the game's bindings", profile.c_str(), result);
+        return s.next.suggestInteractionProfileBindings(instance, suggested);
+    }
+
+    s.crouchSuggestedProfiles.push_back(suggested->interactionProfile);
+    Log("suggested crouch binding '%s' for %s", s.config.crouchBinding.c_str(), profile.c_str());
     return result;
 }
 
@@ -1198,6 +1258,7 @@ const Hook kHooks[] = {
     {"xrDestroyInstance", reinterpret_cast<PFN_xrVoidFunction>(&HookDestroyInstance)},
     {"xrCreateActionSet", reinterpret_cast<PFN_xrVoidFunction>(&HookCreateActionSet)},
     {"xrCreateAction", reinterpret_cast<PFN_xrVoidFunction>(&HookCreateAction)},
+    {"xrSuggestInteractionProfileBindings", reinterpret_cast<PFN_xrVoidFunction>(&HookSuggestInteractionProfileBindings)},
     {"xrSyncActions", reinterpret_cast<PFN_xrVoidFunction>(&HookSyncActions)},
     {"xrGetActionStateFloat", reinterpret_cast<PFN_xrVoidFunction>(&HookGetActionStateFloat)},
     {"xrGetActionStateBoolean", reinterpret_cast<PFN_xrVoidFunction>(&HookGetActionStateBoolean)},
@@ -1267,6 +1328,7 @@ XrResult XRAPI_CALL LayerCreateApiLayerInstance(const XrInstanceCreateInfo* info
                     ResolveNext(s, "xrPathToString", s.next.pathToString) &&
                     ResolveNext(s, "xrCreateActionSet", s.next.createActionSet) &&
                     ResolveNext(s, "xrCreateAction", s.next.createAction) &&
+                    ResolveNext(s, "xrSuggestInteractionProfileBindings", s.next.suggestInteractionProfileBindings) &&
                     ResolveNext(s, "xrSyncActions", s.next.syncActions) &&
                     ResolveNext(s, "xrGetActionStateFloat", s.next.getActionStateFloat) &&
                     ResolveNext(s, "xrGetActionStateBoolean", s.next.getActionStateBoolean) &&
