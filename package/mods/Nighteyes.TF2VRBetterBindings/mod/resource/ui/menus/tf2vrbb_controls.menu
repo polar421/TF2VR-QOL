@@ -1,0 +1,299 @@
+"resource/ui/menus/tf2vrbb_controls.menu"
+{
+	menu
+	{
+		ControlName Frame
+		xpos 0
+		ypos 0
+		zpos 3
+		wide f0
+		tall f0
+		autoResize 0
+		visible 1
+		enabled 1
+		pinCorner 0
+		PaintBackgroundType 0
+		infocus_bgcolor_override "0 0 0 0"
+		outoffocus_bgcolor_override "0 0 0 0"
+
+		Vignette
+		{
+			ControlName ImagePanel
+			InheritProperties MenuVignette
+		}
+
+		ImgTopBar
+		{
+			ControlName ImagePanel
+			InheritProperties MenuTopBar
+		}
+
+		Title
+		{
+			ControlName Label
+			InheritProperties MenuTitle
+			labelText "TF2VR BETTER BINDINGS"
+		}
+
+		Screen
+		{
+			ControlName Label
+			wide %100
+			tall %100
+			labelText ""
+			visible 0
+		}
+
+		Panel
+		{
+			ControlName Label
+			labelText ""
+			wide 1120
+			tall 700
+			xpos -560
+			ypos -350
+			paintbackground 1
+			bgcolor_override "8 10 12 232"
+			pin_to_sibling Screen
+			pin_corner_to_sibling CENTER
+			pin_to_sibling_corner CENTER
+		}
+
+		AccentTop
+		{
+			ControlName Label
+			labelText ""
+			wide 1120
+			tall 6
+			paintbackground 1
+			bgcolor_override "242 141 28 255"
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		PanelHeader
+		{
+			ControlName Label
+			labelText "CONTROLS"
+			font Default_41
+			allcaps 1
+			fgcolor_override "255 255 255 255"
+			auto_wide_tocontents 1
+			auto_tall_tocontents 1
+			xpos 32
+			ypos 26
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		HeaderRule
+		{
+			ControlName Label
+			labelText ""
+			wide 1056
+			tall 2
+			paintbackground 1
+			bgcolor_override "96 104 112 255"
+			xpos 32
+			ypos 96
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		SubHeader
+		{
+			ControlName Label
+			labelText "These actions are added to the Titanfall 2 VR gameplay action set. Bind them the same way you bind the mod's own actions; if your runtime has no binding for them they stay unbound."
+			font Default_21
+			fgcolor_override "176 182 188 255"
+			wide 1056
+			tall 60
+			wrap 1
+			xpos 32
+			ypos 108
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Entry0
+		{
+			ControlName Label
+			labelText "RELOAD GRAB      tf2vr_reload_grab      trigger, each hand"
+			font Default_21
+			fgcolor_override "255 255 255 255"
+			wide 1056
+			tall 30
+			xpos 32
+			ypos 184
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Desc0
+		{
+			ControlName Label
+			labelText "Grabs magazines and racks slides with the trigger. Grip on that hand grabs nothing while you reload, so Grip only holds the gun."
+			font Default_16
+			fgcolor_override "150 156 162 255"
+			wide 1056
+			tall 30
+			wrap 1
+			xpos 32
+			ypos 214
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Entry1
+		{
+			ControlName Label
+			labelText "CROUCH      tf2vr_crouch      any button"
+			font Default_21
+			fgcolor_override "255 255 255 255"
+			wide 1056
+			tall 30
+			xpos 32
+			ypos 260
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Desc1
+		{
+			ControlName Label
+			labelText "Hold or toggle, depending on how the action is bound. Jumping out of a crouch can stand you up first; see Action Settings."
+			font Default_16
+			fgcolor_override "150 156 162 255"
+			wide 1056
+			tall 30
+			wrap 1
+			xpos 32
+			ypos 290
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Entry2
+		{
+			ControlName Label
+			labelText "TACTICAL ABILITY (CLOAK)      tf2vr_tactical      any button"
+			font Default_21
+			fgcolor_override "255 255 255 255"
+			wide 1056
+			tall 30
+			xpos 32
+			ypos 336
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Desc2
+		{
+			ControlName Label
+			labelText "Cloak from a button. The trigger of the hand without the gun can be blocked so it stops cloaking on its own."
+			font Default_16
+			fgcolor_override "150 156 162 255"
+			wide 1056
+			tall 30
+			wrap 1
+			xpos 32
+			ypos 366
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Entry3
+		{
+			ControlName Label
+			labelText "SPRINT (OPTIONAL)      no new action      lower your gun below your eyes"
+			font Default_21
+			fgcolor_override "255 255 255 255"
+			wide 1056
+			tall 30
+			xpos 32
+			ypos 412
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Desc3
+		{
+			ControlName Label
+			labelText "Drives the mod's own sprint button while your gun is held low. Heights are set in General Options."
+			font Default_16
+			fgcolor_override "150 156 162 255"
+			wide 1056
+			tall 30
+			wrap 1
+			xpos 32
+			ypos 442
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Entry4
+		{
+			ControlName Label
+			labelText "GRENADE TOGGLE (OPTIONAL)      grip on the gun hand      press to take, press to throw"
+			font Default_21
+			fgcolor_override "255 255 255 255"
+			wide 1056
+			tall 30
+			xpos 32
+			ypos 488
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Desc4
+		{
+			ControlName Label
+			labelText "Needs the mod's VR Settings, Gun Grip set to Toggle. Turned on in Action Settings."
+			font Default_16
+			fgcolor_override "150 156 162 255"
+			wide 1056
+			tall 30
+			wrap 1
+			xpos 32
+			ypos 518
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		BtnBack
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			labelText "BACK"
+			textAlignment center
+			wide 260
+			tall 54
+			scriptID "0"
+			xpos 32
+			ypos 600
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		FooterButtons
+		{
+			ControlName CNestedPanel
+			InheritProperties FooterButtons
+		}
+	}
+}

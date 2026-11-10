@@ -1,0 +1,224 @@
+"resource/ui/menus/tf2vrbb_general.menu"
+{
+	menu
+	{
+		ControlName Frame
+		xpos 0
+		ypos 0
+		zpos 3
+		wide f0
+		tall f0
+		autoResize 0
+		visible 1
+		enabled 1
+		pinCorner 0
+		PaintBackgroundType 0
+		infocus_bgcolor_override "0 0 0 0"
+		outoffocus_bgcolor_override "0 0 0 0"
+
+		Vignette
+		{
+			ControlName ImagePanel
+			InheritProperties MenuVignette
+		}
+
+		ImgTopBar
+		{
+			ControlName ImagePanel
+			InheritProperties MenuTopBar
+		}
+
+		Title
+		{
+			ControlName Label
+			InheritProperties MenuTitle
+			labelText "TF2VR BETTER BINDINGS"
+		}
+
+		Screen
+		{
+			ControlName Label
+			wide %100
+			tall %100
+			labelText ""
+			visible 0
+		}
+
+		Panel
+		{
+			ControlName Label
+			labelText ""
+			wide 1120
+			tall 700
+			xpos -560
+			ypos -350
+			paintbackground 1
+			bgcolor_override "8 10 12 232"
+			pin_to_sibling Screen
+			pin_corner_to_sibling CENTER
+			pin_to_sibling_corner CENTER
+		}
+
+		AccentTop
+		{
+			ControlName Label
+			labelText ""
+			wide 1120
+			tall 6
+			paintbackground 1
+			bgcolor_override "242 141 28 255"
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		PanelHeader
+		{
+			ControlName Label
+			labelText "GENERAL OPTIONS"
+			font Default_41
+			allcaps 1
+			fgcolor_override "255 255 255 255"
+			auto_wide_tocontents 1
+			auto_tall_tocontents 1
+			xpos 32
+			ypos 26
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		HeaderRule
+		{
+			ControlName Label
+			labelText ""
+			wide 1056
+			tall 2
+			paintbackground 1
+			bgcolor_override "96 104 112 255"
+			xpos 32
+			ypos 96
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		SubHeader
+		{
+			ControlName Label
+			labelText "Preferences that are not tied to a single bound action."
+			font Default_21
+			fgcolor_override "176 182 188 255"
+			wide 1056
+			tall 30
+			wrap 1
+			xpos 32
+			ypos 112
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Row0
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			labelText "SPRINT ACTION"
+			textAlignment west
+			wide 1056
+			tall 52
+			scriptID "0"
+			xpos 32
+			ypos 168
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Row1
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			labelText "SPRINT START HEIGHT"
+			textAlignment west
+			wide 1056
+			tall 52
+			scriptID "1"
+			xpos 32
+			ypos 230
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Row2
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			labelText "SPRINT STOP HEIGHT"
+			textAlignment west
+			wide 1056
+			tall 52
+			scriptID "2"
+			xpos 32
+			ypos 292
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		HintText
+		{
+			ControlName Label
+			labelText "Sprint starts when your gun drops further than the start height below your eyes, and stops once it comes back above the stop height. Stop height is always kept below start height."
+			font Default_16
+			fgcolor_override "150 156 162 255"
+			wide 1056
+			tall 50
+			wrap 1
+			xpos 32
+			ypos 366
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		NoteText
+		{
+			ControlName Label
+			labelText "Sprint needs the action enabled here and a binding on the left or right stick click, depending on how the layer is configured."
+			font Default_16
+			fgcolor_override "150 156 162 255"
+			wide 1056
+			tall 50
+			wrap 1
+			xpos 32
+			ypos 430
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Status
+		{
+			ControlName Label
+			labelText ""
+			font Default_16
+			fgcolor_override "242 141 28 255"
+			allcaps 1
+			wide 1056
+			tall 30
+			xpos 32
+			ypos 600
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		FooterButtons
+		{
+			ControlName CNestedPanel
+			InheritProperties FooterButtons
+		}
+	}
+}

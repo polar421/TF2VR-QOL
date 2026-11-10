@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(TF2VRBetterBindings VERSION 1.2.2 LANGUAGES CXX)
+project(TF2VRBetterBindings VERSION 1.3.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -38,7 +38,8 @@ target_compile_options(tf2vrbb_layer PRIVATE ${COMMON_OPTIONS})
 
 add_library(tf2vrbb_plugin SHARED
     src/plugin/Plugin.cpp
-    src/plugin/Registration.cpp)
+    src/plugin/Registration.cpp
+    src/plugin/SettingsSync.cpp)
 set_target_properties(tf2vrbb_plugin PROPERTIES OUTPUT_NAME TF2VRBetterBindings)
 target_compile_definitions(tf2vrbb_plugin PRIVATE ${COMMON_DEFINITIONS})
 target_compile_options(tf2vrbb_plugin PRIVATE ${COMMON_OPTIONS})

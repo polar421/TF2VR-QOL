@@ -147,6 +147,10 @@ struct LayerState
     std::mutex mutex;
     bool active = false;
     std::wstring directory;
+    std::wstring configPath;
+    FILETIME configWriteTime{};
+    DWORD configSize = 0;
+    ULONGLONG nextConfigCheck = 0;
     Config config;
     NextFunctions next;
     XrInstance instance = XR_NULL_HANDLE;
@@ -248,7 +252,14 @@ void InitializeOnce()
     std::call_once(once, [] {
         LayerState& s = State();
         s.directory = ModuleDirectory();
-        s.config = LoadConfig(s.directory + L"\\" + kConfigFileName);
+        s.configPath = s.directory + L"\\" + kConfigFileName;
+        s.config = LoadConfig(s.configPath);
+        WIN32_FILE_ATTRIBUTE_DATA attributes{};
+        if (GetFileAttributesExW(s.configPath.c_str(), GetFileExInfoStandard, &attributes))
+        {
+            s.configWriteTime = attributes.ftLastWriteTime;
+            s.configSize = attributes.nFileSizeLow;
+        }
         std::wstring process = ProcessFileName();
         s.active = _wcsicmp(process.c_str(), s.config.targetProcess.c_str()) == 0;
         if (!s.active)
@@ -267,6 +278,31 @@ void InitializeOnce()
             s.config.sprintHand.c_str(), s.config.sprintStartBelowEyesCm, s.config.sprintStopBelowEyesCm, s.config.sprintMode.c_str(),
             s.config.sprintStopMethod.c_str(), s.config.sprintStopFrames);
     });
+}
+
+// Picks up settings that the in-game menu wrote while the game is running.
+// Action on/off flags only take effect at startup because the actions are
+// created with the instance; behaviour values are used every frame.
+bool ReloadConfigIfChanged(LayerState& s)
+{
+    ULONGLONG now = GetTickCount64();
+    if (now < s.nextConfigCheck)
+        return false;
+    s.nextConfigCheck = now + 1000;
+
+    WIN32_FILE_ATTRIBUTE_DATA attributes{};
+    if (!GetFileAttributesExW(s.configPath.c_str(), GetFileExInfoStandard, &attributes))
+        return false;
+    if (CompareFileTime(&attributes.ftLastWriteTime, &s.configWriteTime) == 0 && attributes.nFileSizeLow == s.configSize)
+        return false;
+
+    s.configWriteTime = attributes.ftLastWriteTime;
+    s.configSize = attributes.nFileSizeLow;
+    Config reloaded = LoadConfig(s.configPath);
+    reloaded.targetProcess = s.config.targetProcess;
+    s.config = reloaded;
+    Log("config reloaded from disk");
+    return true;
 }
 
 template <typename T>
@@ -1024,6 +1060,7 @@ XrResult XRAPI_CALL HookSyncActions(XrSession session, const XrActionsSyncInfo* 
             Log("first xrSyncActions (%d)", result);
         }
         ++s.frame;
+        ReloadConfigIfChanged(s);
         UpdateMenuState(s);
         UpdateReloadState(s);
         if (s.squeeze != XR_NULL_HANDLE)

@@ -1,1 +1,94 @@
+# TF2VR Better Bindings
 
+Extra SteamVR actions and optional features for [CircuitLord's Titanfall 2 VR mod](https://github.com/CircuitLord/CircuitLordVRModInstaller). **Nothing changes until you bind an action or turn a feature on.** Works left-handed too.
+
+## Actions
+
+Bind them in SteamVR → Settings → Controllers → **Manage Controller Bindings** → Titanfall 2 VR → **Edit**.
+
+| Action | What it does | Bind it to |
+|---|---|---|
+| **Reload Grab** | Grab magazines and rack slides with the trigger. While you reload, Grip on that hand grabs nothing, so Grip only holds the gun | Each **Trigger**, *Use as Button*, next to the mod's own trigger |
+| **Crouch** | Crouch | Any button: *Use as Button* to hold, *Use as Toggle Button* to toggle |
+| **Tactical Ability** | Cloak. The trigger of the hand without the gun then stops cloaking | Any button |
+
+Tip: set the mod's **VR Settings → Gun Grip** to **Toggle** to hold your gun with one press of Grip.
+
+## Settings menu
+
+**TF2VR BETTER BINDINGS** is a page in the game's own front end. Press **X** on the main menu, or click **TF2VR Better Bindings** in the footer.
+
+| Page | What it does |
+|---|---|
+| **Controls** | Lists the actions this add-on adds and what to bind them to |
+| **Action Settings** | Reload Grab, Grenade Toggle, Crouch, Crouch Mode, Uncrouch on Jump, Jump Delay, Tactical Ability, Tactical trigger blocking |
+| **General Options** | Sprint, and the two sprint heights |
+| **About** | Version, what the add-on is, and whether the settings file is connected |
+| **Restore Defaults** | Puts every setting above back to its default after a confirmation click |
+
+Select a row to change its value. The menu writes the same `TF2VRBetterBindings.ini` the OpenXR layer reads; the mod's Northstar plugin mirrors each row into that file, so nothing needs editing by hand any more.
+
+- Behaviour values (crouch mode, jump delay, sprint heights, tactical trigger blocking, grenade toggle, reload grab) are picked up by the layer about a second after the row changes.
+- Turning a whole action on or off changes which OpenXR actions exist, so it applies after restarting the game.
+- If a row says **NOT SAVED**, the plugin DLL is older than the menu: rebuild so `TF2VRBetterBindings.dll` contains the settings bridge. The menu still works, it just cannot write the file.
+
+> [!IMPORTANT]
+> **Optional features** can also be turned on from **Action Settings** and **General Options**. Editing `TF2VR\packages\Nighteyes-TF2VRBetterBindings-<version>\plugins\layer\TF2VRBetterBindings.ini` by hand still works, and the menu always reads the values that are in that file.
+>
+> | Setting | What it does |
+> |---|---|
+> | `[sprint] enabled=1` | Sprint by holding your gun low; raise it to aim and the sprint stops |
+> | `[grenade] toggle=1` | Grenades toggle like guns: press Grip to take one, press it again to throw. Needs **Gun Grip** on **Toggle** |
+> | `[crouch] uncrouch_on_jump=1` | Jumping out of a crouch or slide stands you up and jumps |
+
+<details>
+<summary>All other settings</summary>
+
+| Setting | Default | What it does |
+|---|---|---|
+| `[tactical] block_hand_trigger_in_game` | `1` | `0` = the trigger keeps cloaking after you bind **Tactical Ability** (it still never cloaks during a reload while **Reload Grab** is bound) |
+| `[crouch] mode` | `toggle` | Set to `button` if **Crouch** is bound as *Use as Button* and `uncrouch_on_jump` is on |
+| `[crouch] jump_delay_ms` | `250` | Raise it if jumping out of a crouch only stands you up |
+| `[sprint] start_below_eyes_cm` | `30` | How far below your eyes the gun must be to sprint |
+| `[sprint] stop_below_eyes_cm` | `20` | How close to your eyes the gun must come to stop |
+| `[reload_grab] enabled` | `1` | `0` = remove the **Reload Grab** action |
+
+</details>
+
+This is an unofficial add-on. It does not modify or include any of CircuitLord's files, and it is not affiliated with CircuitLord, Respawn, EA or Northstar.
+
+## Install
+
+1. Download `Nighteyes-TF2VRBetterBindings-<version>.zip` from the [Releases](../../releases) page. You need Titanfall 2 VR installed with CircuitLord's installer.
+2. Delete any older `Nighteyes-TF2VRBetterBindings-<version>` folder (copy its `TF2VRBetterBindings.ini` first to keep your settings). Extract the zip into `<Titanfall 2 folder>\TF2VR\packages\`, so you get `TF2VR\packages\Nighteyes-TF2VRBetterBindings-<version>\plugins\...`.
+3. **START THE GAME, QUIT, AND START IT AGAIN! IT DOES NOT WORK ON THE FIRST START!** This also applies after every update.
+4. Bind the actions you want in SteamVR.
+
+## Troubleshooting
+
+- **The actions are missing in SteamVR**: start the game a second time, then reopen the binding editor. `TF2VR\logs\nslog*.txt` has lines tagged `[TF2VRBB]` that say whether the add-on is active.
+- **Running the game as administrator** stops the add-on from loading. Start it normally.
+
+## Uninstall
+
+Delete the `Nighteyes-TF2VRBetterBindings-<version>` folder. A leftover registry entry under `HKEY_CURRENT_USER\Software\Khronos\OpenXR\1\ApiLayers\Implicit` is harmless; `unregister-layer.ps1` in the package removes it.
+
+## Building from source
+
+Requirements: Visual Studio 2022 or 2026 with the C++ workload, CMake 3.24+, Git (CMake fetches the Khronos OpenXR headers).
+
+```
+cmake -S . -B build -A x64
+cmake --build build --config Release
+cmake --build build --config Release --target dist_package
+```
+
+`dist_package` produces `build\package\Nighteyes-TF2VRBetterBindings-<version>\` and `build\Nighteyes-TF2VRBetterBindings-<version>.zip`. Configure with `-DTF2VR_PACKAGES_DIR="<Titanfall 2>\TF2VR\packages"` to get an `install_tf2vr` target that copies the package there, keeping an existing `.ini`.
+
+## Credits and license
+
+MIT License, see [LICENSE](LICENSE).
+
+- [CircuitLord](https://github.com/CircuitLord) for Titanfall 2 VR. This add-on requires it but does not contain any of it.
+- [Northstar](https://github.com/R2Northstar/NorthstarLauncher) (MIT) for the plugin interface and its documentation of engine internals.
+- [Khronos OpenXR SDK](https://github.com/KhronosGroup/OpenXR-SDK) headers (Apache-2.0), fetched at build time.

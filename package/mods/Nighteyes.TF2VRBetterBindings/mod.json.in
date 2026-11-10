@@ -1,6 +1,6 @@
 {
     "Name": "Nighteyes.TF2VRBetterBindings",
-    "Description": "Extra SteamVR actions for Titanfall 2 VR (Toggle Grip, Crouch, Tactical Ability). Reports menu and start-screen state to the TF2VR Better Bindings OpenXR layer.",
+    "Description": "Extra OpenXR actions for Titanfall 2 VR (Reload Grab, Crouch, Tactical Ability) plus an in-game settings menu. Menu changes are written back into the layer's TF2VRBetterBindings.ini. Reports menu and start-screen state to the layer.",
     "Version": "@PROJECT_VERSION@",
     "LoadPriority": 3,
     "Dependencies": {
@@ -8,13 +8,33 @@
     },
     "ConVars": [
         { "Name": "tf2vrbb_menu_active", "DefaultValue": "1" },
-        { "Name": "tf2vrbb_startup_phase", "DefaultValue": "-1" }
+        { "Name": "tf2vrbb_startup_phase", "DefaultValue": "-1" },
+        { "Name": "tf2vrbb_settings_api", "DefaultValue": "0" },
+        { "Name": "tf2vrbb_reload_grab", "DefaultValue": "1" },
+        { "Name": "tf2vrbb_grenade_toggle", "DefaultValue": "0" },
+        { "Name": "tf2vrbb_crouch_enabled", "DefaultValue": "1" },
+        { "Name": "tf2vrbb_crouch_button_mode", "DefaultValue": "0" },
+        { "Name": "tf2vrbb_uncrouch_on_jump", "DefaultValue": "0" },
+        { "Name": "tf2vrbb_jump_delay_ms", "DefaultValue": "250" },
+        { "Name": "tf2vrbb_tactical_enabled", "DefaultValue": "1" },
+        { "Name": "tf2vrbb_tactical_block_trigger", "DefaultValue": "1" },
+        { "Name": "tf2vrbb_sprint_enabled", "DefaultValue": "0" },
+        { "Name": "tf2vrbb_sprint_start_cm", "DefaultValue": "30" },
+        { "Name": "tf2vrbb_sprint_stop_cm", "DefaultValue": "20" }
     ],
     "Scripts": [
         {
             "Path": "tf2vrbb_menu_state.nut",
             "RunOn": "UI",
             "UICallback": { "After": "TF2VRBB_MenuStateInit" }
+        },
+        {
+            "Path": "ui/tf2vrbb_menu.nut",
+            "RunOn": "UI",
+            "UICallback": {
+                "Before": "TF2VRBB_AddMenu",
+                "After": "TF2VRBB_AddMainMenuFooter"
+            }
         }
     ]
 }

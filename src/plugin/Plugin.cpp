@@ -1,4 +1,5 @@
 #include "Registration.h"
+#include "SettingsSync.h"
 
 #include <windows.h>
 
@@ -125,6 +126,8 @@ public:
         if (createInterface)
             g_sys = static_cast<ISys*>(createInterface("NSSys001", nullptr));
 
+        tf2vrbb::SettingsSyncInit(initData ? initData->pluginHandle : nullptr);
+
         std::wstring layerDirectory = ModuleDirectory(initData ? initData->pluginHandle : nullptr) + kLayerFolder;
         std::wstring manifest = layerDirectory + kManifestName;
         if (GetFileAttributesW(manifest.c_str()) == INVALID_FILE_ATTRIBUTES)
@@ -163,7 +166,7 @@ public:
     void OnSqvmCreated(void*) override {}
     void OnSqvmDestroying(void*) override {}
     void OnLibraryLoaded(HMODULE, const char*) override {}
-    void RunFrame() override {}
+    void RunFrame() override { tf2vrbb::SettingsSyncFrame(); }
 };
 
 PluginId g_pluginId;

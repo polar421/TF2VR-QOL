@@ -1,0 +1,240 @@
+"resource/ui/menus/tf2vrbb_root.menu"
+{
+	menu
+	{
+		ControlName Frame
+		xpos 0
+		ypos 0
+		zpos 3
+		wide f0
+		tall f0
+		autoResize 0
+		visible 1
+		enabled 1
+		pinCorner 0
+		PaintBackgroundType 0
+		infocus_bgcolor_override "0 0 0 0"
+		outoffocus_bgcolor_override "0 0 0 0"
+
+		Vignette
+		{
+			ControlName ImagePanel
+			InheritProperties MenuVignette
+		}
+
+		ImgTopBar
+		{
+			ControlName ImagePanel
+			InheritProperties MenuTopBar
+		}
+
+		Title
+		{
+			ControlName Label
+			InheritProperties MenuTitle
+			labelText "TF2VR BETTER BINDINGS"
+		}
+
+		Screen
+		{
+			ControlName Label
+			wide %100
+			tall %100
+			labelText ""
+			visible 0
+		}
+
+		Panel
+		{
+			ControlName Label
+			labelText ""
+			wide 1120
+			tall 700
+			xpos -560
+			ypos -350
+			paintbackground 1
+			bgcolor_override "8 10 12 232"
+			pin_to_sibling Screen
+			pin_corner_to_sibling CENTER
+			pin_to_sibling_corner CENTER
+		}
+
+		AccentTop
+		{
+			ControlName Label
+			labelText ""
+			wide 1120
+			tall 6
+			paintbackground 1
+			bgcolor_override "242 141 28 255"
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		PanelHeader
+		{
+			ControlName Label
+			labelText "SETTINGS"
+			font Default_41
+			allcaps 1
+			fgcolor_override "255 255 255 255"
+			auto_wide_tocontents 1
+			auto_tall_tocontents 1
+			xpos 32
+			ypos 26
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		HeaderRule
+		{
+			ControlName Label
+			labelText ""
+			wide 1056
+			tall 2
+			paintbackground 1
+			bgcolor_override "96 104 112 255"
+			xpos 32
+			ypos 96
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		SubHeader
+		{
+			ControlName Label
+			labelText "Extra OpenXR actions for Titanfall 2 VR. Settings are stored in TF2VRBetterBindings.ini."
+			font Default_21
+			fgcolor_override "176 182 188 255"
+			wide 1056
+			tall 40
+			wrap 1
+			xpos 32
+			ypos 112
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Row0
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			labelText "CONTROLS"
+			textAlignment west
+			wide 1056
+			tall 54
+			scriptID "0"
+			xpos 32
+			ypos 170
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Row1
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			labelText "ACTION SETTINGS"
+			textAlignment west
+			wide 1056
+			tall 54
+			scriptID "1"
+			xpos 32
+			ypos 236
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Row2
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			labelText "GENERAL OPTIONS"
+			textAlignment west
+			wide 1056
+			tall 54
+			scriptID "2"
+			xpos 32
+			ypos 302
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Row3
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			labelText "ABOUT"
+			textAlignment west
+			wide 1056
+			tall 54
+			scriptID "3"
+			xpos 32
+			ypos 368
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Row4
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			labelText "RESTORE DEFAULTS"
+			textAlignment west
+			wide 1056
+			tall 54
+			scriptID "4"
+			xpos 32
+			ypos 434
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		HintText
+		{
+			ControlName Label
+			labelText "Behaviour settings apply immediately. Enabling or disabling an action takes effect after restarting Titanfall 2."
+			font Default_16
+			fgcolor_override "150 156 162 255"
+			wide 1056
+			tall 40
+			wrap 1
+			xpos 32
+			ypos 512
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		Status
+		{
+			ControlName Label
+			labelText ""
+			font Default_16
+			fgcolor_override "242 141 28 255"
+			allcaps 1
+			wide 1056
+			tall 30
+			xpos 32
+			ypos 600
+			pin_to_sibling Panel
+			pin_corner_to_sibling TOP_LEFT
+			pin_to_sibling_corner TOP_LEFT
+		}
+
+		FooterButtons
+		{
+			ControlName CNestedPanel
+			InheritProperties FooterButtons
+		}
+	}
+}
