@@ -11,7 +11,7 @@ WiVRn's dashboard does not expose per-app OpenXR actions, and xrizer is the Open
 | Action | What it does | Bind it to |
 |---|---|---|
 | **Reload Grab** | Grab magazines and rack slides with the trigger. While you reload, Grip on that hand grabs nothing, so Grip only holds the gun | Each **Trigger**, *Use as Button*, next to the mod's own trigger |
-| **Crouch** | Crouch | Any button: *Use as Button* to hold, *Use as Toggle Button* to toggle |
+| **Crouch** | Crouch | Any button. Set **Crouch Mode** to **Toggle** to press once to crouch and again to stand, or to **Button** to crouch while held |
 | **Tactical Ability** | Cloak. The trigger of the hand without the gun then stops cloaking | Any button |
 
 Tip: set the mod's **VR Settings → Gun Grip** to **Toggle** to hold your gun with one press of Grip.
@@ -57,7 +57,7 @@ Select a row to change its value. The menu writes the same `TF2VRBetterBindings.
 | Setting | Default | What it does |
 |---|---|---|
 | `[tactical] block_hand_trigger_in_game` | `1` | `0` = the trigger keeps cloaking after you bind **Tactical Ability** (it still never cloaks during a reload while **Reload Grab** is bound) |
-| `[crouch] mode` | `toggle` | Set to `button` if **Crouch** is bound as *Use as Button* and `uncrouch_on_jump` is on |
+| `[crouch] mode` | `toggle` | `toggle` = press to crouch, press again to stand; `button` = crouch while the button is held |
 | `[crouch] jump_delay_ms` | `250` | Raise it if jumping out of a crouch only stands you up |
 | `[crouch] binding` | `none` | Suggested OpenXR binding for **Crouch**: `none`, `left_thumbstick_click`, `right_thumbstick_click`, or `both_thumbstick_click`. Applied at startup; use it when the runtime has no per-app binding editor |
 | `[sprint] start_below_eyes_cm` | `30` | How far below your eyes the gun must be to sprint |

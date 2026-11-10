@@ -121,7 +121,7 @@ struct ButtonState
 struct CrouchState
 {
     bool jumpPressed = false;
-    bool inverted = false;
+    bool toggled = false;
     bool released = false;
     bool ducked = false;
     bool jumpPending = false;
@@ -610,6 +610,7 @@ void UpdateCrouch(LayerState& s, XrSession session, std::vector<std::string>& co
         return;
     button.active = state.isActive == XR_TRUE;
     bool pressed = state.isActive && state.currentState == XR_TRUE;
+    bool pressedEdge = pressed && !button.pressed;
     if (pressed != button.pressed)
     {
         button.pressed = pressed;
@@ -631,15 +632,23 @@ void UpdateCrouch(LayerState& s, XrSession session, std::vector<std::string>& co
     }
 
     bool buttonMode = s.config.crouchMode == "button";
-    if (buttonMode && !pressed)
-        c.released = false;
-    bool ducked = buttonMode ? pressed && !c.released : pressed != c.inverted;
+    if (buttonMode)
+    {
+        c.toggled = false;
+        if (!pressed)
+            c.released = false;
+    }
+    else if (pressedEdge)
+    {
+        c.toggled = !c.toggled;
+    }
+    bool ducked = buttonMode ? pressed && !c.released : c.toggled;
     if (jumpEdge && ducked && s.config.crouchUncrouchOnJump)
     {
         if (buttonMode)
             c.released = true;
         else
-            c.inverted = pressed;
+            c.toggled = false;
         ducked = false;
         c.jumpPending = true;
         c.jumpReleaseAt = std::chrono::steady_clock::now() + std::chrono::milliseconds(std::max(s.config.crouchJumpDelayMs, 0));
