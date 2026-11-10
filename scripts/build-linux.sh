@@ -164,6 +164,14 @@ required_convars = {
     "tf2vrbb_sprint_enabled", "tf2vrbb_sprint_start_cm", "tf2vrbb_sprint_stop_cm",
 }
 
+min_mingw_runtime_imports = {
+    "libstdc++-6.dll",
+    "libgcc_s_seh-1.dll",
+    "libgcc_s_dw2-1.dll",
+    "libwinpthread-1.dll",
+    "libssp-0.dll",
+}
+
 ini_expected = {
     ("reload_grab", "enabled"): "1",
     ("grenade", "toggle"): "0",
@@ -196,6 +204,59 @@ def pe_info(path):
         )
     return machine, characteristics
 
+def pe_imports(path):
+    data = path.read_bytes()
+    if data[:2] != b"MZ":
+        return set()
+    pe = struct.unpack_from("<I", data, 0x3C)[0]
+    if data[pe:pe + 4] != b"PE\0\0":
+        return set()
+    _machine, sections, _stamp, _symtab, _symbols, optional_size, _chars = struct.unpack_from(
+        "<HHIIIHH", data, pe + 4
+    )
+    optional = pe + 24
+    magic = struct.unpack_from("<H", data, optional)[0]
+    if magic == 0x20B:
+        directories = optional + 112
+    elif magic == 0x10B:
+        directories = optional + 96
+    else:
+        return set()
+    import_rva = struct.unpack_from("<I", data, directories + 8)[0]
+    if not import_rva:
+        return set()
+
+    section_table = optional + optional_size
+    layout = []
+    for index in range(sections):
+        base = section_table + index * 40
+        virtual_size, virtual_address, raw_size, raw_pointer = struct.unpack_from("<IIII", data, base + 8)
+        layout.append((virtual_address, max(virtual_size, raw_size), raw_pointer))
+
+    def file_offset(rva):
+        for virtual_address, size, raw_pointer in layout:
+            if virtual_address <= rva < virtual_address + size:
+                return raw_pointer + (rva - virtual_address)
+        return None
+
+    names = set()
+    cursor = file_offset(import_rva)
+    if cursor is None:
+        return names
+    while cursor + 20 <= len(data):
+        entry = struct.unpack_from("<IIIII", data, cursor)
+        if not any(entry):
+            break
+        name_offset = file_offset(entry[3])
+        if name_offset is None:
+            break
+        end = data.find(b"\0", name_offset, name_offset + 256)
+        if end == -1:
+            break
+        names.add(data[name_offset:end].decode("ascii", "replace").lower())
+        cursor += 20
+    return names
+
 if not pkg.is_dir():
     problems.append(f"package folder missing: {pkg}")
 else:
@@ -220,6 +281,11 @@ else:
             problems.append(f"{dll}: machine 0x{machine:04x}, expected x86-64 (0x8664)")
         if not characteristics & 0x2000:
             problems.append(f"{dll}: not linked as a DLL")
+        for dependency in sorted(pe_imports(path) & min_mingw_runtime_imports):
+            problems.append(
+                f"{dll}: imports {dependency}, which the game does not ship "
+                f"(Windows error 126); link the GCC runtime statically"
+            )
 
     mod = json.loads(read(pkg / mod_dir / "mod.json"))
     if mod.get("Version") != version:

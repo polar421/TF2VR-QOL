@@ -12,23 +12,22 @@ namespace
 constexpr const wchar_t* kImplicitLayersKey = L"Software\\Khronos\\OpenXR\\1\\ApiLayers\\Implicit";
 constexpr const wchar_t* kLayerFolder = L"\\layer\\";
 constexpr const wchar_t* kManifestName = L"XR_APILAYER_NIGHTEYES_tf2vr_better_bindings.json";
-constexpr const wchar_t* kLayerDllName = L"TF2VRBetterBindingsLayer.dll";
 constexpr int64_t kContextClient = 0x2;
 
-enum class PluginString : int
+enum PluginString : int
 {
     Name = 0,
     LogName = 1,
     DependencyName = 2,
 };
 
-enum class PluginField : int
+enum PluginField : int
 {
     Context = 0,
     Color = 1,
 };
 
-enum class LogLevel : int
+enum LogLevel : int
 {
     Info = 0,
     Warn = 1,
@@ -41,36 +40,63 @@ struct PluginNorthstarData
     uint64_t size;
 };
 
-class IPluginId
+// Northstar's interfaces are MSVC C++ classes, and other compilers give a
+// different vtable layout. They are declared here as the plugin documentation
+// describes them for non-C++ build tools: an instance that only holds a pointer
+// to an array of function pointers, each taking the instance as its first
+// argument. This is the same memory layout MSVC produces, without depending on
+// the compiler's own virtual dispatch.
+struct SysVTable
 {
-public:
-    virtual const char* GetString(PluginString prop) = 0;
-    virtual int64_t GetField(PluginField prop) = 0;
+    void (*log)(void* self, HMODULE handle, int level, char* message);
+    void (*unload)(void* self, HMODULE handle);
+    void (*reload)(void* self, HMODULE handle);
 };
 
-class IPluginCallbacks
+struct SysObject
 {
-public:
-    virtual void Init(HMODULE northstarModule, const PluginNorthstarData* initData, bool reloaded) = 0;
-    virtual void Finalize() = 0;
-    virtual bool Unload() = 0;
-    virtual void OnSqvmCreated(void* sqvm) = 0;
-    virtual void OnSqvmDestroying(void* sqvm) = 0;
-    virtual void OnLibraryLoaded(HMODULE module, const char* name) = 0;
-    virtual void RunFrame() = 0;
+    SysVTable* vtable;
 };
 
-class ISys
+struct PluginIdVTable
 {
-public:
-    virtual void Log(int64_t unused, LogLevel level, char* msg) = 0;
-    virtual void Unload(int64_t unused) = 0;
-    virtual void Reload(int64_t unused) = 0;
+    const char* (*getString)(void* self, int property);
+    int64_t (*getField)(void* self, int property);
+};
+
+struct PluginIdObject
+{
+    PluginIdVTable* vtable;
+};
+
+struct PluginCallbacksVTable
+{
+    void (*init)(void* self, HMODULE northstarModule, const PluginNorthstarData* initData, bool reloaded);
+    void (*finalize)(void* self);
+    bool (*unload)(void* self);
+    void (*onSqvmCreated)(void* self, void* sqvm);
+    void (*onSqvmDestroying)(void* self, void* sqvm);
+    void (*onLibraryLoaded)(void* self, HMODULE module, const char* name);
+    void (*runFrame)(void* self);
+};
+
+struct PluginCallbacksObject
+{
+    PluginCallbacksVTable* vtable;
 };
 
 using CreateInterfaceFn = void* (*)(const char* name, int* status);
 
-ISys* g_sys = nullptr;
+void* g_sys = nullptr;
+
+void SysLog(int level, const std::string& message)
+{
+    if (!g_sys)
+        return;
+    SysObject* sys = static_cast<SysObject*>(g_sys);
+    if (sys->vtable && sys->vtable->log)
+        sys->vtable->log(sys, nullptr, level, const_cast<char*>(message.c_str()));
+}
 
 std::string Narrow(const std::wstring& text)
 {
@@ -82,10 +108,10 @@ std::string Narrow(const std::wstring& text)
     return result;
 }
 
-void SysLog(LogLevel level, std::string message)
+bool RunningUnderWine()
 {
-    if (g_sys)
-        g_sys->Log(0, level, message.data());
+    HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
+    return ntdll && GetProcAddress(ntdll, "wine_get_version") != nullptr;
 }
 
 std::wstring ModuleDirectory(HMODULE module)
@@ -97,89 +123,109 @@ std::wstring ModuleDirectory(HMODULE module)
     return slash == std::wstring::npos ? std::wstring() : result.substr(0, slash);
 }
 
-class PluginId : public IPluginId
+const char* PluginIdGetString(void*, int property)
 {
-public:
-    const char* GetString(PluginString prop) override
+    switch (property)
     {
-        switch (prop)
-        {
-        case PluginString::Name: return "TF2VRBetterBindings";
-        case PluginString::LogName: return "TF2VRBB";
-        case PluginString::DependencyName: return "TF2VRBetterBindings";
-        default: return nullptr;
-        }
+    case Name: return "TF2VRBetterBindings";
+    case LogName: return "TF2VRBB";
+    case DependencyName: return "TF2VRBetterBindings";
+    default: return nullptr;
+    }
+}
+
+int64_t PluginIdGetField(void*, int property)
+{
+    return property == Context ? kContextClient : 0;
+}
+
+PluginIdVTable g_pluginIdVTable = {PluginIdGetString, PluginIdGetField};
+PluginIdObject g_pluginId = {&g_pluginIdVTable};
+
+void PluginInit(void*, HMODULE northstarModule, const PluginNorthstarData* initData, bool)
+{
+    auto createInterface = reinterpret_cast<CreateInterfaceFn>(GetProcAddress(northstarModule, "CreateInterface"));
+    if (createInterface)
+        g_sys = createInterface("NSSys001", nullptr);
+
+    tf2vrbb::SettingsSyncInit(initData ? initData->pluginHandle : nullptr);
+
+    // Wine's OpenXR bridge forwards to the native Linux loader, which only
+    // loads ELF API layers. A Windows layer DLL can never be negotiated here,
+    // so registering it would only add a dead registry entry.
+    if (RunningUnderWine())
+    {
+        SysLog(Warn, "Wine/Proton detected: the OpenXR bridge loads native Linux API layers only, so the binding layer is inactive. The settings menu works; the extra actions do not.");
+        return;
     }
 
-    int64_t GetField(PluginField prop) override
+    std::wstring layerDirectory = ModuleDirectory(initData ? initData->pluginHandle : nullptr) + kLayerFolder;
+    std::wstring manifest = layerDirectory + kManifestName;
+    if (GetFileAttributesW(manifest.c_str()) == INVALID_FILE_ATTRIBUTES)
     {
-        return prop == PluginField::Context ? kContextClient : 0;
+        SysLog(Error, "OpenXR layer manifest missing: " + Narrow(manifest));
+        return;
     }
+
+    tf2vrbb::RegistrationReport report = tf2vrbb::RegisterImplicitLayer(HKEY_CURRENT_USER, kImplicitLayersKey, manifest);
+    if (report.removedStale > 0)
+        SysLog(Info, "removed " + std::to_string(report.removedStale) + " registration(s) of other copies of the layer");
+
+    switch (report.result)
+    {
+    case tf2vrbb::RegistrationResult::Failed:
+        SysLog(Error, "could not register the OpenXR layer under HKEY_CURRENT_USER");
+        break;
+    case tf2vrbb::RegistrationResult::DisabledByUser:
+        SysLog(Info, "OpenXR layer is disabled in the registry (value is not 0); leaving it disabled");
+        break;
+    case tf2vrbb::RegistrationResult::Registered:
+        SysLog(Warn, "OpenXR layer registered for this Windows user. Restart the game once to activate TF2VR Better Bindings.");
+        break;
+    case tf2vrbb::RegistrationResult::AlreadyRegistered:
+        SysLog(Info, "OpenXR layer registered");
+        break;
+    }
+}
+
+void PluginFinalize(void*) {}
+
+bool PluginUnload(void*)
+{
+    return true;
+}
+
+void PluginOnSqvmCreated(void*, void*) {}
+
+void PluginOnSqvmDestroying(void*, void*) {}
+
+void PluginOnLibraryLoaded(void*, HMODULE, const char*) {}
+
+void PluginRunFrame(void*)
+{
+    tf2vrbb::SettingsSyncFrame();
+}
+
+PluginCallbacksVTable g_pluginCallbacksVTable = {
+    PluginInit,
+    PluginFinalize,
+    PluginUnload,
+    PluginOnSqvmCreated,
+    PluginOnSqvmDestroying,
+    PluginOnLibraryLoaded,
+    PluginRunFrame,
 };
 
-class PluginCallbacks : public IPluginCallbacks
-{
-public:
-    void Init(HMODULE northstarModule, const PluginNorthstarData* initData, bool) override
-    {
-        auto createInterface = reinterpret_cast<CreateInterfaceFn>(GetProcAddress(northstarModule, "CreateInterface"));
-        if (createInterface)
-            g_sys = static_cast<ISys*>(createInterface("NSSys001", nullptr));
-
-        tf2vrbb::SettingsSyncInit(initData ? initData->pluginHandle : nullptr);
-
-        std::wstring layerDirectory = ModuleDirectory(initData ? initData->pluginHandle : nullptr) + kLayerFolder;
-        std::wstring manifest = layerDirectory + kManifestName;
-        if (GetFileAttributesW(manifest.c_str()) == INVALID_FILE_ATTRIBUTES)
-        {
-            SysLog(LogLevel::Error, "OpenXR layer manifest missing: " + Narrow(manifest));
-            return;
-        }
-
-        tf2vrbb::RegistrationReport report = tf2vrbb::RegisterImplicitLayer(HKEY_CURRENT_USER, kImplicitLayersKey, manifest);
-        if (report.removedStale > 0)
-            SysLog(LogLevel::Info, "removed " + std::to_string(report.removedStale) + " registration(s) of other copies of the layer");
-
-        bool loaded = GetModuleHandleW((layerDirectory + kLayerDllName).c_str()) != nullptr;
-        switch (report.result)
-        {
-        case tf2vrbb::RegistrationResult::Failed:
-            SysLog(LogLevel::Error, "could not register the OpenXR layer under HKEY_CURRENT_USER");
-            break;
-        case tf2vrbb::RegistrationResult::DisabledByUser:
-            SysLog(LogLevel::Info, "OpenXR layer is disabled in the registry (value is not 0); leaving it disabled");
-            break;
-        case tf2vrbb::RegistrationResult::Registered:
-            SysLog(LogLevel::Warn, "OpenXR layer registered for this Windows user. Restart the game once to activate TF2VR Better Bindings.");
-            break;
-        case tf2vrbb::RegistrationResult::AlreadyRegistered:
-            if (loaded)
-                SysLog(LogLevel::Info, "OpenXR layer active");
-            else
-                SysLog(LogLevel::Warn, "OpenXR layer is registered but did not load this session. Restart the game; if it persists, make sure the game is not running as administrator.");
-            break;
-        }
-    }
-
-    void Finalize() override {}
-    bool Unload() override { return true; }
-    void OnSqvmCreated(void*) override {}
-    void OnSqvmDestroying(void*) override {}
-    void OnLibraryLoaded(HMODULE, const char*) override {}
-    void RunFrame() override { tf2vrbb::SettingsSyncFrame(); }
-};
-
-PluginId g_pluginId;
-PluginCallbacks g_pluginCallbacks;
+PluginCallbacksObject g_pluginCallbacks = {&g_pluginCallbacksVTable};
 }
 
 extern "C" __declspec(dllexport) void* CreateInterface(const char* name, int* status)
 {
     void* result = nullptr;
     if (name && std::strcmp(name, "PluginId001") == 0)
-        result = static_cast<IPluginId*>(&g_pluginId);
+        result = &g_pluginId;
     else if (name && std::strcmp(name, "PluginCallbacks001") == 0)
-        result = static_cast<IPluginCallbacks*>(&g_pluginCallbacks);
+        result = &g_pluginCallbacks;
     if (status)
         *status = result ? 0 : 1;
     return result;

@@ -27,6 +27,9 @@ else()
     # falls back to an unguarded probe; keep /WX out here so a newer GCC warning
     # does not block an otherwise valid cross build.
     set(COMMON_OPTIONS -Wall -Wextra -Wno-missing-field-initializers -Wno-cast-function-type)
+    # The game does not ship MinGW's runtime DLLs, and a plugin that imports them
+    # fails to load with Windows error 126. Link the GCC runtime into both DLLs.
+    set(COMMON_LINK_OPTIONS -static -static-libgcc -static-libstdc++)
 endif()
 
 option(TF2VRBB_DEV_LOG "Write TF2VRBetterBindings.log next to the layer DLL (development builds only)" OFF)
@@ -43,6 +46,7 @@ set_target_properties(tf2vrbb_layer PROPERTIES OUTPUT_NAME TF2VRBetterBindingsLa
 target_include_directories(tf2vrbb_layer PRIVATE ${OPENXR_INCLUDE_DIR})
 target_compile_definitions(tf2vrbb_layer PRIVATE ${COMMON_DEFINITIONS} XR_NO_PROTOTYPES $<$<BOOL:${TF2VRBB_DEV_LOG}>:TF2VRBB_LOGGING>)
 target_compile_options(tf2vrbb_layer PRIVATE ${COMMON_OPTIONS})
+target_link_options(tf2vrbb_layer PRIVATE ${COMMON_LINK_OPTIONS})
 
 add_library(tf2vrbb_plugin SHARED
     src/plugin/Plugin.cpp
@@ -51,6 +55,7 @@ add_library(tf2vrbb_plugin SHARED
 set_target_properties(tf2vrbb_plugin PROPERTIES OUTPUT_NAME TF2VRBetterBindings PREFIX "")
 target_compile_definitions(tf2vrbb_plugin PRIVATE ${COMMON_DEFINITIONS})
 target_compile_options(tf2vrbb_plugin PRIVATE ${COMMON_OPTIONS})
+target_link_options(tf2vrbb_plugin PRIVATE ${COMMON_LINK_OPTIONS})
 target_link_libraries(tf2vrbb_plugin PRIVATE advapi32)
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/LayerTests.cpp")
@@ -63,6 +68,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/LayerTests.cpp")
     target_include_directories(tf2vrbb_layer_logging PRIVATE ${OPENXR_INCLUDE_DIR})
     target_compile_definitions(tf2vrbb_layer_logging PRIVATE ${COMMON_DEFINITIONS} XR_NO_PROTOTYPES TF2VRBB_LOGGING)
     target_compile_options(tf2vrbb_layer_logging PRIVATE ${COMMON_OPTIONS})
+    target_link_options(tf2vrbb_layer_logging PRIVATE ${COMMON_LINK_OPTIONS})
 
     add_library(fake_vstdlib SHARED tests/FakeVstdlib.cpp)
     set_target_properties(fake_vstdlib PROPERTIES OUTPUT_NAME vstdlib)

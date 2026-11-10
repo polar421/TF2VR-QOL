@@ -239,10 +239,13 @@ void function TF2VRBB_InitRestore()
 
 	var restoreButton = Hud_GetChild( file.restoreMenu, "BtnRestore" )
 	var cancelButton = Hud_GetChild( file.restoreMenu, "BtnCancel" )
-	restoreButton.SetNavUp( cancelButton )
-	restoreButton.SetNavDown( cancelButton )
-	cancelButton.SetNavUp( restoreButton )
-	cancelButton.SetNavDown( restoreButton )
+
+	// A local inferred from Hud_GetChild has no known type, so calling methods on
+	// it does not compile. The Hud_* helpers take var parameters and do it.
+	Hud_SetNavUp( restoreButton, cancelButton )
+	Hud_SetNavDown( restoreButton, cancelButton )
+	Hud_SetNavUp( cancelButton, restoreButton )
+	Hud_SetNavDown( cancelButton, restoreButton )
 
 	Hud_AddEventHandler( restoreButton, UIE_CLICK, TF2VRBB_OnRestoreConfirmed )
 	Hud_AddEventHandler( cancelButton, UIE_CLICK, TF2VRBB_OnBackButton )
@@ -276,9 +279,8 @@ void function TF2VRBB_WireNav( array<var> buttons )
 
 	for ( int i = 0; i < count; i++ )
 	{
-		var button = buttons[ i ]
-		button.SetNavUp( buttons[ ( i + count - 1 ) % count ] )
-		button.SetNavDown( buttons[ ( i + 1 ) % count ] )
+		Hud_SetNavUp( buttons[ i ], buttons[ ( i + count - 1 ) % count ] )
+		Hud_SetNavDown( buttons[ i ], buttons[ ( i + 1 ) % count ] )
 	}
 }
 
