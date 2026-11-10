@@ -196,7 +196,7 @@ void function TF2VRBB_InitControls()
 
 	AddMenuFooterOption( file.controlsMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
 	Hud_AddEventHandler( Hud_GetChild( file.controlsMenu, "BtnBack" ), UIE_CLICK, TF2VRBB_OnBackButton )
-	AddMenuEventHandler( file.controlsMenu, eUIEvent.MENU_OPEN, TF2VRBB_OnListPageOpen )
+	AddMenuEventHandler( file.controlsMenu, eUIEvent.MENU_OPEN, TF2VRBB_OnControlsOpen )
 }
 
 void function TF2VRBB_InitActions()
@@ -214,7 +214,7 @@ void function TF2VRBB_InitActions()
 	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchTacticalBlockTrigger", "TACTICAL BLOCKS HAND TRIGGER" )
 
 	AddMenuFooterOption( file.actionsMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
-	AddMenuEventHandler( file.actionsMenu, eUIEvent.MENU_OPEN, TF2VRBB_OnListPageOpen )
+	AddMenuEventHandler( file.actionsMenu, eUIEvent.MENU_OPEN, TF2VRBB_OnActionsOpen )
 }
 
 void function TF2VRBB_InitGeneral()
@@ -227,7 +227,7 @@ void function TF2VRBB_InitGeneral()
 	TF2VRBB_SetButtonLabel( file.generalMenu, "SwitchSprintStop", "SPRINT STOP HEIGHT" )
 
 	AddMenuFooterOption( file.generalMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
-	AddMenuEventHandler( file.generalMenu, eUIEvent.MENU_OPEN, TF2VRBB_OnListPageOpen )
+	AddMenuEventHandler( file.generalMenu, eUIEvent.MENU_OPEN, TF2VRBB_OnGeneralOpen )
 }
 
 void function TF2VRBB_InitAbout()
@@ -239,7 +239,7 @@ void function TF2VRBB_InitAbout()
 	Hud_AddEventHandler( Hud_GetChild( file.aboutMenu, "BtnBack" ), UIE_CLICK, TF2VRBB_OnBackButton )
 
 	AddMenuFooterOption( file.aboutMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
-	AddMenuEventHandler( file.aboutMenu, eUIEvent.MENU_OPEN, TF2VRBB_OnListPageOpen )
+	AddMenuEventHandler( file.aboutMenu, eUIEvent.MENU_OPEN, TF2VRBB_OnAboutOpen )
 }
 
 void function TF2VRBB_InitRestore()
@@ -275,7 +275,10 @@ array<var> function TF2VRBB_GetRowButtons( var menu, int count )
 	{
 		var button = Hud_GetChild( menu, "Row" + string( i ) )
 		if ( button == null )
+		{
+			print( "[TF2VRBB][layout] missing Row" + string( i ) + "\n" )
 			continue
+		}
 		buttons.append( button )
 	}
 	return buttons
@@ -286,6 +289,8 @@ void function TF2VRBB_SetButtonLabel( var menu, string childName, string label )
 	var button = Hud_GetChild( menu, childName )
 	if ( button != null )
 		SetButtonRuiText( button, label )
+	else
+		print( "[TF2VRBB][layout] missing label target " + childName + "\n" )
 }
 
 void function TF2VRBB_WireNav( array<var> buttons )
@@ -299,6 +304,174 @@ void function TF2VRBB_WireNav( array<var> buttons )
 		Hud_SetNavUp( buttons[ i ], buttons[ ( i + count - 1 ) % count ] )
 		Hud_SetNavDown( buttons[ i ], buttons[ ( i + 1 ) % count ] )
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Layout diagnostics
+////////////////////////////////////////////////////////////////////////////////
+
+string function TF2VRBB_HudParentInfo( var hud )
+{
+	var parent = Hud_GetParent( hud )
+	if ( parent == null )
+		return "parent=NULL"
+
+	return "parentAbs=(" + string( Hud_GetAbsX( parent ) ) + "," + string( Hud_GetAbsY( parent ) ) + ")"
+		+ " parentSize=(" + string( Hud_GetWidth( parent ) ) + "x" + string( Hud_GetHeight( parent ) ) + ")"
+}
+
+void function TF2VRBB_LogHudChild( var menu, string name )
+{
+	var hud = Hud_GetChild( menu, name )
+	if ( hud == null )
+	{
+		print( "[TF2VRBB][layout] " + name + " = NULL\n" )
+		return
+	}
+
+	print( "[TF2VRBB][layout] " + name
+		+ " rel=(" + string( Hud_GetX( hud ) ) + "," + string( Hud_GetY( hud ) ) + ")"
+		+ " abs=(" + string( Hud_GetAbsX( hud ) ) + "," + string( Hud_GetAbsY( hud ) ) + ")"
+		+ " size=(" + string( Hud_GetWidth( hud ) ) + "x" + string( Hud_GetHeight( hud ) ) + ")"
+		+ " visible=" + ( Hud_IsVisible( hud ) ? "1" : "0" )
+		+ " enabled=" + ( Hud_IsEnabled( hud ) ? "1" : "0" )
+		+ " scriptID=" + string( Hud_GetScriptID( hud ) )
+		+ " " + TF2VRBB_HudParentInfo( hud )
+		+ " text=\"" + Hud_GetUTF8Text( hud ) + "\"\n" )
+}
+
+void function TF2VRBB_LogPageHeader( string page, var menu )
+{
+	var screen = GetScreenSize()
+	print( "[TF2VRBB][layout] page=" + page + " screen=" + string( screen[ 0 ] ) + "x" + string( screen[ 1 ] ) + "\n" )
+	print( "[TF2VRBB][layout] page=" + page + " menu"
+		+ " rel=(" + string( Hud_GetX( menu ) ) + "," + string( Hud_GetY( menu ) ) + ")"
+		+ " abs=(" + string( Hud_GetAbsX( menu ) ) + "," + string( Hud_GetAbsY( menu ) ) + ")"
+		+ " size=(" + string( Hud_GetWidth( menu ) ) + "x" + string( Hud_GetHeight( menu ) ) + ")"
+		+ " visible=" + ( Hud_IsVisible( menu ) ? "1" : "0" ) + "\n" )
+}
+
+void function TF2VRBB_LogRootLayout()
+{
+	WaitFrame()
+	WaitFrame()
+
+	TF2VRBB_LogPageHeader( "root", file.rootMenu )
+	TF2VRBB_LogHudChild( file.rootMenu, "Panel" )
+	TF2VRBB_LogHudChild( file.rootMenu, "AccentTop" )
+	TF2VRBB_LogHudChild( file.rootMenu, "PanelHeader" )
+	TF2VRBB_LogHudChild( file.rootMenu, "HeaderRule" )
+	TF2VRBB_LogHudChild( file.rootMenu, "SubHeader" )
+	TF2VRBB_LogHudChild( file.rootMenu, "ButtonRowAnchor" )
+
+	for ( int i = 0; i < TF2VRBB_ROOT_ROW_COUNT; i++ )
+		TF2VRBB_LogHudChild( file.rootMenu, "Row" + string( i ) )
+
+	TF2VRBB_LogHudChild( file.rootMenu, "HintText" )
+	TF2VRBB_LogHudChild( file.rootMenu, "Status" )
+	print( "[TF2VRBB][layout] root buttons=" + string( file.rootButtons.len() ) + "\n" )
+}
+
+void function TF2VRBB_LogActionsLayout()
+{
+	WaitFrame()
+	WaitFrame()
+
+	TF2VRBB_LogPageHeader( "actions", file.actionsMenu )
+	TF2VRBB_LogHudChild( file.actionsMenu, "Panel" )
+	TF2VRBB_LogHudChild( file.actionsMenu, "PanelHeader" )
+	TF2VRBB_LogHudChild( file.actionsMenu, "HeaderRule" )
+	TF2VRBB_LogHudChild( file.actionsMenu, "SubHeader" )
+
+	array<string> names = []
+	names.append( "SwitchReloadGrab" )
+	names.append( "SwitchGrenadeToggle" )
+	names.append( "SwitchCrouchAction" )
+	names.append( "SwitchCrouchMode" )
+	names.append( "SwitchUncrouchOnJump" )
+	names.append( "SwitchJumpDelay" )
+	names.append( "SwitchTacticalAction" )
+	names.append( "SwitchTacticalBlockTrigger" )
+	for ( int i = 0; i < names.len(); i++ )
+		TF2VRBB_LogHudChild( file.actionsMenu, names[ i ] )
+
+	TF2VRBB_LogHudChild( file.actionsMenu, "HintText" )
+	TF2VRBB_LogHudChild( file.actionsMenu, "Status" )
+	print( "[TF2VRBB][layout] action buttons=" + string( file.actionButtons.len() ) + "\n" )
+}
+
+void function TF2VRBB_LogGeneralLayout()
+{
+	WaitFrame()
+	WaitFrame()
+
+	TF2VRBB_LogPageHeader( "general", file.generalMenu )
+	TF2VRBB_LogHudChild( file.generalMenu, "Panel" )
+	TF2VRBB_LogHudChild( file.generalMenu, "PanelHeader" )
+	TF2VRBB_LogHudChild( file.generalMenu, "HeaderRule" )
+	TF2VRBB_LogHudChild( file.generalMenu, "SubHeader" )
+
+	array<string> names = []
+	names.append( "SwitchSprintAction" )
+	names.append( "SwitchSprintStart" )
+	names.append( "SwitchSprintStop" )
+	for ( int i = 0; i < names.len(); i++ )
+		TF2VRBB_LogHudChild( file.generalMenu, names[ i ] )
+
+	TF2VRBB_LogHudChild( file.generalMenu, "HintText" )
+	TF2VRBB_LogHudChild( file.generalMenu, "NoteText" )
+	TF2VRBB_LogHudChild( file.generalMenu, "Status" )
+	print( "[TF2VRBB][layout] general buttons=" + string( file.generalButtons.len() ) + "\n" )
+}
+
+void function TF2VRBB_LogControlsLayout()
+{
+	WaitFrame()
+	WaitFrame()
+
+	TF2VRBB_LogPageHeader( "controls", file.controlsMenu )
+	TF2VRBB_LogHudChild( file.controlsMenu, "Panel" )
+	TF2VRBB_LogHudChild( file.controlsMenu, "PanelHeader" )
+	TF2VRBB_LogHudChild( file.controlsMenu, "HeaderRule" )
+	TF2VRBB_LogHudChild( file.controlsMenu, "SubHeader" )
+
+	for ( int i = 0; i < 5; i++ )
+	{
+		TF2VRBB_LogHudChild( file.controlsMenu, "Entry" + string( i ) )
+		TF2VRBB_LogHudChild( file.controlsMenu, "Desc" + string( i ) )
+	}
+
+	TF2VRBB_LogHudChild( file.controlsMenu, "BtnBack" )
+}
+
+void function TF2VRBB_LogAboutLayout()
+{
+	WaitFrame()
+	WaitFrame()
+
+	TF2VRBB_LogPageHeader( "about", file.aboutMenu )
+	TF2VRBB_LogHudChild( file.aboutMenu, "Panel" )
+	TF2VRBB_LogHudChild( file.aboutMenu, "PanelHeader" )
+	TF2VRBB_LogHudChild( file.aboutMenu, "HeaderRule" )
+	TF2VRBB_LogHudChild( file.aboutMenu, "VersionLabel" )
+	TF2VRBB_LogHudChild( file.aboutMenu, "StorageLabel" )
+	TF2VRBB_LogHudChild( file.aboutMenu, "BtnBack" )
+}
+
+void function TF2VRBB_LogRestoreLayout()
+{
+	WaitFrame()
+	WaitFrame()
+
+	TF2VRBB_LogPageHeader( "restore", file.restoreMenu )
+	TF2VRBB_LogHudChild( file.restoreMenu, "Panel" )
+	TF2VRBB_LogHudChild( file.restoreMenu, "PanelHeader" )
+	TF2VRBB_LogHudChild( file.restoreMenu, "HeaderRule" )
+	TF2VRBB_LogHudChild( file.restoreMenu, "WarningText" )
+	TF2VRBB_LogHudChild( file.restoreMenu, "DefaultsText" )
+	TF2VRBB_LogHudChild( file.restoreMenu, "BtnRestore" )
+	TF2VRBB_LogHudChild( file.restoreMenu, "BtnCancel" )
+	TF2VRBB_LogHudChild( file.restoreMenu, "Status" )
 }
 
 string function TF2VRBB_RowText( TF2VRBBRow row, int value )
@@ -409,11 +582,36 @@ void function TF2VRBB_OnRootOpen()
 {
 	TF2VRBB_RefreshAll()
 	FocusDefaultMenuItem( file.rootMenu )
+	thread TF2VRBB_LogRootLayout()
 }
 
 void function TF2VRBB_OnListPageOpen()
 {
 	TF2VRBB_RefreshAll()
+}
+
+void function TF2VRBB_OnControlsOpen()
+{
+	TF2VRBB_OnListPageOpen()
+	thread TF2VRBB_LogControlsLayout()
+}
+
+void function TF2VRBB_OnActionsOpen()
+{
+	TF2VRBB_OnListPageOpen()
+	thread TF2VRBB_LogActionsLayout()
+}
+
+void function TF2VRBB_OnGeneralOpen()
+{
+	TF2VRBB_OnListPageOpen()
+	thread TF2VRBB_LogGeneralLayout()
+}
+
+void function TF2VRBB_OnAboutOpen()
+{
+	TF2VRBB_OnListPageOpen()
+	thread TF2VRBB_LogAboutLayout()
 }
 
 void function TF2VRBB_OnRestoreOpen()
@@ -422,6 +620,7 @@ void function TF2VRBB_OnRestoreOpen()
 	if ( file.restoreStatus != null )
 		Hud_SetText( file.restoreStatus, "" )
 	FocusDefaultMenuItem( file.restoreMenu )
+	thread TF2VRBB_LogRestoreLayout()
 }
 
 // Each button gets its own handler that captures its page index, so no HUD
