@@ -335,7 +335,7 @@ void function TF2VRBB_LogHudChild( var menu, string name )
 		+ " size=(" + string( Hud_GetWidth( hud ) ) + "x" + string( Hud_GetHeight( hud ) ) + ")"
 		+ " visible=" + ( Hud_IsVisible( hud ) ? "1" : "0" )
 		+ " enabled=" + ( Hud_IsEnabled( hud ) ? "1" : "0" )
-		+ " scriptID=" + string( Hud_GetScriptID( hud ) )
+		+ " scriptID=" + Hud_GetScriptID( hud )
 		+ " " + TF2VRBB_HudParentInfo( hud )
 		+ " text=\"" + Hud_GetUTF8Text( hud ) + "\"\n" )
 }
