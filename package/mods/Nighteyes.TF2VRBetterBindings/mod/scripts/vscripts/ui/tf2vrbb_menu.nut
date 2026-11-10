@@ -203,7 +203,7 @@ void function TF2VRBB_InitActions()
 {
 	file.actionsMenu = GetMenu( TF2VRBB_MENU_ACTIONS )
 	file.actionStatus = Hud_GetChild( file.actionsMenu, "Status" )
-	file.actionButtons = TF2VRBB_GetRowButtons( file.actionsMenu, TF2VRBB_ACTION_ROW_COUNT )
+	file.actionButtons = []
 	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchReloadGrab", "RELOAD GRAB" )
 	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchGrenadeToggle", "GRENADE TOGGLE" )
 	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchCrouchAction", "CROUCH ACTION" )
@@ -213,9 +213,6 @@ void function TF2VRBB_InitActions()
 	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchTacticalAction", "TACTICAL ACTION" )
 	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchTacticalBlockTrigger", "TACTICAL BLOCKS HAND TRIGGER" )
 
-	TF2VRBB_WireNav( file.actionButtons )
-	TF2VRBB_BindSettingRows( file.actionButtons, false )
-
 	AddMenuFooterOption( file.actionsMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
 	AddMenuEventHandler( file.actionsMenu, eUIEvent.MENU_OPEN, TF2VRBB_OnListPageOpen )
 }
@@ -224,13 +221,10 @@ void function TF2VRBB_InitGeneral()
 {
 	file.generalMenu = GetMenu( TF2VRBB_MENU_GENERAL )
 	file.generalStatus = Hud_GetChild( file.generalMenu, "Status" )
-	file.generalButtons = TF2VRBB_GetRowButtons( file.generalMenu, TF2VRBB_GENERAL_ROW_COUNT )
+	file.generalButtons = []
 	TF2VRBB_SetButtonLabel( file.generalMenu, "SwitchSprintAction", "SPRINT ACTION" )
 	TF2VRBB_SetButtonLabel( file.generalMenu, "SwitchSprintStart", "SPRINT START HEIGHT" )
 	TF2VRBB_SetButtonLabel( file.generalMenu, "SwitchSprintStop", "SPRINT STOP HEIGHT" )
-
-	TF2VRBB_WireNav( file.generalButtons )
-	TF2VRBB_BindSettingRows( file.generalButtons, true )
 
 	AddMenuFooterOption( file.generalMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
 	AddMenuEventHandler( file.generalMenu, eUIEvent.MENU_OPEN, TF2VRBB_OnListPageOpen )
