@@ -52,7 +52,7 @@
 			wide 760
 			tall 800
 			xpos 120
-			ypos 120
+			ypos 220
 			paintbackground 1
 			bgcolor_override "8 10 12 232"
 		}
@@ -137,6 +137,7 @@
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
+			classname MatchSettingCategoryButton
 			labelText "RESTORE DEFAULTS"
 			textAlignment center
 			wide 360
@@ -153,6 +154,7 @@
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
+			classname MatchSettingCategoryButton
 			labelText "CANCEL"
 			textAlignment center
 			wide 360
