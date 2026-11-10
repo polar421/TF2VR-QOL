@@ -58,6 +58,7 @@ struct State
 
     ULONGLONG nextNativeLookup = 0;
     ULONGLONG nextDiagnostic = 0;
+    bool loggedZeroCalibration = false;
     int stableFrames = 0;
 };
 
@@ -382,6 +383,14 @@ void CalibrationPersistFrame()
         Log(0, "native phase=%d calibrated=%d height_valid=%d height=%.3f standing_y=%.3f arm_span=%d",
             phase, calibrated, heightValid, ReadRva<float>(kHeightRva), ReadRva<double>(kStandingYRva),
             ReadRva<int32_t>(kArmSpanRva));
+
+        if (phase == 5 && !calibrated && !heightValid && ReadRva<float>(kHeightRva) == 0.0f &&
+            ReadRva<double>(kStandingYRva) == 0.0 && ReadRva<int32_t>(kArmSpanRva) == 0 &&
+            !g_state.loggedZeroCalibration)
+        {
+            g_state.loggedZeroCalibration = true;
+            Log(0, "native phase 5 has zero calibration values; the calibration was skipped or never captured, so there is nothing valid to save yet");
+        }
     }
 }
 }
