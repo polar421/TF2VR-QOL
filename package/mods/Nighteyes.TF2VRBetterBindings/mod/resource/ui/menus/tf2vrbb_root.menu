@@ -121,7 +121,7 @@
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
-			classname MatchSettingCategoryButton
+			classname ModButton
 			labelText "CONTROLS"
 			textAlignment west
 			wide 696
@@ -138,7 +138,7 @@
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
-			classname MatchSettingCategoryButton
+			classname ModButton
 			labelText "ACTION SETTINGS"
 			textAlignment west
 			wide 696
@@ -155,7 +155,7 @@
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
-			classname MatchSettingCategoryButton
+			classname ModButton
 			labelText "GENERAL OPTIONS"
 			textAlignment west
 			wide 696
@@ -172,7 +172,7 @@
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
-			classname MatchSettingCategoryButton
+			classname ModButton
 			labelText "ABOUT"
 			textAlignment west
 			wide 696
@@ -189,7 +189,7 @@
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
-			classname MatchSettingCategoryButton
+			classname ModButton
 			labelText "RESTORE DEFAULTS"
 			textAlignment west
 			wide 696

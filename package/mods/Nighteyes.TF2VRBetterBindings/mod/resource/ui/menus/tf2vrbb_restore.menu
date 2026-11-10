@@ -137,7 +137,7 @@
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
-			classname MatchSettingCategoryButton
+			classname ModButton
 			labelText "RESTORE DEFAULTS"
 			textAlignment center
 			wide 360
@@ -154,7 +154,7 @@
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
-			classname MatchSettingCategoryButton
+			classname ModButton
 			labelText "CANCEL"
 			textAlignment center
 			wide 360
