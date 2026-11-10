@@ -171,14 +171,12 @@ void PluginInit(void*, HMODULE northstarModule, const PluginNorthstarData* initD
     tf2vrbb::SettingsSyncInit(initData ? initData->pluginHandle : nullptr);
     tf2vrbb::CalibrationPersistInit(initData ? initData->pluginHandle : nullptr, CalibrationLog);
 
-    // Wine's OpenXR bridge forwards to the native Linux loader, which only
-    // loads ELF API layers. A Windows layer DLL can never be negotiated here,
-    // so registering it would only add a dead registry entry.
-    if (RunningUnderWine())
-    {
-        SysLog(Warn, "Wine/Proton detected: the OpenXR bridge loads native Linux API layers only, so the binding layer is inactive. The settings menu works; the extra actions do not.");
-        return;
-    }
+    // Proton runs the game with the Windows Khronos OpenXR loader in front of
+    // WineOpenXR, so a Windows layer DLL does load. The game process is high
+    // integrity, and the loader deliberately ignores HKCU implicit layers in
+    // that case. Register in HKLM, which is writable inside a Wine prefix.
+    bool wine = RunningUnderWine();
+    HKEY root = wine ? HKEY_LOCAL_MACHINE : HKEY_CURRENT_USER;
 
     std::wstring layerDirectory = ModuleDirectory(initData ? initData->pluginHandle : nullptr) + kLayerFolder;
     std::wstring manifest = layerDirectory + kManifestName;
@@ -188,23 +186,33 @@ void PluginInit(void*, HMODULE northstarModule, const PluginNorthstarData* initD
         return;
     }
 
-    tf2vrbb::RegistrationReport report = tf2vrbb::RegisterImplicitLayer(HKEY_CURRENT_USER, kImplicitLayersKey, manifest);
+    tf2vrbb::RegistrationReport report = tf2vrbb::RegisterImplicitLayer(root, kImplicitLayersKey, manifest);
     if (report.removedStale > 0)
         SysLog(Info, "removed " + std::to_string(report.removedStale) + " registration(s) of other copies of the layer");
+
+    // Older builds registered here. A high-integrity loader will never read it,
+    // and on a normal user process it would make the layer load twice.
+    if (wine)
+    {
+        int stale = tf2vrbb::UnregisterImplicitLayer(HKEY_CURRENT_USER, kImplicitLayersKey, kManifestName);
+        if (stale > 0)
+            SysLog(Info, "removed " + std::to_string(stale) + " ignored HKCU layer registration");
+    }
 
     switch (report.result)
     {
     case tf2vrbb::RegistrationResult::Failed:
-        SysLog(Error, "could not register the OpenXR layer under HKEY_CURRENT_USER");
+        SysLog(Error, std::string("could not register the OpenXR layer under ") + (wine ? "HKEY_LOCAL_MACHINE" : "HKEY_CURRENT_USER"));
         break;
     case tf2vrbb::RegistrationResult::DisabledByUser:
         SysLog(Info, "OpenXR layer is disabled in the registry (value is not 0); leaving it disabled");
         break;
     case tf2vrbb::RegistrationResult::Registered:
-        SysLog(Warn, "OpenXR layer registered for this Windows user. Restart the game once to activate TF2VR Better Bindings.");
+        SysLog(Warn, wine ? "OpenXR layer registered for this Proton prefix (HKLM). Restart the game once to activate TF2VR Better Bindings."
+                          : "OpenXR layer registered for this Windows user. Restart the game once to activate TF2VR Better Bindings.");
         break;
     case tf2vrbb::RegistrationResult::AlreadyRegistered:
-        SysLog(Info, "OpenXR layer registered");
+        SysLog(Info, wine ? "OpenXR layer registered in the Proton prefix" : "OpenXR layer registered");
         break;
     }
 }

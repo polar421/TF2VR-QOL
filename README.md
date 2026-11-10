@@ -1,10 +1,10 @@
 # TF2VR Better Bindings
 
-Extra SteamVR actions and optional features for [CircuitLord's Titanfall 2 VR mod](https://github.com/CircuitLord/CircuitLordVRModInstaller). **Nothing changes until you bind an action or turn a feature on.** Works left-handed too.
+Extra OpenXR actions and optional features for [CircuitLord's Titanfall 2 VR mod](https://github.com/CircuitLord/CircuitLordVRModInstaller). **Nothing changes until you bind an action or turn a feature on.** Works left-handed too.
 
 ## Actions
 
-Bind them in SteamVR → Settings → Controllers → **Manage Controller Bindings** → Titanfall 2 VR → **Edit**.
+Bind them in SteamVR → Settings → Controllers → **Manage Controller Bindings** → Titanfall 2 VR → **Edit**. On Linux, bind them in the controller binding editor of the active OpenXR runtime (for example WiVRn or Monado); they are part of the Titanfall 2 VR **gameplay** action set.
 
 | Action | What it does | Bind it to |
 |---|---|---|
@@ -70,16 +70,20 @@ This is an unofficial add-on. It does not modify or include any of CircuitLord's
 1. Download `Nighteyes-TF2VRBetterBindings-<version>.zip` from the [Releases](../../releases) page. You need Titanfall 2 VR installed with CircuitLord's installer.
 2. Delete any older `Nighteyes-TF2VRBetterBindings-<version>` folder (copy its `TF2VRBetterBindings.ini` first to keep your settings). Extract the zip into `<Titanfall 2 folder>\TF2VR\packages\`, so you get `TF2VR\packages\Nighteyes-TF2VRBetterBindings-<version>\plugins\...`.
 3. **START THE GAME, QUIT, AND START IT AGAIN! IT DOES NOT WORK ON THE FIRST START!** This also applies after every update.
-4. Bind the actions you want in SteamVR.
+4. Bind the actions you want in SteamVR, or in your OpenXR runtime's binding editor on Linux.
+
+### Linux / Proton
+
+Titanfall 2 VR uses the Windows OpenXR loader with WineOpenXR as its runtime under Proton. The add-on's Windows layer works there too. Proton runs the game at high integrity, and the OpenXR loader ignores per-user (HKCU) implicit layers in that case, so the plugin registers the layer for the whole Proton prefix under `HKLM` on the first start. Start the game once, quit, and start it again; the extra actions then appear in the runtime's binding editor.
 
 ## Troubleshooting
 
-- **The actions are missing in SteamVR**: start the game a second time, then reopen the binding editor. `TF2VR\logs\nslog*.txt` has lines tagged `[TF2VRBB]` that say whether the add-on is active.
+- **The actions are missing in the binding editor**: start the game a second time, then reopen the binding editor. On Linux, check that the layer manifest is registered under `HKLM\Software\Khronos\OpenXR\1\ApiLayers\Implicit` in the Proton prefix. `TF2VR\logs\nslog*.txt` has lines tagged `[TF2VRBB]` that say whether the add-on is active.
 - **Running the game as administrator** stops the add-on from loading. Start it normally.
 
 ## Uninstall
 
-Delete the `Nighteyes-TF2VRBetterBindings-<version>` folder. A leftover registry entry under `HKEY_CURRENT_USER\Software\Khronos\OpenXR\1\ApiLayers\Implicit` is harmless; `unregister-layer.ps1` in the package removes it.
+Delete the `Nighteyes-TF2VRBetterBindings-<version>` folder. A leftover layer registration under `HKEY_CURRENT_USER\Software\Khronos\OpenXR\1\ApiLayers\Implicit` on Windows, or under `HKEY_LOCAL_MACHINE\Software\Khronos\OpenXR\1\ApiLayers\Implicit` in the Proton prefix, is harmless. `unregister-layer.ps1` in the package removes the per-user entry; add `-Machine` to remove the machine-wide one.
 
 ## Building from source
 
