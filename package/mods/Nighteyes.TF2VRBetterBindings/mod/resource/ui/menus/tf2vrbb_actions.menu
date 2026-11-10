@@ -65,9 +65,8 @@
 			tall 6
 			paintbackground 1
 			bgcolor_override "242 141 28 255"
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 120
+			ypos 280
 		}
 
 		PanelHeader
@@ -79,11 +78,8 @@
 			fgcolor_override "255 255 255 255"
 			auto_wide_tocontents 1
 			auto_tall_tocontents 1
-			xpos 32
-			ypos 26
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 306
 		}
 
 		HeaderRule
@@ -94,11 +90,8 @@
 			tall 2
 			paintbackground 1
 			bgcolor_override "96 104 112 255"
-			xpos 32
-			ypos 96
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 376
 		}
 
 		SubHeader
@@ -110,11 +103,8 @@
 			wide 696
 			tall 30
 			wrap 1
-			xpos 32
-			ypos 112
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 392
 		}
 
 		SwitchReloadGrab
@@ -122,13 +112,9 @@
 			ControlName RuiButton
 			InheritProperties SwitchButton
 			style DialogListButton
-			labelText "RELOAD GRAB"
 			wide 696
-			xpos 32
-			ypos 152
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 432
 			navUp SwitchTacticalBlockTrigger
 			navDown SwitchGrenadeToggle
 			ConVar "tf2vrbb_reload_grab"
@@ -144,13 +130,9 @@
 			ControlName RuiButton
 			InheritProperties SwitchButton
 			style DialogListButton
-			labelText "GRENADE TOGGLE"
 			wide 696
-			xpos 32
-			ypos 214
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 494
 			navUp SwitchReloadGrab
 			navDown SwitchCrouchAction
 			ConVar "tf2vrbb_grenade_toggle"
@@ -166,13 +148,9 @@
 			ControlName RuiButton
 			InheritProperties SwitchButton
 			style DialogListButton
-			labelText "CROUCH ACTION"
 			wide 696
-			xpos 32
-			ypos 276
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 556
 			navUp SwitchGrenadeToggle
 			navDown SwitchCrouchMode
 			ConVar "tf2vrbb_crouch_enabled"
@@ -188,13 +166,9 @@
 			ControlName RuiButton
 			InheritProperties SwitchButton
 			style DialogListButton
-			labelText "CROUCH MODE"
 			wide 696
-			xpos 32
-			ypos 338
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 618
 			navUp SwitchCrouchAction
 			navDown SwitchUncrouchOnJump
 			ConVar "tf2vrbb_crouch_button_mode"
@@ -210,13 +184,9 @@
 			ControlName RuiButton
 			InheritProperties SwitchButton
 			style DialogListButton
-			labelText "UNCROUCH ON JUMP"
 			wide 696
-			xpos 32
-			ypos 400
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 680
 			navUp SwitchCrouchMode
 			navDown SwitchJumpDelay
 			ConVar "tf2vrbb_uncrouch_on_jump"
@@ -232,13 +202,9 @@
 			ControlName RuiButton
 			InheritProperties SwitchButton
 			style DialogListButton
-			labelText "JUMP DELAY"
 			wide 696
-			xpos 32
-			ypos 462
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 742
 			navUp SwitchUncrouchOnJump
 			navDown SwitchTacticalAction
 			ConVar "tf2vrbb_jump_delay_ms"
@@ -273,13 +239,9 @@
 			ControlName RuiButton
 			InheritProperties SwitchButton
 			style DialogListButton
-			labelText "TACTICAL ACTION"
 			wide 696
-			xpos 32
-			ypos 524
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 804
 			navUp SwitchJumpDelay
 			navDown SwitchTacticalBlockTrigger
 			ConVar "tf2vrbb_tactical_enabled"
@@ -295,13 +257,9 @@
 			ControlName RuiButton
 			InheritProperties SwitchButton
 			style DialogListButton
-			labelText "TACTICAL BLOCKS HAND TRIGGER"
 			wide 696
-			xpos 32
-			ypos 586
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 866
 			navUp SwitchTacticalAction
 			navDown SwitchReloadGrab
 			ConVar "tf2vrbb_tactical_block_trigger"
@@ -320,11 +278,8 @@
 			wide 696
 			tall 30
 			wrap 1
-			xpos 32
-			ypos 640
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 920
 		}
 
 		Status
@@ -336,11 +291,8 @@
 			allcaps 1
 			wide 696
 			tall 30
-			xpos 32
-			ypos 670
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 950
 		}
 
 		FooterButtons

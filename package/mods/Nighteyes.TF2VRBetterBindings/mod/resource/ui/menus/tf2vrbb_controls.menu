@@ -65,9 +65,8 @@
 			tall 6
 			paintbackground 1
 			bgcolor_override "242 141 28 255"
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 120
+			ypos 280
 		}
 
 		PanelHeader
@@ -79,11 +78,8 @@
 			fgcolor_override "255 255 255 255"
 			auto_wide_tocontents 1
 			auto_tall_tocontents 1
-			xpos 32
-			ypos 26
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 306
 		}
 
 		HeaderRule
@@ -94,11 +90,8 @@
 			tall 2
 			paintbackground 1
 			bgcolor_override "96 104 112 255"
-			xpos 32
-			ypos 96
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 376
 		}
 
 		SubHeader
@@ -110,11 +103,8 @@
 			wide 696
 			tall 60
 			wrap 1
-			xpos 32
-			ypos 108
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 388
 		}
 
 		Entry0
@@ -125,11 +115,8 @@
 			fgcolor_override "255 255 255 255"
 			wide 696
 			tall 30
-			xpos 32
-			ypos 184
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 464
 		}
 
 		Desc0
@@ -141,11 +128,8 @@
 			wide 696
 			tall 30
 			wrap 1
-			xpos 32
-			ypos 214
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 494
 		}
 
 		Entry1
@@ -156,11 +140,8 @@
 			fgcolor_override "255 255 255 255"
 			wide 696
 			tall 30
-			xpos 32
-			ypos 260
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 540
 		}
 
 		Desc1
@@ -172,11 +153,8 @@
 			wide 696
 			tall 30
 			wrap 1
-			xpos 32
-			ypos 290
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 570
 		}
 
 		Entry2
@@ -187,11 +165,8 @@
 			fgcolor_override "255 255 255 255"
 			wide 696
 			tall 30
-			xpos 32
-			ypos 336
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 616
 		}
 
 		Desc2
@@ -203,11 +178,8 @@
 			wide 696
 			tall 30
 			wrap 1
-			xpos 32
-			ypos 366
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 646
 		}
 
 		Entry3
@@ -218,11 +190,8 @@
 			fgcolor_override "255 255 255 255"
 			wide 696
 			tall 30
-			xpos 32
-			ypos 412
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 692
 		}
 
 		Desc3
@@ -234,11 +203,8 @@
 			wide 696
 			tall 30
 			wrap 1
-			xpos 32
-			ypos 442
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 722
 		}
 
 		Entry4
@@ -249,11 +215,8 @@
 			fgcolor_override "255 255 255 255"
 			wide 696
 			tall 30
-			xpos 32
-			ypos 488
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 768
 		}
 
 		Desc4
@@ -265,11 +228,8 @@
 			wide 696
 			tall 30
 			wrap 1
-			xpos 32
-			ypos 518
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 798
 		}
 
 		BtnBack
@@ -282,11 +242,8 @@
 			wide 260
 			tall 54
 			scriptID "0"
-			xpos 32
-			ypos 600
-			pin_to_sibling Panel
-			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			xpos 152
+			ypos 880
 		}
 
 		FooterButtons
