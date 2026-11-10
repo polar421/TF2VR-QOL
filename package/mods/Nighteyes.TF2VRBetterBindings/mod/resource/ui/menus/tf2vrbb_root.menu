@@ -117,6 +117,14 @@
 			pin_to_sibling_corner TOP_LEFT
 		}
 
+		ButtonRowAnchor
+		{
+			ControlName Label
+			labelText ""
+			xpos 120
+			ypos 430
+		}
+
 		Row0
 		{
 			ControlName RuiButton
@@ -127,9 +135,7 @@
 			wide 696
 			tall 54
 			scriptID "0"
-			xpos 32
-			ypos 170
-			pin_to_sibling Panel
+			pin_to_sibling ButtonRowAnchor
 			pin_corner_to_sibling TOP_LEFT
 			pin_to_sibling_corner TOP_LEFT
 		}
@@ -144,11 +150,9 @@
 			wide 696
 			tall 54
 			scriptID "1"
-			xpos 32
-			ypos 236
-			pin_to_sibling Panel
+			pin_to_sibling Row0
 			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			pin_to_sibling_corner BOTTOM_LEFT
 		}
 
 		Row2
@@ -161,11 +165,9 @@
 			wide 696
 			tall 54
 			scriptID "2"
-			xpos 32
-			ypos 302
-			pin_to_sibling Panel
+			pin_to_sibling Row1
 			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			pin_to_sibling_corner BOTTOM_LEFT
 		}
 
 		Row3
@@ -178,11 +180,9 @@
 			wide 696
 			tall 54
 			scriptID "3"
-			xpos 32
-			ypos 368
-			pin_to_sibling Panel
+			pin_to_sibling Row2
 			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			pin_to_sibling_corner BOTTOM_LEFT
 		}
 
 		Row4
@@ -195,11 +195,9 @@
 			wide 696
 			tall 54
 			scriptID "4"
-			xpos 32
-			ypos 434
-			pin_to_sibling Panel
+			pin_to_sibling Row3
 			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			pin_to_sibling_corner BOTTOM_LEFT
 		}
 
 		HintText
@@ -211,11 +209,10 @@
 			wide 696
 			tall 40
 			wrap 1
-			xpos 32
-			ypos 512
-			pin_to_sibling Panel
+			ypos 20
+			pin_to_sibling Row4
 			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			pin_to_sibling_corner BOTTOM_LEFT
 		}
 
 		Status
@@ -227,11 +224,10 @@
 			allcaps 1
 			wide 696
 			tall 30
-			xpos 32
-			ypos 600
-			pin_to_sibling Panel
+			ypos 8
+			pin_to_sibling HintText
 			pin_corner_to_sibling TOP_LEFT
-			pin_to_sibling_corner TOP_LEFT
+			pin_to_sibling_corner BOTTOM_LEFT
 		}
 
 		FooterButtons
