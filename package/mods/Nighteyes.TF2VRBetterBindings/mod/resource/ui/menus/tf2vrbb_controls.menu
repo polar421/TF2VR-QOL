@@ -49,22 +49,19 @@
 			ControlName Label
 			labelText ""
 			zpos -1
-			wide 560
-			tall 700
-			xpos -280
-			ypos -350
+			wide 760
+			tall 800
+			xpos 120
+			ypos 120
 			paintbackground 1
 			bgcolor_override "8 10 12 232"
-			pin_to_sibling Screen
-			pin_corner_to_sibling CENTER
-			pin_to_sibling_corner CENTER
 		}
 
 		AccentTop
 		{
 			ControlName Label
 			labelText ""
-			wide 560
+			wide 760
 			tall 6
 			paintbackground 1
 			bgcolor_override "242 141 28 255"
@@ -93,7 +90,7 @@
 		{
 			ControlName Label
 			labelText ""
-			wide 496
+			wide 696
 			tall 2
 			paintbackground 1
 			bgcolor_override "96 104 112 255"
@@ -110,7 +107,7 @@
 			labelText "These actions are added to the Titanfall 2 VR gameplay action set. Bind them the same way you bind the mod's own actions; if your runtime has no binding for them they stay unbound."
 			font Default_21
 			fgcolor_override "176 182 188 255"
-			wide 496
+			wide 696
 			tall 60
 			wrap 1
 			xpos 32
@@ -126,7 +123,7 @@
 			labelText "RELOAD GRAB      tf2vr_reload_grab      trigger, each hand"
 			font Default_21
 			fgcolor_override "255 255 255 255"
-			wide 496
+			wide 696
 			tall 30
 			xpos 32
 			ypos 184
@@ -141,7 +138,7 @@
 			labelText "Grabs magazines and racks slides with the trigger. Grip on that hand grabs nothing while you reload, so Grip only holds the gun."
 			font Default_16
 			fgcolor_override "150 156 162 255"
-			wide 496
+			wide 696
 			tall 30
 			wrap 1
 			xpos 32
@@ -157,7 +154,7 @@
 			labelText "CROUCH      tf2vr_crouch      any button"
 			font Default_21
 			fgcolor_override "255 255 255 255"
-			wide 496
+			wide 696
 			tall 30
 			xpos 32
 			ypos 260
@@ -172,7 +169,7 @@
 			labelText "Hold or toggle, depending on how the action is bound. Jumping out of a crouch can stand you up first; see Action Settings."
 			font Default_16
 			fgcolor_override "150 156 162 255"
-			wide 496
+			wide 696
 			tall 30
 			wrap 1
 			xpos 32
@@ -188,7 +185,7 @@
 			labelText "TACTICAL ABILITY (CLOAK)      tf2vr_tactical      any button"
 			font Default_21
 			fgcolor_override "255 255 255 255"
-			wide 496
+			wide 696
 			tall 30
 			xpos 32
 			ypos 336
@@ -203,7 +200,7 @@
 			labelText "Cloak from a button. The trigger of the hand without the gun can be blocked so it stops cloaking on its own."
 			font Default_16
 			fgcolor_override "150 156 162 255"
-			wide 496
+			wide 696
 			tall 30
 			wrap 1
 			xpos 32
@@ -219,7 +216,7 @@
 			labelText "SPRINT (OPTIONAL)      no new action      lower your gun below your eyes"
 			font Default_21
 			fgcolor_override "255 255 255 255"
-			wide 496
+			wide 696
 			tall 30
 			xpos 32
 			ypos 412
@@ -234,7 +231,7 @@
 			labelText "Drives the mod's own sprint button while your gun is held low. Heights are set in General Options."
 			font Default_16
 			fgcolor_override "150 156 162 255"
-			wide 496
+			wide 696
 			tall 30
 			wrap 1
 			xpos 32
@@ -250,7 +247,7 @@
 			labelText "GRENADE TOGGLE (OPTIONAL)      grip on the gun hand      press to take, press to throw"
 			font Default_21
 			fgcolor_override "255 255 255 255"
-			wide 496
+			wide 696
 			tall 30
 			xpos 32
 			ypos 488
@@ -265,7 +262,7 @@
 			labelText "Needs the mod's VR Settings, Gun Grip set to Toggle. Turned on in Action Settings."
 			font Default_16
 			fgcolor_override "150 156 162 255"
-			wide 496
+			wide 696
 			tall 30
 			wrap 1
 			xpos 32

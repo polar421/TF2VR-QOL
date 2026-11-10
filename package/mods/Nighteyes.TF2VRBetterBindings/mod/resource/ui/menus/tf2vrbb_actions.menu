@@ -49,22 +49,19 @@
 			ControlName Label
 			labelText ""
 			zpos -1
-			wide 560
-			tall 700
-			xpos -280
-			ypos -350
+			wide 760
+			tall 800
+			xpos 120
+			ypos 120
 			paintbackground 1
 			bgcolor_override "8 10 12 232"
-			pin_to_sibling Screen
-			pin_corner_to_sibling CENTER
-			pin_to_sibling_corner CENTER
 		}
 
 		AccentTop
 		{
 			ControlName Label
 			labelText ""
-			wide 560
+			wide 760
 			tall 6
 			paintbackground 1
 			bgcolor_override "242 141 28 255"
@@ -93,7 +90,7 @@
 		{
 			ControlName Label
 			labelText ""
-			wide 496
+			wide 696
 			tall 2
 			paintbackground 1
 			bgcolor_override "96 104 112 255"
@@ -110,7 +107,7 @@
 			labelText "Select a row to change its value. Every value below is read by the OpenXR layer."
 			font Default_21
 			fgcolor_override "176 182 188 255"
-			wide 496
+			wide 696
 			tall 30
 			wrap 1
 			xpos 32
@@ -120,141 +117,207 @@
 			pin_to_sibling_corner TOP_LEFT
 		}
 
-		Row0
+		SwitchReloadGrab
 		{
 			ControlName RuiButton
-			InheritProperties RuiSmallButton
+			InheritProperties SwitchButton
+			style DialogListButton
 			labelText "RELOAD GRAB"
-			textAlignment west
-			wide 496
-			tall 52
-			scriptID "0"
+			wide 696
 			xpos 32
 			ypos 152
 			pin_to_sibling Panel
 			pin_corner_to_sibling TOP_LEFT
 			pin_to_sibling_corner TOP_LEFT
+			navUp SwitchTacticalBlockTrigger
+			navDown SwitchGrenadeToggle
+			ConVar "tf2vrbb_reload_grab"
+			list
+			{
+				"OFF" 0
+				"ON" 1
+			}
 		}
 
-		Row1
+		SwitchGrenadeToggle
 		{
 			ControlName RuiButton
-			InheritProperties RuiSmallButton
+			InheritProperties SwitchButton
+			style DialogListButton
 			labelText "GRENADE TOGGLE"
-			textAlignment west
-			wide 496
-			tall 52
-			scriptID "1"
+			wide 696
 			xpos 32
 			ypos 214
 			pin_to_sibling Panel
 			pin_corner_to_sibling TOP_LEFT
 			pin_to_sibling_corner TOP_LEFT
+			navUp SwitchReloadGrab
+			navDown SwitchCrouchAction
+			ConVar "tf2vrbb_grenade_toggle"
+			list
+			{
+				"OFF" 0
+				"ON" 1
+			}
 		}
 
-		Row2
+		SwitchCrouchAction
 		{
 			ControlName RuiButton
-			InheritProperties RuiSmallButton
+			InheritProperties SwitchButton
+			style DialogListButton
 			labelText "CROUCH ACTION"
-			textAlignment west
-			wide 496
-			tall 52
-			scriptID "2"
+			wide 696
 			xpos 32
 			ypos 276
 			pin_to_sibling Panel
 			pin_corner_to_sibling TOP_LEFT
 			pin_to_sibling_corner TOP_LEFT
+			navUp SwitchGrenadeToggle
+			navDown SwitchCrouchMode
+			ConVar "tf2vrbb_crouch_enabled"
+			list
+			{
+				"OFF" 0
+				"ON" 1
+			}
 		}
 
-		Row3
+		SwitchCrouchMode
 		{
 			ControlName RuiButton
-			InheritProperties RuiSmallButton
+			InheritProperties SwitchButton
+			style DialogListButton
 			labelText "CROUCH MODE"
-			textAlignment west
-			wide 496
-			tall 52
-			scriptID "3"
+			wide 696
 			xpos 32
 			ypos 338
 			pin_to_sibling Panel
 			pin_corner_to_sibling TOP_LEFT
 			pin_to_sibling_corner TOP_LEFT
+			navUp SwitchCrouchAction
+			navDown SwitchUncrouchOnJump
+			ConVar "tf2vrbb_crouch_button_mode"
+			list
+			{
+				"TOGGLE" 0
+				"BUTTON" 1
+			}
 		}
 
-		Row4
+		SwitchUncrouchOnJump
 		{
 			ControlName RuiButton
-			InheritProperties RuiSmallButton
+			InheritProperties SwitchButton
+			style DialogListButton
 			labelText "UNCROUCH ON JUMP"
-			textAlignment west
-			wide 496
-			tall 52
-			scriptID "4"
+			wide 696
 			xpos 32
 			ypos 400
 			pin_to_sibling Panel
 			pin_corner_to_sibling TOP_LEFT
 			pin_to_sibling_corner TOP_LEFT
+			navUp SwitchCrouchMode
+			navDown SwitchJumpDelay
+			ConVar "tf2vrbb_uncrouch_on_jump"
+			list
+			{
+				"OFF" 0
+				"ON" 1
+			}
 		}
 
-		Row5
+		SwitchJumpDelay
 		{
 			ControlName RuiButton
-			InheritProperties RuiSmallButton
+			InheritProperties SwitchButton
+			style DialogListButton
 			labelText "JUMP DELAY"
-			textAlignment west
-			wide 496
-			tall 52
-			scriptID "5"
+			wide 696
 			xpos 32
 			ypos 462
 			pin_to_sibling Panel
 			pin_corner_to_sibling TOP_LEFT
 			pin_to_sibling_corner TOP_LEFT
+			navUp SwitchUncrouchOnJump
+			navDown SwitchTacticalAction
+			ConVar "tf2vrbb_jump_delay_ms"
+			list
+			{
+				"0 MS" 0
+				"50 MS" 50
+				"100 MS" 100
+				"150 MS" 150
+				"200 MS" 200
+				"250 MS" 250
+				"300 MS" 300
+				"350 MS" 350
+				"400 MS" 400
+				"450 MS" 450
+				"500 MS" 500
+				"550 MS" 550
+				"600 MS" 600
+				"650 MS" 650
+				"700 MS" 700
+				"750 MS" 750
+				"800 MS" 800
+				"850 MS" 850
+				"900 MS" 900
+				"950 MS" 950
+				"1000 MS" 1000
+			}
 		}
 
-		Row6
+		SwitchTacticalAction
 		{
 			ControlName RuiButton
-			InheritProperties RuiSmallButton
+			InheritProperties SwitchButton
+			style DialogListButton
 			labelText "TACTICAL ACTION"
-			textAlignment west
-			wide 496
-			tall 52
-			scriptID "6"
+			wide 696
 			xpos 32
 			ypos 524
 			pin_to_sibling Panel
 			pin_corner_to_sibling TOP_LEFT
 			pin_to_sibling_corner TOP_LEFT
+			navUp SwitchJumpDelay
+			navDown SwitchTacticalBlockTrigger
+			ConVar "tf2vrbb_tactical_enabled"
+			list
+			{
+				"OFF" 0
+				"ON" 1
+			}
 		}
 
-		Row7
+		SwitchTacticalBlockTrigger
 		{
 			ControlName RuiButton
-			InheritProperties RuiSmallButton
+			InheritProperties SwitchButton
+			style DialogListButton
 			labelText "TACTICAL BLOCKS HAND TRIGGER"
-			textAlignment west
-			wide 496
-			tall 52
-			scriptID "7"
+			wide 696
 			xpos 32
 			ypos 586
 			pin_to_sibling Panel
 			pin_corner_to_sibling TOP_LEFT
 			pin_to_sibling_corner TOP_LEFT
+			navUp SwitchTacticalAction
+			navDown SwitchReloadGrab
+			ConVar "tf2vrbb_tactical_block_trigger"
+			list
+			{
+				"OFF" 0
+				"ON" 1
+			}
 		}
-
 		HintText
 		{
 			ControlName Label
 			labelText "Crouch mode must match how CROUCH is bound: TOGGLE for a toggle binding, BUTTON for a hold binding."
 			font Default_16
 			fgcolor_override "150 156 162 255"
-			wide 496
+			wide 696
 			tall 30
 			wrap 1
 			xpos 32
@@ -271,7 +334,7 @@
 			font Default_16
 			fgcolor_override "242 141 28 255"
 			allcaps 1
-			wide 496
+			wide 696
 			tall 30
 			xpos 32
 			ypos 670

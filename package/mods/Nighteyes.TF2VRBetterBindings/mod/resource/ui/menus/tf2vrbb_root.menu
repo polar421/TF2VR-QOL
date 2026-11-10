@@ -49,22 +49,19 @@
 			ControlName Label
 			labelText ""
 			zpos -1
-			wide 560
-			tall 700
-			xpos -280
-			ypos -350
+			wide 760
+			tall 800
+			xpos 120
+			ypos 120
 			paintbackground 1
 			bgcolor_override "8 10 12 232"
-			pin_to_sibling Screen
-			pin_corner_to_sibling CENTER
-			pin_to_sibling_corner CENTER
 		}
 
 		AccentTop
 		{
 			ControlName Label
 			labelText ""
-			wide 560
+			wide 760
 			tall 6
 			paintbackground 1
 			bgcolor_override "242 141 28 255"
@@ -93,7 +90,7 @@
 		{
 			ControlName Label
 			labelText ""
-			wide 496
+			wide 696
 			tall 2
 			paintbackground 1
 			bgcolor_override "96 104 112 255"
@@ -110,7 +107,7 @@
 			labelText "Extra OpenXR actions for Titanfall 2 VR. Settings are stored in TF2VRBetterBindings.ini."
 			font Default_21
 			fgcolor_override "176 182 188 255"
-			wide 496
+			wide 696
 			tall 40
 			wrap 1
 			xpos 32
@@ -126,7 +123,7 @@
 			InheritProperties RuiSmallButton
 			labelText "CONTROLS"
 			textAlignment west
-			wide 496
+			wide 696
 			tall 54
 			scriptID "0"
 			xpos 32
@@ -142,7 +139,7 @@
 			InheritProperties RuiSmallButton
 			labelText "ACTION SETTINGS"
 			textAlignment west
-			wide 496
+			wide 696
 			tall 54
 			scriptID "1"
 			xpos 32
@@ -158,7 +155,7 @@
 			InheritProperties RuiSmallButton
 			labelText "GENERAL OPTIONS"
 			textAlignment west
-			wide 496
+			wide 696
 			tall 54
 			scriptID "2"
 			xpos 32
@@ -174,7 +171,7 @@
 			InheritProperties RuiSmallButton
 			labelText "ABOUT"
 			textAlignment west
-			wide 496
+			wide 696
 			tall 54
 			scriptID "3"
 			xpos 32
@@ -190,7 +187,7 @@
 			InheritProperties RuiSmallButton
 			labelText "RESTORE DEFAULTS"
 			textAlignment west
-			wide 496
+			wide 696
 			tall 54
 			scriptID "4"
 			xpos 32
@@ -206,7 +203,7 @@
 			labelText "Behaviour settings apply immediately. Enabling or disabling an action takes effect after restarting Titanfall 2."
 			font Default_16
 			fgcolor_override "150 156 162 255"
-			wide 496
+			wide 696
 			tall 40
 			wrap 1
 			xpos 32
@@ -223,7 +220,7 @@
 			font Default_16
 			fgcolor_override "242 141 28 255"
 			allcaps 1
-			wide 496
+			wide 696
 			tall 30
 			xpos 32
 			ypos 600

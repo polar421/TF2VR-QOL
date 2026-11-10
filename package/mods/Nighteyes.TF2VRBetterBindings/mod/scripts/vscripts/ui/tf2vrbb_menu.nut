@@ -177,6 +177,11 @@ void function TF2VRBB_InitRoot()
 	file.rootMenu = GetMenu( TF2VRBB_MENU_ROOT )
 	file.rootStatus = Hud_GetChild( file.rootMenu, "Status" )
 	file.rootButtons = TF2VRBB_GetRowButtons( file.rootMenu, TF2VRBB_ROOT_ROW_COUNT )
+	TF2VRBB_SetButtonLabel( file.rootMenu, "Row0", "CONTROLS" )
+	TF2VRBB_SetButtonLabel( file.rootMenu, "Row1", "ACTION SETTINGS" )
+	TF2VRBB_SetButtonLabel( file.rootMenu, "Row2", "GENERAL OPTIONS" )
+	TF2VRBB_SetButtonLabel( file.rootMenu, "Row3", "ABOUT" )
+	TF2VRBB_SetButtonLabel( file.rootMenu, "Row4", "RESTORE DEFAULTS" )
 
 	TF2VRBB_WireNav( file.rootButtons )
 	TF2VRBB_BindRootRows()
@@ -199,6 +204,14 @@ void function TF2VRBB_InitActions()
 	file.actionsMenu = GetMenu( TF2VRBB_MENU_ACTIONS )
 	file.actionStatus = Hud_GetChild( file.actionsMenu, "Status" )
 	file.actionButtons = TF2VRBB_GetRowButtons( file.actionsMenu, TF2VRBB_ACTION_ROW_COUNT )
+	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchReloadGrab", "RELOAD GRAB" )
+	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchGrenadeToggle", "GRENADE TOGGLE" )
+	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchCrouchAction", "CROUCH ACTION" )
+	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchCrouchMode", "CROUCH MODE" )
+	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchUncrouchOnJump", "UNCROUCH ON JUMP" )
+	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchJumpDelay", "JUMP DELAY" )
+	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchTacticalAction", "TACTICAL ACTION" )
+	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchTacticalBlockTrigger", "TACTICAL BLOCKS HAND TRIGGER" )
 
 	TF2VRBB_WireNav( file.actionButtons )
 	TF2VRBB_BindSettingRows( file.actionButtons, false )
@@ -212,6 +225,9 @@ void function TF2VRBB_InitGeneral()
 	file.generalMenu = GetMenu( TF2VRBB_MENU_GENERAL )
 	file.generalStatus = Hud_GetChild( file.generalMenu, "Status" )
 	file.generalButtons = TF2VRBB_GetRowButtons( file.generalMenu, TF2VRBB_GENERAL_ROW_COUNT )
+	TF2VRBB_SetButtonLabel( file.generalMenu, "SwitchSprintAction", "SPRINT ACTION" )
+	TF2VRBB_SetButtonLabel( file.generalMenu, "SwitchSprintStart", "SPRINT START HEIGHT" )
+	TF2VRBB_SetButtonLabel( file.generalMenu, "SwitchSprintStop", "SPRINT STOP HEIGHT" )
 
 	TF2VRBB_WireNav( file.generalButtons )
 	TF2VRBB_BindSettingRows( file.generalButtons, true )
@@ -269,6 +285,13 @@ array<var> function TF2VRBB_GetRowButtons( var menu, int count )
 		buttons.append( button )
 	}
 	return buttons
+}
+
+void function TF2VRBB_SetButtonLabel( var menu, string childName, string label )
+{
+	var button = Hud_GetChild( menu, childName )
+	if ( button != null )
+		SetButtonRuiText( button, label )
 }
 
 void function TF2VRBB_WireNav( array<var> buttons )
