@@ -57,7 +57,7 @@ set_target_properties(tf2vrbb_plugin PROPERTIES OUTPUT_NAME TF2VRBetterBindings 
 target_compile_definitions(tf2vrbb_plugin PRIVATE ${COMMON_DEFINITIONS})
 target_compile_options(tf2vrbb_plugin PRIVATE ${COMMON_OPTIONS})
 target_link_options(tf2vrbb_plugin PRIVATE ${COMMON_LINK_OPTIONS})
-target_link_libraries(tf2vrbb_plugin PRIVATE advapi32)
+target_link_libraries(tf2vrbb_plugin PRIVATE advapi32 psapi)
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/LayerTests.cpp")
     add_library(tf2vrbb_layer_logging SHARED ${LAYER_SOURCES})

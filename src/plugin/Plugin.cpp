@@ -4,6 +4,7 @@
 
 #include <windows.h>
 
+#include <cctype>
 #include <cstdint>
 #include <cstring>
 #include <string>
@@ -89,6 +90,7 @@ struct PluginCallbacksObject
 using CreateInterfaceFn = void* (*)(const char* name, int* status);
 
 void* g_sys = nullptr;
+bool g_loggedRunFrame = false;
 
 void SysLog(int level, const std::string& message)
 {
@@ -114,6 +116,16 @@ std::string Narrow(const std::wstring& text)
     std::string result(static_cast<size_t>(size), '\0');
     WideCharToMultiByte(CP_UTF8, 0, text.c_str(), static_cast<int>(text.size()), result.data(), size, nullptr, nullptr);
     return result;
+}
+
+bool IsTitanfall2VRName(const char* name)
+{
+    if (!name)
+        return false;
+    std::string lower(name);
+    for (char& character : lower)
+        character = static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
+    return lower.find("titanfall2vr") != std::string::npos;
 }
 
 bool RunningUnderWine()
@@ -208,10 +220,19 @@ void PluginOnSqvmCreated(void*, void*) {}
 
 void PluginOnSqvmDestroying(void*, void*) {}
 
-void PluginOnLibraryLoaded(void*, HMODULE, const char*) {}
+void PluginOnLibraryLoaded(void*, HMODULE module, const char* name)
+{
+    if (IsTitanfall2VRName(name))
+        tf2vrbb::CalibrationPersistSetNativeModule(module);
+}
 
 void PluginRunFrame(void*)
 {
+    if (!g_loggedRunFrame)
+    {
+        g_loggedRunFrame = true;
+        SysLog(Info, "run frame callback active");
+    }
     tf2vrbb::SettingsSyncFrame();
     tf2vrbb::CalibrationPersistFrame();
 }

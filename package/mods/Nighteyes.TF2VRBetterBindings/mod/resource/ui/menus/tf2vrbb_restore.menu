@@ -48,9 +48,10 @@
 		{
 			ControlName Label
 			labelText ""
-			wide 1120
+			zpos -1
+			wide 560
 			tall 620
-			xpos -560
+			xpos -280
 			ypos -310
 			paintbackground 1
 			bgcolor_override "8 10 12 232"
@@ -63,7 +64,7 @@
 		{
 			ControlName Label
 			labelText ""
-			wide 1120
+			wide 560
 			tall 6
 			paintbackground 1
 			bgcolor_override "242 141 28 255"
@@ -92,7 +93,7 @@
 		{
 			ControlName Label
 			labelText ""
-			wide 1056
+			wide 496
 			tall 2
 			paintbackground 1
 			bgcolor_override "96 104 112 255"
@@ -109,7 +110,7 @@
 			labelText "This resets every setting in this menu to the values below and writes them to TF2VRBetterBindings.ini. Your other settings in that file are kept."
 			font Default_21
 			fgcolor_override "214 220 226 255"
-			wide 1056
+			wide 496
 			tall 60
 			wrap 1
 			xpos 32
@@ -125,7 +126,7 @@
 			labelText "Reload Grab ON   |   Grenade Toggle OFF   |   Crouch ON, TOGGLE   |   Uncrouch on Jump OFF   |   Jump Delay 250 ms   |   Tactical ON, blocks hand trigger   |   Sprint OFF, 30 cm start, 20 cm stop"
 			font Default_16
 			fgcolor_override "150 156 162 255"
-			wide 1056
+			wide 496
 			tall 60
 			wrap 1
 			xpos 32
@@ -174,7 +175,7 @@
 			font Default_16
 			fgcolor_override "242 141 28 255"
 			allcaps 1
-			wide 1056
+			wide 496
 			tall 30
 			xpos 32
 			ypos 480
