@@ -42,49 +42,62 @@ const char* StatusText(int status)
     }
 }
 
+// The probe itself, kept separate so the MSVC build can wrap it in structured
+// exception handling and other compilers can call it directly.
+void* FindConVarUnguarded(const char* name, int* status)
+{
+    HMODULE vstdlib = GetModuleHandleW(L"vstdlib.dll");
+    if (!vstdlib)
+    {
+        *status = kNoVstdlib;
+        return nullptr;
+    }
+    auto createInterface = reinterpret_cast<CreateInterfaceFn>(GetProcAddress(vstdlib, "CreateInterface"));
+    if (!createInterface)
+    {
+        *status = kNoCreateInterface;
+        return nullptr;
+    }
+    void* cvar = createInterface("VEngineCvar007", nullptr);
+    if (!cvar)
+    {
+        *status = kNoCvarInterface;
+        return nullptr;
+    }
+    auto findVar = reinterpret_cast<FindVarFn>((*static_cast<void***>(cvar))[kFindVarIndex]);
+    void* conVar = findVar(cvar, name);
+    if (!conVar)
+    {
+        *status = kNotRegistered;
+        return nullptr;
+    }
+    const char* actual = *reinterpret_cast<const char* const*>(static_cast<unsigned char*>(conVar) + kNameOffset);
+    if (!actual || std::strcmp(actual, name) != 0)
+    {
+        *status = kNameMismatch;
+        return nullptr;
+    }
+    *status = kFound;
+    return conVar;
+}
+
 void* FindConVarGuarded(const char* name, int* status)
 {
+#if defined(_MSC_VER)
     __try
     {
-        HMODULE vstdlib = GetModuleHandleW(L"vstdlib.dll");
-        if (!vstdlib)
-        {
-            *status = kNoVstdlib;
-            return nullptr;
-        }
-        auto createInterface = reinterpret_cast<CreateInterfaceFn>(GetProcAddress(vstdlib, "CreateInterface"));
-        if (!createInterface)
-        {
-            *status = kNoCreateInterface;
-            return nullptr;
-        }
-        void* cvar = createInterface("VEngineCvar007", nullptr);
-        if (!cvar)
-        {
-            *status = kNoCvarInterface;
-            return nullptr;
-        }
-        auto findVar = reinterpret_cast<FindVarFn>((*static_cast<void***>(cvar))[kFindVarIndex]);
-        void* conVar = findVar(cvar, name);
-        if (!conVar)
-        {
-            *status = kNotRegistered;
-            return nullptr;
-        }
-        const char* actual = *reinterpret_cast<const char* const*>(static_cast<unsigned char*>(conVar) + kNameOffset);
-        if (!actual || std::strcmp(actual, name) != 0)
-        {
-            *status = kNameMismatch;
-            return nullptr;
-        }
-        *status = kFound;
-        return conVar;
+        return FindConVarUnguarded(name, status);
     }
     __except (EXCEPTION_EXECUTE_HANDLER)
     {
         *status = kFault;
         return nullptr;
     }
+#else
+    // GCC (MinGW-w64) has no __try/__except. The probe is the same, but a fault
+    // while resolving the ConVar is not caught in a cross build.
+    return FindConVarUnguarded(name, status);
+#endif
 }
 }
 

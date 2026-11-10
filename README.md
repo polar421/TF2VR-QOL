@@ -85,6 +85,21 @@ cmake --build build --config Release --target dist_package
 
 `dist_package` produces `build\package\Nighteyes-TF2VRBetterBindings-<version>\` and `build\Nighteyes-TF2VRBetterBindings-<version>.zip`. Configure with `-DTF2VR_PACKAGES_DIR="<Titanfall 2>\TF2VR\packages"` to get an `install_tf2vr` target that copies the package there, keeping an existing `.ini`.
 
+### Building on Linux
+
+The layer and plugin are Windows DLLs, so a Linux machine cross-compiles them with MinGW-w64. `scripts/build-linux.sh` configures, builds, packages and verifies the result:
+
+```
+scripts/build-linux.sh --clean
+scripts/build-linux.sh --install "<Titanfall 2>/TF2VR/packages"
+```
+
+It writes `build-linux/package/Nighteyes-TF2VRBetterBindings-<version>/` and `build-linux/Nighteyes-TF2VRBetterBindings-<version>.zip`, and fails if a DLL is not x64, a file is missing, `mod.json` or the ini holds the wrong values, or the zip is incomplete. `--install` copies the package and keeps an existing `TF2VRBetterBindings.ini`.
+
+Requirements: CMake 3.24+, a MinGW-w64 x86_64 g++ (`sudo apt install g++-mingw-w64-x86-64` on Debian/Ubuntu, `mingw-w64-gcc` on Arch, `mingw64-gcc-c++` on Fedora), Git and Python 3. Ubuntu 22.04 packages CMake 3.22, so `python3 -m pip install --user "cmake>=3.24"` is needed there.
+
+The cross build skips `/W4 /WX` and the `__try/__except` fault guard in `GameVar.cpp` (GCC has no SEH), so releases should still be built with MSVC; the cross build is for testing and for Linux-only machines.
+
 ## Credits and license
 
 MIT License, see [LICENSE](LICENSE).

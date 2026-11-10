@@ -1,0 +1,339 @@
+#!/usr/bin/env bash
+# Cross-compile the Windows build of TF2VR Better Bindings on Linux, assemble
+# the release package and check what came out.
+#
+#   scripts/build-linux.sh --clean
+#   scripts/build-linux.sh --install "<Titanfall 2>/TF2VR/packages"
+set -euo pipefail
+
+usage() {
+    cat <<'EOF'
+Usage: scripts/build-linux.sh [options]
+
+Builds the OpenXR layer and Northstar plugin for Windows with MinGW-w64,
+creates the release package and zip, and verifies both.
+
+Options:
+  --build-dir DIR    CMake build directory (default: build-linux)
+  --clean            delete the build directory before configuring
+  --install DIR      copy the package into DIR (a TF2VR\packages folder),
+                     keeping an existing plugins/layer/TF2VRBetterBindings.ini
+  --jobs N           parallel build jobs (default: all CPUs)
+  --check-deps-only  report missing tools and exit
+  -h, --help         show this help
+EOF
+}
+
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+build_dir="$root/build-linux"
+jobs="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"
+clean=0
+install_dir=""
+deps_only=0
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --build-dir) build_dir="${2:?--build-dir needs a value}"; shift 2 ;;
+        --clean) clean=1; shift ;;
+        --install) install_dir="${2:?--install needs a value}"; shift 2 ;;
+        --jobs) jobs="${2:?--jobs needs a value}"; shift 2 ;;
+        --check-deps-only) deps_only=1; shift ;;
+        -h|--help) usage; exit 0 ;;
+        *) echo "unknown option: $1" >&2; usage >&2; exit 2 ;;
+    esac
+done
+
+has() { command -v "$1" >/dev/null 2>&1; }
+
+version="$(sed -n 's/^project(TF2VRBetterBindings VERSION \([0-9][0-9.]*\).*/\1/p' "$root/CMakeLists.txt" | head -n1)"
+if [ -z "$version" ]; then
+    echo "error: could not read the project version from CMakeLists.txt" >&2
+    exit 1
+fi
+package_name="Nighteyes-TF2VRBetterBindings-$version"
+
+install_hint() {
+    if has apt-get; then
+        echo "sudo apt install -y cmake g++-mingw-w64-x86-64 git python3"
+    elif has pacman; then
+        echo "sudo pacman -S --needed cmake mingw-w64-gcc git python"
+    elif has dnf; then
+        echo "sudo dnf install -y cmake mingw64-gcc-c++ git python3"
+    else
+        echo "install cmake >= 3.24, a MinGW-w64 x86_64 g++ toolchain, git and python3"
+    fi
+}
+
+missing=()
+cmake_problem=""
+if ! has cmake; then
+    cmake_problem="cmake is not installed (need >= 3.24)"
+else
+    cmake_ver="$(cmake --version | sed -n '1s/.* \([0-9][0-9.]*\)$/\1/p')"
+    if [ -z "$cmake_ver" ] || [ "$(printf '%s\n%s\n' 3.24 "$cmake_ver" | sort -V | head -n1)" != "3.24" ]; then
+        cmake_problem="cmake $cmake_ver is too old (need >= 3.24); on Ubuntu 22.04: python3 -m pip install --user 'cmake>=3.24'"
+    fi
+fi
+[ -z "$cmake_problem" ] || missing+=("$cmake_problem")
+
+mingw_cxx=""
+for candidate in x86_64-w64-mingw32-g++ x86_64-w64-mingw32-g++-posix x86_64-w64-mingw32-g++-win32 x86_64-w64-mingw32-clang++; do
+    if has "$candidate"; then
+        mingw_cxx="$candidate"
+        break
+    fi
+done
+[ -n "$mingw_cxx" ] || missing+=("MinGW-w64 x86_64 g++ (x86_64-w64-mingw32-g++) is not on PATH")
+
+has git || missing+=("git is not installed (CMake downloads the OpenXR headers with it)")
+has python3 || missing+=("python3 is not installed (used to verify the package)")
+
+if [ ${#missing[@]} -gt 0 ]; then
+    echo "Missing tools:" >&2
+    for item in "${missing[@]}"; do echo "  - $item" >&2; done
+    echo >&2
+    echo "Install them with:" >&2
+    echo "  $(install_hint)" >&2
+    exit 1
+fi
+
+echo "cmake:  $(cmake --version | head -n1)"
+echo "c++:    $(command -v "$mingw_cxx")"
+echo "target: $($mingw_cxx -dumpmachine)"
+echo "mod:    $package_name"
+
+if [ "$deps_only" -eq 1 ]; then
+    echo "dependencies look usable"
+    exit 0
+fi
+
+if [ "$clean" -eq 1 ]; then
+    echo "== cleaning $build_dir =="
+    rm -rf "$build_dir"
+fi
+
+echo "== configuring =="
+cmake -S "$root" -B "$build_dir" \
+    -DCMAKE_TOOLCHAIN_FILE="$root/cmake/toolchain-mingw-w64.cmake" \
+    -DCMAKE_BUILD_TYPE=Release
+
+echo "== building =="
+cmake --build "$build_dir" --parallel "$jobs"
+
+echo "== packaging =="
+cmake --build "$build_dir" --parallel "$jobs" --target dist_package
+
+package_dir="$build_dir/package/$package_name"
+zip_path="$build_dir/$package_name.zip"
+
+echo "== verifying =="
+python3 - "$package_dir" "$zip_path" "$version" <<'PY'
+import json
+import struct
+import sys
+import zipfile
+from pathlib import Path
+
+pkg = Path(sys.argv[1])
+zip_path = Path(sys.argv[2])
+version = sys.argv[3]
+mod_dir = "mods/Nighteyes.TF2VRBetterBindings"
+menu_pages = ["about", "actions", "controls", "general", "restore", "root"]
+
+expected = [
+    "LICENSE",
+    "README.md",
+    "unregister-layer.ps1",
+    f"{mod_dir}/mod.json",
+    f"{mod_dir}/mod/scripts/vscripts/tf2vrbb_menu_state.nut",
+    f"{mod_dir}/mod/scripts/vscripts/ui/tf2vrbb_menu.nut",
+]
+expected += [f"{mod_dir}/mod/resource/ui/menus/tf2vrbb_{page}.menu" for page in menu_pages]
+expected += [
+    "plugins/TF2VRBetterBindings.dll",
+    "plugins/layer/TF2VRBetterBindingsLayer.dll",
+    "plugins/layer/TF2VRBetterBindings.ini",
+    "plugins/layer/XR_APILAYER_NIGHTEYES_tf2vr_better_bindings.json",
+]
+
+required_convars = {
+    "tf2vrbb_menu_active", "tf2vrbb_startup_phase", "tf2vrbb_settings_api",
+    "tf2vrbb_reload_grab", "tf2vrbb_grenade_toggle", "tf2vrbb_crouch_enabled",
+    "tf2vrbb_crouch_button_mode", "tf2vrbb_uncrouch_on_jump", "tf2vrbb_jump_delay_ms",
+    "tf2vrbb_tactical_enabled", "tf2vrbb_tactical_block_trigger",
+    "tf2vrbb_sprint_enabled", "tf2vrbb_sprint_start_cm", "tf2vrbb_sprint_stop_cm",
+}
+
+ini_expected = {
+    ("reload_grab", "enabled"): "1",
+    ("grenade", "toggle"): "0",
+    ("crouch", "enabled"): "1",
+    ("crouch", "mode"): "toggle",
+    ("crouch", "uncrouch_on_jump"): "0",
+    ("crouch", "jump_delay_ms"): "250",
+    ("tactical", "enabled"): "1",
+    ("tactical", "block_hand_trigger_in_game"): "1",
+    ("sprint", "enabled"): "0",
+    ("sprint", "start_below_eyes_cm"): "30",
+    ("sprint", "stop_below_eyes_cm"): "20",
+}
+
+problems = []
+def read(path):
+    return path.read_text(encoding="utf-8", errors="replace")
+
+def pe_info(path):
+    with path.open("rb") as handle:
+        head = handle.read(0x40)
+        if len(head) < 0x40 or head[:2] != b"MZ":
+            return None
+        offset = struct.unpack_from("<I", head, 0x3c)[0]
+        handle.seek(offset)
+        if handle.read(4) != b"PE\0\0":
+            return None
+        machine, _sections, _stamp, _symtab, _symbols, _optional_size, characteristics = struct.unpack(
+            "<HHIIIHH", handle.read(20)
+        )
+    return machine, characteristics
+
+if not pkg.is_dir():
+    problems.append(f"package folder missing: {pkg}")
+else:
+    actual = sorted(path.relative_to(pkg).as_posix() for path in pkg.rglob("*") if path.is_file())
+    for rel in expected:
+        if rel not in actual:
+            problems.append(f"missing from package: {rel}")
+    for rel in actual:
+        if rel not in expected:
+            problems.append(f"unexpected file: {rel}")
+
+    for dll in ("plugins/TF2VRBetterBindings.dll", "plugins/layer/TF2VRBetterBindingsLayer.dll"):
+        path = pkg / dll
+        if not path.is_file():
+            continue
+        info = pe_info(path)
+        if info is None:
+            problems.append(f"{dll}: not a Windows PE file")
+            continue
+        machine, characteristics = info
+        if machine != 0x8664:
+            problems.append(f"{dll}: machine 0x{machine:04x}, expected x86-64 (0x8664)")
+        if not characteristics & 0x2000:
+            problems.append(f"{dll}: not linked as a DLL")
+
+    mod = json.loads(read(pkg / mod_dir / "mod.json"))
+    if mod.get("Version") != version:
+        problems.append(f"mod.json version {mod.get('Version')!r}, expected {version!r}")
+    convar_names = {entry.get("Name") for entry in mod.get("ConVars", [])}
+    for name in sorted(required_convars - convar_names):
+        problems.append(f"mod.json is missing ConVar {name}")
+
+    scripts = mod.get("Scripts", [])
+    if len(scripts) != 2:
+        problems.append(f"mod.json lists {len(scripts)} scripts, expected 2")
+    for script in scripts:
+        if script.get("RunOn") != "UI":
+            problems.append(f"script {script.get('Path')}: RunOn {script.get('RunOn')!r}, expected 'UI'")
+        path = pkg / mod_dir / "mod/scripts/vscripts" / script.get("Path", "")
+        if not path.is_file():
+            problems.append(f"script file missing: {script.get('Path')}")
+            continue
+        text = read(path)
+        for callback in (script.get("UICallback") or {}).values():
+            if f"function {callback}" not in text:
+                problems.append(f"script {script.get('Path')} does not define {callback}")
+
+    for page in menu_pages:
+        path = pkg / mod_dir / f"mod/resource/ui/menus/tf2vrbb_{page}.menu"
+        if path.is_file():
+            text = read(path)
+            if text.count("{") != text.count("}"):
+                problems.append(f"{path.name}: unbalanced braces")
+
+    nut = read(pkg / mod_dir / "mod/scripts/vscripts/ui/tf2vrbb_menu.nut")
+    if nut.count("{") != nut.count("}"):
+        problems.append("tf2vrbb_menu.nut: unbalanced braces")
+    if "AddMenuFooterOption(" not in nut:
+        problems.append("tf2vrbb_menu.nut: no AddMenuFooterOption call")
+
+    ini = {}
+    section = None
+    for line in read(pkg / "plugins/layer/TF2VRBetterBindings.ini").splitlines():
+        line = line.strip()
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            ini[section] = {}
+        elif "=" in line and section is not None:
+            key, value = line.split("=", 1)
+            ini[section][key.strip()] = value.strip()
+    for (section_name, key), value in ini_expected.items():
+        actual_value = ini.get(section_name, {}).get(key)
+        if actual_value != value:
+            problems.append(f"ini [{section_name}] {key} = {actual_value!r}, expected {value!r}")
+
+    manifest = json.loads(read(pkg / "plugins/layer/XR_APILAYER_NIGHTEYES_tf2vr_better_bindings.json"))
+    library = manifest.get("api_layer", {}).get("library_path", "")
+    library_name = library.replace("\\", "/").split("/")[-1]
+    if library_name != "TF2VRBetterBindingsLayer.dll":
+        problems.append(f"manifest library_path {library!r} does not point at the layer DLL")
+    elif not (pkg / "plugins/layer" / library_name).is_file():
+        problems.append("manifest points at a layer DLL that is not in the package")
+
+    readme = read(pkg / "README.md")
+    for heading in ("## Settings menu", "### Building on Linux"):
+        if heading not in readme:
+            problems.append(f"README.md is missing {heading!r}")
+
+if not zip_path.is_file():
+    problems.append(f"zip missing: {zip_path}")
+else:
+    with zipfile.ZipFile(zip_path) as archive:
+        names = set(archive.namelist())
+    for rel in expected:
+        if f"{pkg.name}/{rel}" not in names:
+            problems.append(f"zip is missing {rel}")
+
+if problems:
+    print(f"FAIL: {len(problems)} problem(s) in the package", file=sys.stderr)
+    for problem in problems:
+        print(f"  - {problem}", file=sys.stderr)
+    sys.exit(1)
+
+print(f"verified {len(expected)} files: both DLLs x64, mod.json {version} with "
+      f"{len(required_convars)} ConVars and 2 UI scripts, ini and manifest consistent, zip complete")
+PY
+
+echo
+echo "package: $package_dir"
+echo "zip:     $zip_path"
+
+if [ -n "$install_dir" ]; then
+    if [ ! -d "$install_dir" ]; then
+        echo "error: install directory does not exist: $install_dir" >&2
+        exit 1
+    fi
+    destination="$install_dir/$package_name"
+    mkdir -p "$destination"
+    kept_ini=""
+    if [ -f "$destination/plugins/layer/TF2VRBetterBindings.ini" ]; then
+        kept_ini="$(mktemp)"
+        cp "$destination/plugins/layer/TF2VRBetterBindings.ini" "$kept_ini"
+    fi
+    cp -a "$package_dir/." "$destination/"
+    if [ -n "$kept_ini" ]; then
+        cp "$kept_ini" "$destination/plugins/layer/TF2VRBetterBindings.ini"
+        rm -f "$kept_ini"
+        echo "kept the existing TF2VRBetterBindings.ini"
+    fi
+    echo "installed: $destination"
+    shopt -s nullglob
+    for other in "$install_dir"/Nighteyes-TF2VRBetterBindings-*; do
+        if [ "$other" != "$destination" ]; then
+            echo "note: another copy is installed at $other - remove it so only one package loads"
+        fi
+    done
+    shopt -u nullglob
+fi
+
+echo
+echo "next: start the game, quit, and start it again so the plugin registers the layer"

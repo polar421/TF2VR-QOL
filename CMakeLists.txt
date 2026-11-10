@@ -3,7 +3,6 @@ project(TF2VRBetterBindings VERSION 1.3.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 include(FetchContent)
 FetchContent_Declare(openxr_sdk
@@ -18,8 +17,17 @@ set(MOD_NAME "Nighteyes.TF2VRBetterBindings")
 set(PACKAGE_NAME "Nighteyes-TF2VRBetterBindings-${PROJECT_VERSION}")
 set(LAYER_MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/manifest/XR_APILAYER_NIGHTEYES_tf2vr_better_bindings.json")
 set(LAYER_CONFIG "${CMAKE_CURRENT_SOURCE_DIR}/config/TF2VRBetterBindings.ini")
-set(COMMON_DEFINITIONS WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE)
-set(COMMON_OPTIONS /W4 /WX /permissive- /utf-8)
+set(COMMON_DEFINITIONS WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE _WIN32_WINNT=0x0601)
+
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    set(COMMON_OPTIONS /W4 /WX /permissive- /utf-8)
+else()
+    # MinGW-w64 cross build from Linux. GCC has no __try/__except, so GameVar.cpp
+    # falls back to an unguarded probe; keep /WX out here so a newer GCC warning
+    # does not block an otherwise valid cross build.
+    set(COMMON_OPTIONS -Wall -Wextra -Wno-missing-field-initializers -Wno-cast-function-type)
+endif()
 
 option(TF2VRBB_DEV_LOG "Write TF2VRBetterBindings.log next to the layer DLL (development builds only)" OFF)
 
@@ -31,7 +39,7 @@ set(LAYER_SOURCES
     src/layer/Log.cpp)
 
 add_library(tf2vrbb_layer SHARED ${LAYER_SOURCES})
-set_target_properties(tf2vrbb_layer PROPERTIES OUTPUT_NAME TF2VRBetterBindingsLayer)
+set_target_properties(tf2vrbb_layer PROPERTIES OUTPUT_NAME TF2VRBetterBindingsLayer PREFIX "")
 target_include_directories(tf2vrbb_layer PRIVATE ${OPENXR_INCLUDE_DIR})
 target_compile_definitions(tf2vrbb_layer PRIVATE ${COMMON_DEFINITIONS} XR_NO_PROTOTYPES $<$<BOOL:${TF2VRBB_DEV_LOG}>:TF2VRBB_LOGGING>)
 target_compile_options(tf2vrbb_layer PRIVATE ${COMMON_OPTIONS})
@@ -40,7 +48,7 @@ add_library(tf2vrbb_plugin SHARED
     src/plugin/Plugin.cpp
     src/plugin/Registration.cpp
     src/plugin/SettingsSync.cpp)
-set_target_properties(tf2vrbb_plugin PROPERTIES OUTPUT_NAME TF2VRBetterBindings)
+set_target_properties(tf2vrbb_plugin PROPERTIES OUTPUT_NAME TF2VRBetterBindings PREFIX "")
 target_compile_definitions(tf2vrbb_plugin PRIVATE ${COMMON_DEFINITIONS})
 target_compile_options(tf2vrbb_plugin PRIVATE ${COMMON_OPTIONS})
 target_link_libraries(tf2vrbb_plugin PRIVATE advapi32)
