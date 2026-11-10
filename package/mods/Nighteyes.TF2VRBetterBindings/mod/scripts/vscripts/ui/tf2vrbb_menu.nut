@@ -312,12 +312,12 @@ void function TF2VRBB_WireNav( array<var> buttons )
 
 string function TF2VRBB_HudParentInfo( var hud )
 {
-	var parent = Hud_GetParent( hud )
-	if ( parent == null )
+	var parentHud = Hud_GetParent( hud )
+	if ( parentHud == null )
 		return "parent=NULL"
 
-	return "parentAbs=(" + string( Hud_GetAbsX( parent ) ) + "," + string( Hud_GetAbsY( parent ) ) + ")"
-		+ " parentSize=(" + string( Hud_GetWidth( parent ) ) + "x" + string( Hud_GetHeight( parent ) ) + ")"
+	return "parentAbs=(" + string( Hud_GetAbsX( parentHud ) ) + "," + string( Hud_GetAbsY( parentHud ) ) + ")"
+		+ " parentSize=(" + string( Hud_GetWidth( parentHud ) ) + "x" + string( Hud_GetHeight( parentHud ) ) + ")"
 }
 
 void function TF2VRBB_LogHudChild( var menu, string name )
