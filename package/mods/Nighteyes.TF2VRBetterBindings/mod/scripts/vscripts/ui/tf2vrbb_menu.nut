@@ -342,8 +342,8 @@ void function TF2VRBB_LogHudChild( var menu, string name )
 
 void function TF2VRBB_LogPageHeader( string page, var menu )
 {
-	var screen = GetScreenSize()
-	print( "[TF2VRBB][layout] page=" + page + " screen=" + string( screen[ 0 ] ) + "x" + string( screen[ 1 ] ) + "\n" )
+	print( "[TF2VRBB][layout] page=" + page + " screen="
+		+ string( GetScreenSize()[ 0 ] ) + "x" + string( GetScreenSize()[ 1 ] ) + "\n" )
 	print( "[TF2VRBB][layout] page=" + page + " menu"
 		+ " rel=(" + string( Hud_GetX( menu ) ) + "," + string( Hud_GetY( menu ) ) + ")"
 		+ " abs=(" + string( Hud_GetAbsX( menu ) ) + "," + string( Hud_GetAbsY( menu ) ) + ")"
