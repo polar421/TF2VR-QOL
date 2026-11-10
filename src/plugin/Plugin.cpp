@@ -1,5 +1,6 @@
 #include "Registration.h"
 #include "SettingsSync.h"
+#include "CalibrationPersist.h"
 
 #include <windows.h>
 
@@ -98,6 +99,13 @@ void SysLog(int level, const std::string& message)
         sys->vtable->log(sys, nullptr, level, const_cast<char*>(message.c_str()));
 }
 
+void CalibrationLog(int level, const char* message)
+{
+    if (!message)
+        return;
+    SysLog(level, std::string("calibration: ") + message);
+}
+
 std::string Narrow(const std::wstring& text)
 {
     if (text.empty())
@@ -149,6 +157,7 @@ void PluginInit(void*, HMODULE northstarModule, const PluginNorthstarData* initD
         g_sys = createInterface("NSSys001", nullptr);
 
     tf2vrbb::SettingsSyncInit(initData ? initData->pluginHandle : nullptr);
+    tf2vrbb::CalibrationPersistInit(initData ? initData->pluginHandle : nullptr, CalibrationLog);
 
     // Wine's OpenXR bridge forwards to the native Linux loader, which only
     // loads ELF API layers. A Windows layer DLL can never be negotiated here,
@@ -204,6 +213,7 @@ void PluginOnLibraryLoaded(void*, HMODULE, const char*) {}
 void PluginRunFrame(void*)
 {
     tf2vrbb::SettingsSyncFrame();
+    tf2vrbb::CalibrationPersistFrame();
 }
 
 PluginCallbacksVTable g_pluginCallbacksVTable = {

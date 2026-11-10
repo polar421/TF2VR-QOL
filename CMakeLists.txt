@@ -51,7 +51,8 @@ target_link_options(tf2vrbb_layer PRIVATE ${COMMON_LINK_OPTIONS})
 add_library(tf2vrbb_plugin SHARED
     src/plugin/Plugin.cpp
     src/plugin/Registration.cpp
-    src/plugin/SettingsSync.cpp)
+    src/plugin/SettingsSync.cpp
+    src/plugin/CalibrationPersist.cpp)
 set_target_properties(tf2vrbb_plugin PROPERTIES OUTPUT_NAME TF2VRBetterBindings PREFIX "")
 target_compile_definitions(tf2vrbb_plugin PRIVATE ${COMMON_DEFINITIONS})
 target_compile_options(tf2vrbb_plugin PRIVATE ${COMMON_OPTIONS})

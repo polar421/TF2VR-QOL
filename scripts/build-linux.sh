@@ -18,6 +18,7 @@ Options:
   --clean            delete the build directory before configuring
   --install DIR      copy the package into DIR (a TF2VR\packages folder),
                      keeping an existing plugins/layer/TF2VRBetterBindings.ini
+                     and plugins/layer/TF2VRBetterBindings.calibration.ini
   --jobs N           parallel build jobs (default: all CPUs)
   --check-deps-only  report missing tools and exit
   -h, --help         show this help
@@ -385,11 +386,21 @@ if [ -n "$install_dir" ]; then
         kept_ini="$(mktemp)"
         cp "$destination/plugins/layer/TF2VRBetterBindings.ini" "$kept_ini"
     fi
+    kept_calibration=""
+    if [ -f "$destination/plugins/layer/TF2VRBetterBindings.calibration.ini" ]; then
+        kept_calibration="$(mktemp)"
+        cp "$destination/plugins/layer/TF2VRBetterBindings.calibration.ini" "$kept_calibration"
+    fi
     cp -a "$package_dir/." "$destination/"
     if [ -n "$kept_ini" ]; then
         cp "$kept_ini" "$destination/plugins/layer/TF2VRBetterBindings.ini"
         rm -f "$kept_ini"
         echo "kept the existing TF2VRBetterBindings.ini"
+    fi
+    if [ -n "$kept_calibration" ]; then
+        cp "$kept_calibration" "$destination/plugins/layer/TF2VRBetterBindings.calibration.ini"
+        rm -f "$kept_calibration"
+        echo "kept the existing TF2VRBetterBindings.calibration.ini"
     fi
     echo "installed: $destination"
     shopt -s nullglob

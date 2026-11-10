@@ -14,6 +14,14 @@ Bind them in SteamVR → Settings → Controllers → **Manage Controller Bindin
 
 Tip: set the mod's **VR Settings → Gun Grip** to **Toggle** to hold your gun with one press of Grip.
 
+## Calibration is saved after the first run
+
+The first time you start the game, calibrate normally. Once Titanfall2VR reports the calibration as complete, the plugin writes it to `TF2VR\packages\Nighteyes-TF2VRBetterBindings-<version>\plugins\layer\TF2VRBetterBindings.calibration.ini`. On later launches the plugin restores the saved height and arm span and marks the native startup calibration as done, so the calibration screen is skipped.
+
+The file is tied to the installed `Titanfall2VR.dll`. If Titanfall2VR is updated, the old file is ignored and you calibrate once again, after which the new values are saved.
+
+To recalibrate on purpose, delete `TF2VRBetterBindings.calibration.ini` and start the game. Deleting the file is the only reset; the plugin never edits any of CircuitLord's files.
+
 ## Settings menu
 
 **TF2VR BETTER BINDINGS** is a page in the game's own front end. Press **X** on the main menu, or click **TF2VR Better Bindings** in the footer.
