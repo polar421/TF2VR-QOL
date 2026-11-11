@@ -140,16 +140,22 @@ zip_path = Path(sys.argv[2])
 version = sys.argv[3]
 mod_dir = "mods/Nighteyes.TF2VRBetterBindings"
 menu_pages = ["about", "actions", "controls", "general", "restore", "root"]
+sandbox_pages = ["root", "maps", "npcs", "player", "presets", "developer"]
 
 expected = [
     "LICENSE",
     "README.md",
+    "docs/SANDBOX.md",
     "unregister-layer.ps1",
     f"{mod_dir}/mod.json",
     f"{mod_dir}/mod/scripts/vscripts/tf2vrbb_menu_state.nut",
     f"{mod_dir}/mod/scripts/vscripts/ui/tf2vrbb_menu.nut",
+    f"{mod_dir}/mod/scripts/vscripts/tf2vrsb_client.nut",
+    f"{mod_dir}/mod/scripts/vscripts/tf2vrsb_server.nut",
+    f"{mod_dir}/mod/scripts/vscripts/ui/tf2vrsb_menu.nut",
 ]
 expected += [f"{mod_dir}/mod/resource/ui/menus/tf2vrbb_{page}.menu" for page in menu_pages]
+expected += [f"{mod_dir}/mod/resource/ui/menus/tf2vrsb_{page}.menu" for page in sandbox_pages]
 expected += [
     "plugins/TF2VRBetterBindings.dll",
     "plugins/layer/TF2VRBetterBindingsLayer.dll",
@@ -163,6 +169,11 @@ required_convars = {
     "tf2vrbb_crouch_button_mode", "tf2vrbb_crouch_binding", "tf2vrbb_uncrouch_on_jump", "tf2vrbb_jump_delay_ms",
     "tf2vrbb_tactical_enabled", "tf2vrbb_tactical_block_trigger",
     "tf2vrbb_sprint_enabled", "tf2vrbb_sprint_start_cm", "tf2vrbb_sprint_stop_cm",
+    "tf2vrsb_map", "tf2vrsb_mode", "tf2vrsb_ready", "tf2vrsb_x", "tf2vrsb_y",
+    "tf2vrsb_z", "tf2vrsb_yaw", "tf2vrsb_npc_count", "tf2vrsb_entity_count",
+    "tf2vrsb_managed_count", "tf2vrsb_bookmark", "tf2vrsb_result", "tf2vrsb_cap",
+    "tf2vrsb_spawn_distance", "tf2vrsb_request_map", "tf2vrsb_request_x",
+    "tf2vrsb_request_y", "tf2vrsb_request_z", "tf2vrsb_request_yaw",
 }
 
 min_mingw_runtime_imports = {
@@ -297,22 +308,30 @@ else:
         problems.append(f"mod.json is missing ConVar {name}")
 
     scripts = mod.get("Scripts", [])
-    if len(scripts) != 2:
-        problems.append(f"mod.json lists {len(scripts)} scripts, expected 2")
+    if len(scripts) != 5:
+        problems.append(f"mod.json lists {len(scripts)} scripts, expected 5")
     for script in scripts:
-        if script.get("RunOn") != "UI":
-            problems.append(f"script {script.get('Path')}: RunOn {script.get('RunOn')!r}, expected 'UI'")
+        run_on = script.get("RunOn")
+        if run_on not in ("UI", "CLIENT", "SERVER"):
+            problems.append(f"script {script.get('Path')}: RunOn {run_on!r}, expected 'UI', 'CLIENT' or 'SERVER'")
         path = pkg / mod_dir / "mod/scripts/vscripts" / script.get("Path", "")
         if not path.is_file():
             problems.append(f"script file missing: {script.get('Path')}")
             continue
         text = read(path)
-        for callback in (script.get("UICallback") or {}).values():
+        callbacks = list((script.get("UICallback") or {}).values())
+        callbacks += list((script.get("ClientCallback") or {}).values())
+        callbacks += list((script.get("ServerCallback") or {}).values())
+        if not callbacks:
+            problems.append(f"script {script.get('Path')} has no UI or server callback")
+        for callback in callbacks:
             if f"function {callback}" not in text:
                 problems.append(f"script {script.get('Path')} does not define {callback}")
 
-    for page in menu_pages:
-        path = pkg / mod_dir / f"mod/resource/ui/menus/tf2vrbb_{page}.menu"
+    menu_files = [f"tf2vrbb_{page}.menu" for page in menu_pages]
+    menu_files += [f"tf2vrsb_{page}.menu" for page in sandbox_pages]
+    for menu_file in menu_files:
+        path = pkg / mod_dir / "mod/resource/ui/menus" / menu_file
         if path.is_file():
             text = read(path)
             if text.count("{") != text.count("}"):
@@ -323,6 +342,27 @@ else:
         problems.append("tf2vrbb_menu.nut: unbalanced braces")
     if "AddMenuFooterOption(" not in nut:
         problems.append("tf2vrbb_menu.nut: no AddMenuFooterOption call")
+
+    sandbox_nut = read(pkg / mod_dir / "mod/scripts/vscripts/ui/tf2vrsb_menu.nut")
+    if sandbox_nut.count("{") != sandbox_nut.count("}"):
+        problems.append("tf2vrsb_menu.nut: unbalanced braces")
+    for required in ("InGameSPMenu", "AddMenuFooterOption(", "RunClientScript(", "NSSaveFile(", "NSLoadFile("):
+        if required not in sandbox_nut:
+            problems.append(f"tf2vrsb_menu.nut: missing {required}")
+
+    client_nut = read(pkg / mod_dir / "mod/scripts/vscripts/tf2vrsb_client.nut")
+    if client_nut.count("{") != client_nut.count("}"):
+        problems.append("tf2vrsb_client.nut: unbalanced braces")
+    for required in ("GetLocalClientPlayer(", "ClientCommand("):
+        if required not in client_nut:
+            problems.append(f"tf2vrsb_client.nut: missing {required}")
+
+    server_nut = read(pkg / mod_dir / "mod/scripts/vscripts/tf2vrsb_server.nut")
+    if server_nut.count("{") != server_nut.count("}"):
+        problems.append("tf2vrsb_server.nut: unbalanced braces")
+    for required in ("AddClientCommandCallback(", "CreateNPC(", "Destroy()", "SetOrigin("):
+        if required not in server_nut:
+            problems.append(f"tf2vrsb_server.nut: missing {required}")
 
     ini = {}
     section = None
@@ -348,7 +388,7 @@ else:
         problems.append("manifest points at a layer DLL that is not in the package")
 
     readme = read(pkg / "README.md")
-    for heading in ("## Settings menu", "### Building on Linux"):
+    for heading in ("## Settings menu", "## Campaign sandbox (experimental)", "### Building on Linux"):
         if heading not in readme:
             problems.append(f"README.md is missing {heading!r}")
 
@@ -368,8 +408,12 @@ if problems:
     sys.exit(1)
 
 print(f"verified {len(expected)} files: both DLLs x64, mod.json {version} with "
-      f"{len(required_convars)} ConVars and 2 UI scripts, ini and manifest consistent, zip complete")
+      f"{len(required_convars)} ConVars, 5 UI/CLIENT/SERVER scripts and 12 menu resources, "
+      f"ini and manifest consistent, zip complete")
 PY
+
+echo
+python3 "$root/scripts/verify-sandbox.py" "$package_dir"
 
 echo
 echo "package: $package_dir"

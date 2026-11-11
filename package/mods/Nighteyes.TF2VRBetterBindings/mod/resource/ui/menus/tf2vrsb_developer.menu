@@ -1,0 +1,204 @@
+"resource/ui/menus/tf2vrsb_developer.menu"
+{
+	menu
+	{
+		ControlName Frame
+		xpos 0
+		ypos 0
+		zpos 3
+		wide f0
+		tall f0
+		autoResize 0
+		visible 1
+		enabled 1
+		pinCorner 0
+		PaintBackgroundType 0
+		infocus_bgcolor_override "0 0 0 0"
+		outoffocus_bgcolor_override "0 0 0 0"
+
+		Vignette
+		{
+			ControlName ImagePanel
+			InheritProperties MenuVignette
+		}
+
+		ImgTopBar
+		{
+			ControlName ImagePanel
+			InheritProperties MenuTopBar
+		}
+
+		Title
+		{
+			ControlName Label
+			InheritProperties MenuTitle
+			labelText "TF2VR CAMPAIGN SANDBOX"
+		}
+
+		Panel
+		{
+			ControlName Label
+			labelText ""
+			zpos -1
+			wide 1100
+			tall 760
+			xpos 120
+			ypos 240
+			paintbackground 1
+			bgcolor_override "8 10 12 236"
+		}
+
+		AccentTop
+		{
+			ControlName Label
+			labelText ""
+			wide 1100
+			tall 6
+			paintbackground 1
+			bgcolor_override "242 141 28 255"
+			xpos 120
+			ypos 240
+		}
+
+		PanelHeader
+		{
+			ControlName Label
+			labelText "DEVELOPER INFORMATION"
+			font Default_41
+			allcaps 1
+			fgcolor_override "255 255 255 255"
+			auto_wide_tocontents 1
+			auto_tall_tocontents 1
+			xpos 152
+			ypos 266
+		}
+
+		HeaderRule
+		{
+			ControlName Label
+			labelText ""
+			wide 1036
+			tall 2
+			paintbackground 1
+			bgcolor_override "96 104 112 255"
+			xpos 152
+			ypos 338
+		}
+
+		SubHeader
+		{
+			ControlName Label
+			labelText "READ-ONLY SESSION TELEMETRY // SOURCE-VERIFIED FUNCTIONS"
+			font Default_21
+			fgcolor_override "242 141 28 255"
+			allcaps 1
+			xpos 152
+			ypos 350
+		}
+
+		MapValue
+		{
+			ControlName Label
+			labelText "MAP ID: --"
+			font Default_21
+			fgcolor_override "255 255 255 255"
+			wide 1036
+			tall 26
+			xpos 152
+			ypos 390
+		}
+
+		ModeValue
+		{
+			ControlName Label
+			labelText "MODE: --"
+			font Default_21
+			fgcolor_override "196 202 208 255"
+			wide 1036
+			tall 26
+			xpos 152
+			ypos 418
+		}
+
+		PositionValue
+		{
+			ControlName Label
+			labelText "PLAYER POSITION: --"
+			font Default_21
+			fgcolor_override "196 202 208 255"
+			wide 1036
+			tall 26
+			xpos 152
+			ypos 446
+		}
+
+		CountsValue
+		{
+			ControlName Label
+			labelText "ENTITIES: --    NPCs: --"
+			font Default_21
+			fgcolor_override "196 202 208 255"
+			wide 1036
+			tall 26
+			xpos 152
+			ypos 474
+		}
+
+		CapValue
+		{
+			ControlName Label
+			labelText "NPC CAP: --"
+			font Default_21
+			fgcolor_override "196 202 208 255"
+			wide 1036
+			tall 26
+			xpos 152
+			ypos 502
+		}
+
+		LimitsValue
+		{
+			ControlName Label
+			labelText "AVAILABLE: PAUSE MENU, SESSION INFO, MAP CATALOG, NPCs, BOOKMARK, POSITION PRESETS."
+			font Default_16
+			fgcolor_override "150 156 162 255"
+			wide 1036
+			tall 80
+			wrap 1
+			xpos 152
+			ypos 550
+		}
+
+		Refresh
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 1036
+			tall 48
+			xpos 152
+			ypos 660
+			scriptID "0"
+		}
+
+		BtnBack
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 1036
+			tall 48
+			xpos 152
+			ypos 720
+			scriptID "1"
+		}
+
+		FooterButtons
+		{
+			ControlName CNestedPanel
+			InheritProperties FooterButtons
+		}
+	}
+}

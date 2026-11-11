@@ -1,0 +1,234 @@
+"resource/ui/menus/tf2vrsb_npcs.menu"
+{
+	menu
+	{
+		ControlName Frame
+		xpos 0
+		ypos 0
+		zpos 3
+		wide f0
+		tall f0
+		autoResize 0
+		visible 1
+		enabled 1
+		pinCorner 0
+		PaintBackgroundType 0
+		infocus_bgcolor_override "0 0 0 0"
+		outoffocus_bgcolor_override "0 0 0 0"
+
+		Vignette
+		{
+			ControlName ImagePanel
+			InheritProperties MenuVignette
+		}
+
+		ImgTopBar
+		{
+			ControlName ImagePanel
+			InheritProperties MenuTopBar
+		}
+
+		Title
+		{
+			ControlName Label
+			InheritProperties MenuTitle
+			labelText "TF2VR CAMPAIGN SANDBOX"
+		}
+
+		Panel
+		{
+			ControlName Label
+			labelText ""
+			zpos -1
+			wide 900
+			tall 760
+			xpos 120
+			ypos 240
+			paintbackground 1
+			bgcolor_override "8 10 12 236"
+		}
+
+		AccentTop
+		{
+			ControlName Label
+			labelText ""
+			wide 900
+			tall 6
+			paintbackground 1
+			bgcolor_override "242 141 28 255"
+			xpos 120
+			ypos 240
+		}
+
+		PanelHeader
+		{
+			ControlName Label
+			labelText "NPC SANDBOX"
+			font Default_41
+			allcaps 1
+			fgcolor_override "255 255 255 255"
+			auto_wide_tocontents 1
+			auto_tall_tocontents 1
+			xpos 152
+			ypos 266
+		}
+
+		HeaderRule
+		{
+			ControlName Label
+			labelText ""
+			wide 836
+			tall 2
+			paintbackground 1
+			bgcolor_override "96 104 112 255"
+			xpos 152
+			ypos 338
+		}
+
+		SubHeader
+		{
+			ControlName Label
+			labelText "SANDBOX-SPAWNED ACTORS ONLY // HOSTILE OR PLAYER TEAM"
+			font Default_21
+			fgcolor_override "242 141 28 255"
+			allcaps 1
+			xpos 152
+			ypos 350
+		}
+
+		ManagedValue
+		{
+			ControlName Label
+			labelText "MANAGED: 0 / 6"
+			font Default_21
+			fgcolor_override "255 255 255 255"
+			wide 836
+			tall 26
+			xpos 152
+			ypos 382
+		}
+
+		SpawnHostileSoldier
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 836
+			tall 48
+			xpos 152
+			ypos 425
+			scriptID "0"
+		}
+
+		SpawnHostileSpectre
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 836
+			tall 48
+			xpos 152
+			ypos 481
+			scriptID "1"
+		}
+
+		SpawnFriendlySoldier
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 836
+			tall 48
+			xpos 152
+			ypos 537
+			scriptID "2"
+		}
+
+		ClearManaged
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 836
+			tall 48
+			xpos 152
+			ypos 593
+			scriptID "3"
+		}
+
+		SwitchNpcCap
+		{
+			ControlName RuiButton
+			InheritProperties SwitchButton
+			style DialogListButton
+			wide 836
+			xpos 152
+			ypos 655
+			ConVar "tf2vrsb_cap"
+			list
+			{
+				"NPC CAP: 2" 2
+				"NPC CAP: 4" 4
+				"NPC CAP: 6" 6
+				"NPC CAP: 8" 8
+				"NPC CAP: 10" 10
+			}
+		}
+
+		SwitchSpawnDistance
+		{
+			ControlName RuiButton
+			InheritProperties SwitchButton
+			style DialogListButton
+			wide 836
+			xpos 152
+			ypos 711
+			ConVar "tf2vrsb_spawn_distance"
+			list
+			{
+				"SPAWN AHEAD: 100 UNITS" 100
+				"SPAWN AHEAD: 150 UNITS" 150
+				"SPAWN AHEAD: 200 UNITS" 200
+				"SPAWN AHEAD: 250 UNITS" 250
+				"SPAWN AHEAD: 300 UNITS" 300
+			}
+		}
+
+		BtnBack
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 836
+			tall 48
+			xpos 152
+			ypos 773
+			scriptID "6"
+		}
+
+		NpcStatus
+		{
+			ControlName Label
+			labelText "WAITING FOR SERVER VM"
+			font Default_16
+			fgcolor_override "242 141 28 255"
+			allcaps 1
+			wide 836
+			tall 34
+			wrap 1
+			xpos 152
+			ypos 835
+		}
+
+		FooterButtons
+		{
+			ControlName CNestedPanel
+			InheritProperties FooterButtons
+		}
+	}
+}

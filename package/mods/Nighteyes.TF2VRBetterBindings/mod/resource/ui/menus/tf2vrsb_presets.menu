@@ -1,0 +1,246 @@
+"resource/ui/menus/tf2vrsb_presets.menu"
+{
+	menu
+	{
+		ControlName Frame
+		xpos 0
+		ypos 0
+		zpos 3
+		wide f0
+		tall f0
+		autoResize 0
+		visible 1
+		enabled 1
+		pinCorner 0
+		PaintBackgroundType 0
+		infocus_bgcolor_override "0 0 0 0"
+		outoffocus_bgcolor_override "0 0 0 0"
+
+		Vignette
+		{
+			ControlName ImagePanel
+			InheritProperties MenuVignette
+		}
+
+		ImgTopBar
+		{
+			ControlName ImagePanel
+			InheritProperties MenuTopBar
+		}
+
+		Title
+		{
+			ControlName Label
+			InheritProperties MenuTitle
+			labelText "TF2VR CAMPAIGN SANDBOX"
+		}
+
+		Panel
+		{
+			ControlName Label
+			labelText ""
+			zpos -1
+			wide 1000
+			tall 650
+			xpos 120
+			ypos 240
+			paintbackground 1
+			bgcolor_override "8 10 12 236"
+		}
+
+		AccentTop
+		{
+			ControlName Label
+			labelText ""
+			wide 1000
+			tall 6
+			paintbackground 1
+			bgcolor_override "242 141 28 255"
+			xpos 120
+			ypos 240
+		}
+
+		PanelHeader
+		{
+			ControlName Label
+			labelText "POSITION PRESETS"
+			font Default_41
+			allcaps 1
+			fgcolor_override "255 255 255 255"
+			auto_wide_tocontents 1
+			auto_tall_tocontents 1
+			xpos 152
+			ypos 266
+		}
+
+		HeaderRule
+		{
+			ControlName Label
+			labelText ""
+			wide 936
+			tall 2
+			paintbackground 1
+			bgcolor_override "96 104 112 255"
+			xpos 152
+			ypos 338
+		}
+
+		SubHeader
+		{
+			ControlName Label
+			labelText "MOD-SCOPED SAFE I/O // MAP-LOCKED POSITIONS // NO CAMPAIGN SAVES TOUCHED"
+			font Default_21
+			fgcolor_override "242 141 28 255"
+			allcaps 1
+			xpos 152
+			ypos 350
+		}
+
+		Slot0Status
+		{
+			ControlName Label
+			labelText "SLOT 1: EMPTY"
+			font Default_21
+			fgcolor_override "196 202 208 255"
+			wide 936
+			tall 24
+			xpos 152
+			ypos 386
+		}
+
+		Slot1Status
+		{
+			ControlName Label
+			labelText "SLOT 2: EMPTY"
+			font Default_21
+			fgcolor_override "196 202 208 255"
+			wide 936
+			tall 24
+			xpos 152
+			ypos 414
+		}
+
+		Slot2Status
+		{
+			ControlName Label
+			labelText "SLOT 3: EMPTY"
+			font Default_21
+			fgcolor_override "196 202 208 255"
+			wide 936
+			tall 24
+			xpos 152
+			ypos 442
+		}
+
+		Save1
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 440
+			tall 52
+			xpos 152
+			ypos 490
+			scriptID "0"
+		}
+
+		Save2
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 440
+			tall 52
+			xpos 152
+			ypos 556
+			scriptID "1"
+		}
+
+		Save3
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 440
+			tall 52
+			xpos 152
+			ypos 622
+			scriptID "2"
+		}
+
+		Load1
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 440
+			tall 52
+			xpos 648
+			ypos 490
+			scriptID "3"
+		}
+
+		Load2
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 440
+			tall 52
+			xpos 648
+			ypos 556
+			scriptID "4"
+		}
+
+		Load3
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 440
+			tall 52
+			xpos 648
+			ypos 622
+			scriptID "5"
+		}
+
+		BtnBack
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 936
+			tall 48
+			xpos 152
+			ypos 700
+			scriptID "6"
+		}
+
+		PresetStatus
+		{
+			ControlName Label
+			labelText "WAITING FOR SERVER VM"
+			font Default_16
+			fgcolor_override "242 141 28 255"
+			allcaps 1
+			wide 936
+			tall 34
+			wrap 1
+			xpos 152
+			ypos 760
+		}
+
+		FooterButtons
+		{
+			ControlName CNestedPanel
+			InheritProperties FooterButtons
+		}
+	}
+}

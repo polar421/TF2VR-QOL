@@ -12,7 +12,7 @@ global function TF2VRBB_AddMenu
 global function TF2VRBB_AddMainMenuFooter
 
 // Keep in sync with the project version in CMakeLists.txt.
-const string TF2VRBB_VERSION = "1.3.0"
+const string TF2VRBB_VERSION = "1.4.0"
 
 const string TF2VRBB_MENU_ROOT = "TF2VRBBRoot"
 const string TF2VRBB_MENU_CONTROLS = "TF2VRBBControls"
@@ -21,7 +21,7 @@ const string TF2VRBB_MENU_GENERAL = "TF2VRBBGeneral"
 const string TF2VRBB_MENU_ABOUT = "TF2VRBBAbout"
 const string TF2VRBB_MENU_RESTORE = "TF2VRBBRestore"
 
-// Set to 1 by the 1.3.0 plugin once it can read and write the ini.
+// Set to 1 by the 1.4.0 plugin once it can read and write the ini.
 const string TF2VRBB_API_CONVAR = "tf2vrbb_settings_api"
 
 const int TF2VRBB_ACTION_ROW_COUNT = 9

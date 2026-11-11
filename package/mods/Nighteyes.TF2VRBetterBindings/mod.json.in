@@ -1,6 +1,6 @@
 {
     "Name": "Nighteyes.TF2VRBetterBindings",
-    "Description": "Extra OpenXR actions for Titanfall 2 VR (Reload Grab, Crouch, Tactical Ability) plus an in-game settings menu. Menu changes are written back into the layer's TF2VRBetterBindings.ini. Reports menu and start-screen state to the layer.",
+    "Description": "Extra OpenXR actions for Titanfall 2 VR (Reload Grab, Crouch, Tactical Ability) plus an in-game settings menu and an experimental campaign pause-menu sandbox with NPC spawning, position bookmarks, saved positions and developer telemetry. Menu changes are written back into the layer's TF2VRBetterBindings.ini.",
     "Version": "@PROJECT_VERSION@",
     "LoadPriority": 3,
     "Dependencies": {
@@ -21,7 +21,26 @@
         { "Name": "tf2vrbb_tactical_block_trigger", "DefaultValue": "1" },
         { "Name": "tf2vrbb_sprint_enabled", "DefaultValue": "0" },
         { "Name": "tf2vrbb_sprint_start_cm", "DefaultValue": "30" },
-        { "Name": "tf2vrbb_sprint_stop_cm", "DefaultValue": "20" }
+        { "Name": "tf2vrbb_sprint_stop_cm", "DefaultValue": "20" },
+        { "Name": "tf2vrsb_map", "DefaultValue": "" },
+        { "Name": "tf2vrsb_mode", "DefaultValue": "" },
+        { "Name": "tf2vrsb_ready", "DefaultValue": "0" },
+        { "Name": "tf2vrsb_x", "DefaultValue": "0" },
+        { "Name": "tf2vrsb_y", "DefaultValue": "0" },
+        { "Name": "tf2vrsb_z", "DefaultValue": "0" },
+        { "Name": "tf2vrsb_yaw", "DefaultValue": "0" },
+        { "Name": "tf2vrsb_npc_count", "DefaultValue": "0" },
+        { "Name": "tf2vrsb_entity_count", "DefaultValue": "0" },
+        { "Name": "tf2vrsb_managed_count", "DefaultValue": "0" },
+        { "Name": "tf2vrsb_bookmark", "DefaultValue": "0" },
+        { "Name": "tf2vrsb_result", "DefaultValue": "" },
+        { "Name": "tf2vrsb_cap", "DefaultValue": "6" },
+        { "Name": "tf2vrsb_spawn_distance", "DefaultValue": "150" },
+        { "Name": "tf2vrsb_request_map", "DefaultValue": "" },
+        { "Name": "tf2vrsb_request_x", "DefaultValue": "0" },
+        { "Name": "tf2vrsb_request_y", "DefaultValue": "0" },
+        { "Name": "tf2vrsb_request_z", "DefaultValue": "0" },
+        { "Name": "tf2vrsb_request_yaw", "DefaultValue": "0" }
     ],
     "Scripts": [
         {
@@ -36,6 +55,24 @@
                 "Before": "TF2VRBB_AddMenu",
                 "After": "TF2VRBB_AddMainMenuFooter"
             }
+        },
+        {
+            "Path": "ui/tf2vrsb_menu.nut",
+            "RunOn": "UI",
+            "UICallback": {
+                "Before": "TF2VRSB_AddSandboxMenus",
+                "After": "TF2VRSB_AddPauseEntry"
+            }
+        },
+        {
+            "Path": "tf2vrsb_client.nut",
+            "RunOn": "CLIENT",
+            "ClientCallback": { "Before": "TF2VRSB_ClientInit" }
+        },
+        {
+            "Path": "tf2vrsb_server.nut",
+            "RunOn": "SERVER",
+            "ServerCallback": { "Before": "TF2VRSB_ServerInit" }
         }
     ]
 }

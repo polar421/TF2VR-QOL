@@ -1,0 +1,313 @@
+"resource/ui/menus/tf2vrsb_maps.menu"
+{
+	menu
+	{
+		ControlName Frame
+		xpos 0
+		ypos 0
+		zpos 3
+		wide f0
+		tall f0
+		autoResize 0
+		visible 1
+		enabled 1
+		pinCorner 0
+		PaintBackgroundType 0
+		infocus_bgcolor_override "0 0 0 0"
+		outoffocus_bgcolor_override "0 0 0 0"
+
+		Vignette
+		{
+			ControlName ImagePanel
+			InheritProperties MenuVignette
+		}
+
+		ImgTopBar
+		{
+			ControlName ImagePanel
+			InheritProperties MenuTopBar
+		}
+
+		Title
+		{
+			ControlName Label
+			InheritProperties MenuTitle
+			labelText "TF2VR CAMPAIGN SANDBOX"
+		}
+
+		Panel
+		{
+			ControlName Label
+			labelText ""
+			zpos -1
+			wide 1100
+			tall 760
+			xpos 120
+			ypos 240
+			paintbackground 1
+			bgcolor_override "8 10 12 236"
+		}
+
+		AccentTop
+		{
+			ControlName Label
+			labelText ""
+			wide 1100
+			tall 6
+			paintbackground 1
+			bgcolor_override "242 141 28 255"
+			xpos 120
+			ypos 240
+		}
+
+		PanelHeader
+		{
+			ControlName Label
+			labelText "MAPS & ENVIRONMENTS"
+			font Default_41
+			allcaps 1
+			fgcolor_override "255 255 255 255"
+			auto_wide_tocontents 1
+			auto_tall_tocontents 1
+			xpos 152
+			ypos 266
+		}
+
+		HeaderRule
+		{
+			ControlName Label
+			labelText ""
+			wide 1036
+			tall 2
+			paintbackground 1
+			bgcolor_override "96 104 112 255"
+			xpos 152
+			ypos 338
+		}
+
+		SubHeader
+		{
+			ControlName Label
+			labelText "VERIFIED CAMPAIGN MAP IDS // CATALOG ONLY IN THIS BUILD"
+			font Default_21
+			fgcolor_override "242 141 28 255"
+			allcaps 1
+			xpos 152
+			ypos 350
+		}
+
+		CurrentMapValue
+		{
+			ControlName Label
+			labelText "CURRENT MAP: --"
+			font Default_21
+			fgcolor_override "196 202 208 255"
+			wide 1036
+			tall 26
+			xpos 152
+			ypos 382
+		}
+
+		Map0
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 42
+			xpos 152
+			ypos 425
+			scriptID "0"
+		}
+
+		Map1
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 42
+			xpos 684
+			ypos 425
+			scriptID "1"
+		}
+
+		Map2
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 42
+			xpos 152
+			ypos 471
+			scriptID "2"
+		}
+
+		Map3
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 42
+			xpos 684
+			ypos 471
+			scriptID "3"
+		}
+
+		Map4
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 42
+			xpos 152
+			ypos 517
+			scriptID "4"
+		}
+
+		Map5
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 42
+			xpos 684
+			ypos 517
+			scriptID "5"
+		}
+
+		Map6
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 42
+			xpos 152
+			ypos 563
+			scriptID "6"
+		}
+
+		Map7
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 42
+			xpos 684
+			ypos 563
+			scriptID "7"
+		}
+
+		Map8
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 42
+			xpos 152
+			ypos 609
+			scriptID "8"
+		}
+
+		Map9
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 42
+			xpos 684
+			ypos 609
+			scriptID "9"
+		}
+
+		Map10
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 42
+			xpos 152
+			ypos 655
+			scriptID "10"
+		}
+
+		Map11
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 42
+			xpos 684
+			ypos 655
+			scriptID "11"
+		}
+
+		Map12
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 42
+			xpos 152
+			ypos 701
+			scriptID "12"
+		}
+
+		MapDetails
+		{
+			ControlName Label
+			labelText "Select a campaign map to inspect its identifier. Map travel is intentionally disabled."
+			font Default_21
+			fgcolor_override "255 255 255 255"
+			wide 1036
+			tall 74
+			wrap 1
+			xpos 152
+			ypos 770
+		}
+
+		MapStatus
+		{
+			ControlName Label
+			labelText "WAITING FOR SERVER VM"
+			font Default_16
+			fgcolor_override "242 141 28 255"
+			allcaps 1
+			wide 1036
+			tall 28
+			wrap 1
+			xpos 152
+			ypos 860
+		}
+
+		FooterButtons
+		{
+			ControlName CNestedPanel
+			InheritProperties FooterButtons
+		}
+	}
+}
