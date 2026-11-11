@@ -91,7 +91,6 @@ struct
 	bool clearArmed
 	string lastLoggedResult
 
-	bool layoutOverlayShown
 	string activeLayoutPage
 	var activeLayoutMenu
 } file
@@ -784,7 +783,7 @@ void function TF2VRSB_UpdateStatusLabels()
 			+ " DEBUG=" + ( GetConVarInt( TF2VRSB_DEBUG ) == 1 ? "ON" : "OFF" ) + "\n"
 			+ "AVAILABLE: PAUSE MENU, SESSION INFO, MAP CATALOG, NPCs, BOOKMARK, FLY, POSITION PRESETS.\n"
 			+ "NOT AVAILABLE: MAP TRAVEL, WORLD OBJECTS, GAUNTLET MARKERS. THESE REQUIRE IN-GAME VALIDATION.\n"
-			+ "Y TOGGLES ON-SCREEN LAYOUT BOUNDS: ORANGE=MENU, CYAN=CONTROLS." )
+			+ "Y TOGGLES ON-SCREEN LAYOUT BOUNDS: ORANGE=MENU, CYAN=CONTROLS. THE CHOICE IS SAVED." )
 
 	if ( file.presetStatus != null )
 		Hud_SetText( file.presetStatus, result )

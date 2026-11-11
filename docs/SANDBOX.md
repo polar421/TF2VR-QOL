@@ -50,7 +50,7 @@ been run in Titanfall 2; the runtime test plan at the end is still outstanding.
 | Debug overlays / menu position | Implemented as logs + on-screen bounds | `[TF2VRSB][layout]` dumps geometry and text; **Y** tints the menu orange and focusable controls cyan using live HUD bounds |
 | Visual design | Implemented resources | Original dark industrial layout, orange accents, technical labels |
 | VR / WiVRn | Not physically tested | Native menu path is used; no separate OpenXR overlay was added |
-| Packaging | Implemented | CMake package, version 1.5.0, verifier covers files, six scripts, 36 ConVars and menus; `scripts/verify-sandbox.py` cross-checks controls, bridge targets, commands, allow-list entries and ConVars |
+| Packaging | Implemented | CMake package, version 1.5.0, verifier covers files, six scripts, 37 ConVars and menus; `scripts/verify-sandbox.py` cross-checks controls, bridge targets, commands, allow-list entries and ConVars |
 
 ## Verified interfaces
 
@@ -142,7 +142,8 @@ writes these prefixes to Northstar's `nslog`:
 Press **Y** on any sandbox page to toggle the on-screen bounds overlay.
 `DebugMenu` follows the page's `Panel`; `Debug0`-`Debug14` follow its focusable
 controls. The overlay is off by default, independent of `tf2vrsb_debug`, and
-only resizes and displays its own HUD labels.
+stores its state in the archived `tf2vrsb_overlay` ConVar so a UI reload or game
+restart restores it. It only resizes and displays its own HUD labels.
 
 `tf2vrsb_debug` defaults to `1`. Setting it to `0` suppresses every diagnostic
 line; setting it back to `1` restores them. It does not affect the on-screen
@@ -191,7 +192,8 @@ the development environment:
    the page and control positions; use **LOG CURRENT LAYOUT TO NSLOG**. Press
    **Y** and confirm the orange menu box and cyan control boxes align with the
    page while logging is on, then turn **DEBUG LOGGING** off and confirm new
-   page opens stop logging while the overlay still toggles.
+   page opens stop logging while the overlay still toggles. Restart the game and
+   confirm the overlay state is restored.
 9. Check `tf2vrsb_*` ConVars and the server log for rejected actions.
 10. Repeat the menu and gameplay checks in the Quest 3S through WiVRn, looking
     for readability, focus, input handoff, fly comfort, and frame-time regressions.

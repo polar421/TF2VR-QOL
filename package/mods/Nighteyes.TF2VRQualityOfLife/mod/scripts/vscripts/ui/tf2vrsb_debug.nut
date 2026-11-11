@@ -15,6 +15,8 @@ global function TF2VRSB_LogState
 global function TF2VRSB_LogEvent
 global function TF2VRSB_ToggleLayoutOverlay
 
+const string TF2VRSB_LAYOUT_OVERLAY = "tf2vrsb_overlay"
+
 void function TF2VRSB_DebugInit()
 {
 	print( "[TF2VRSB] layout/state diagnostics ready (tf2vrsb_debug=1 enables)\n" )
@@ -218,7 +220,7 @@ void function TF2VRSB_DrawLayoutOverlay( string page, var menu )
 	if ( legend != null )
 		Hud_Hide( legend )
 
-	if ( !file.layoutOverlayShown )
+	if ( GetConVarInt( TF2VRSB_LAYOUT_OVERLAY ) != 1 )
 		return
 
 	int drawn = 0
@@ -240,10 +242,11 @@ void function TF2VRSB_DrawLayoutOverlay( string page, var menu )
 
 void function TF2VRSB_ToggleLayoutOverlay( var button )
 {
-	file.layoutOverlayShown = !file.layoutOverlayShown
+	int enabled = GetConVarInt( TF2VRSB_LAYOUT_OVERLAY ) == 1 ? 0 : 1
+	SetConVarInt( TF2VRSB_LAYOUT_OVERLAY, enabled )
 	TF2VRSB_DrawLayoutOverlay( file.activeLayoutPage, file.activeLayoutMenu )
 	if ( TF2VRSB_DebugEnabled() )
-		print( "[TF2VRSB][overlay] visible=" + ( file.layoutOverlayShown ? "1" : "0" ) + "\n" )
+		print( "[TF2VRSB][overlay] visible=" + string( enabled ) + "\n" )
 }
 
 void function TF2VRSB_LogRootLayout( var menu )

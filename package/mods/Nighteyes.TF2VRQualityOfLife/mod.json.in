@@ -35,6 +35,7 @@
         { "Name": "tf2vrsb_bookmark", "DefaultValue": "0" },
         { "Name": "tf2vrsb_fly", "DefaultValue": "0" },
         { "Name": "tf2vrsb_debug", "DefaultValue": "1" },
+        { "Name": "tf2vrsb_overlay", "DefaultValue": "0", "Flags": 128 },
         { "Name": "tf2vrsb_result", "DefaultValue": "" },
         { "Name": "tf2vrsb_cap", "DefaultValue": "6" },
         { "Name": "tf2vrsb_spawn_distance", "DefaultValue": "150" },

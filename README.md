@@ -27,7 +27,7 @@ Position presets are plain text in Northstar's mod-scoped Safe I/O folder. They 
 
 **DEBUG LOGGING** is on by default (`tf2vrsb_debug 1`). Opening a sandbox page writes `[TF2VRSB][layout]` lines containing the screen size, the page's own position and size, and each control's relative/absolute position, size, visibility, enabled state, parent geometry, script ID and text. `[state]` lines record the status ConVars, and `[event]` lines record page navigation, map selection, status requests, commands and preset loads. The SERVER VM adds `[TF2VRSB][server]` lines for accepted actions. **LOG CURRENT LAYOUT TO NSLOG** in Developer Information dumps the current page again, and the **DEBUG LOGGING** switch stops the diagnostics when you want a quiet log. Read them in `TF2VR\logs\nslog*.txt`.
 
-Press **Y** on any sandbox page to toggle an on-screen layout overlay. It draws the menu panel in orange and each focusable control and the footer in cyan from the live HUD bounds, so spacing and clipping can be checked without reading the log. The overlay is off by default, works independently of debug logging, and lasts for the current UI session.
+Press **Y** on any sandbox page to toggle an on-screen layout overlay. It draws the menu panel in orange and each focusable control and the footer in cyan from the live HUD bounds, so spacing and clipping can be checked without reading the log. The overlay is off by default, works independently of debug logging, and saves its state in the archived `tf2vrsb_overlay` ConVar so it survives UI reloads and game restarts.
 
 ### Not implemented in this build
 

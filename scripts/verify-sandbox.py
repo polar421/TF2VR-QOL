@@ -28,7 +28,8 @@ def main() -> int:
     pkg = Path(sys.argv[1])
     mod = pkg / MOD_DIR
     manifest = json.loads(read(mod / "mod.json"))
-    convars = {entry.get("Name") for entry in manifest.get("ConVars", [])}
+    convar_entries = manifest.get("ConVars", [])
+    convars = {entry.get("Name") for entry in convar_entries}
 
     ui_path = mod / "mod/scripts/vscripts/ui/tf2vrsb_menu.nut"
     debug_path = mod / "mod/scripts/vscripts/ui/tf2vrsb_debug.nut"
@@ -39,6 +40,19 @@ def main() -> int:
     client = read(client_path)
     server = read(server_path)
     problems: list[str] = []
+
+    overlay_convar = next(
+        (entry for entry in convar_entries if entry.get("Name") == "tf2vrsb_overlay"),
+        None,
+    )
+    if overlay_convar is None:
+        problems.append("missing overlay ConVar: tf2vrsb_overlay")
+    else:
+        if overlay_convar.get("DefaultValue") != "0":
+            problems.append("tf2vrsb_overlay must default to 0")
+        flags = overlay_convar.get("Flags")
+        if not isinstance(flags, int) or flags & 128 == 0:
+            problems.append("tf2vrsb_overlay must use FCVAR_ARCHIVE (128)")
 
     # Menu registrations and the resources they reference. The UI uses
     # string constants for menu IDs, so resolve those before comparing.
@@ -144,6 +158,8 @@ def main() -> int:
         "TF2VRSB_LogState(",
         "TF2VRSB_LogEvent(",
         "TF2VRSB_DrawLayoutOverlay(",
+        "GetConVarInt( TF2VRSB_LAYOUT_OVERLAY )",
+        "SetConVarInt( TF2VRSB_LAYOUT_OVERLAY",
         "Hud_GetAbsX(",
         "Hud_SetPos(",
         "Hud_SetSize(",
