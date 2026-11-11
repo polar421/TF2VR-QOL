@@ -88,7 +88,7 @@
 		SubHeader
 		{
 			ControlName Label
-			labelText "SEARCH BY NAME OR MAP ID // FAVORITES SAVE LOCALLY // TRAVEL DISABLED"
+			labelText "SEARCH NAME, ID, MODE OR SOURCE // CATEGORY FILTERS // FAVORITES SAVE LOCALLY // TRAVEL DISABLED"
 			font Default_21
 			fgcolor_override "242 141 28 255"
 			allcaps 1
@@ -102,7 +102,7 @@
 			xpos 152
 			ypos 376
 			zpos 100
-			wide 430
+			wide 380
 			tall 36
 			visible 1
 			enabled 1
@@ -113,12 +113,34 @@
 			textAlignment west
 			font Default_21
 			keyboardTitle "SEARCH MAP CATALOG"
-			keyboardDescription "TYPE A MAP NAME OR IDENTIFIER"
+			keyboardDescription "TYPE A MAP NAME, ID, MODE, CATEGORY OR SOURCE"
 			allowRightClickMenu 0
 			allowSpecialCharacters 0
 			unicode 0
 			navDown Map0
+			navRight CategorySwitch
+		}
+
+		CategorySwitch
+		{
+			ControlName RuiButton
+			InheritProperties SwitchButton
+			style DialogListButton
+			wide 260
+			xpos 552
+			ypos 376
+			ConVar "tf2vrsb_map_category"
+			list
+			{
+				"ALL MAPS" 0
+				"CAMPAIGN" 1
+				"MULTIPLAYER" 2
+				"LIVE FIRE / COLISEUM" 3
+				"LOBBY / TEST" 4
+			}
+			navLeft SearchEntry
 			navRight FavoritesSwitch
+			navDown Map0
 		}
 
 		FavoritesSwitch
@@ -127,12 +149,12 @@
 			InheritProperties RuiSmallButton
 			classname ModButton
 			textAlignment west
-			wide 276
+			wide 170
 			tall 36
-			xpos 602
+			xpos 832
 			ypos 376
 			labelText "SHOW: ALL MAPS"
-			navLeft SearchEntry
+			navLeft CategorySwitch
 			navRight FavoriteSelected
 			navDown Map0
 			scriptID "13"
@@ -144,11 +166,11 @@
 			InheritProperties RuiSmallButton
 			classname ModButton
 			textAlignment west
-			wide 290
+			wide 166
 			tall 36
-			xpos 898
+			xpos 1022
 			ypos 376
-			labelText "ADD SELECTED TO FAVORITES"
+			labelText "ADD FAVORITE"
 			navLeft FavoritesSwitch
 			navDown Map0
 			scriptID "14"
@@ -157,7 +179,7 @@
 		ResultSummary
 		{
 			ControlName Label
-			labelText "SHOWING 13/13 // ALL MAPS // 0 FAVORITES // * = FAVORITE"
+			labelText "SHOWING 38/38 // ALL // PAGE 1/3 // 0 FAVORITES"
 			font Default_21
 			fgcolor_override "255 255 255 255"
 			wide 1036
@@ -347,17 +369,64 @@
 			scriptID "12"
 		}
 
+		Map13
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 40
+			xpos 684
+			ypos 734
+			scriptID "15"
+		}
+
+		BtnPrev
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 36
+			xpos 152
+			ypos 788
+			labelText "PREVIOUS PAGE"
+			navUp Map12
+			navRight BtnNext
+			navDown Map0
+			scriptID "16"
+		}
+
+		BtnNext
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 500
+			tall 36
+			xpos 684
+			ypos 788
+			labelText "NEXT PAGE"
+			navUp Map13
+			navLeft BtnPrev
+			navDown Map0
+			scriptID "17"
+		}
+
 		MapDetails
 		{
 			ControlName Label
-			labelText "Select a campaign map to inspect its identifier. Map travel is intentionally disabled."
+			labelText "Select a map to inspect its ID, category, mode and source. Map travel is intentionally disabled."
 			font Default_21
 			fgcolor_override "255 255 255 255"
 			wide 1036
 			tall 74
 			wrap 1
 			xpos 152
-			ypos 788
+			ypos 832
 		}
 
 		MapStatus
@@ -371,7 +440,7 @@
 			tall 42
 			wrap 1
 			xpos 152
-			ypos 872
+			ypos 910
 		}
 
 		FooterButtons
@@ -640,6 +709,32 @@
 			bgcolor_override "0 220 255 255"
 		}
 		Debug19
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 255"
+		}
+		Debug20
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 255"
+		}
+		Debug21
 		{
 			ControlName Label
 			labelText ""

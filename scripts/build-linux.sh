@@ -193,7 +193,7 @@ required_convars = {
     "tf2vrsb_managed_count", "tf2vrsb_bookmark", "tf2vrsb_fly", "tf2vrsb_debug",
     "tf2vrsb_overlay", "tf2vrsb_overlay_opacity",
     "tf2vrsb_result", "tf2vrsb_cap",
-    "tf2vrsb_spawn_distance", "tf2vrsb_npc_category", "tf2vrsb_spawn_team",
+    "tf2vrsb_spawn_distance", "tf2vrsb_map_category", "tf2vrsb_npc_category", "tf2vrsb_spawn_team",
     "tf2vrsb_request_npc", "tf2vrsb_request_team", "tf2vrsb_request_managed",
     "tf2vrsb_selected_count", "tf2vrsb_managed_page", "tf2vrsb_managed_pages",
     "tf2vrsb_managed_0", "tf2vrsb_managed_1", "tf2vrsb_managed_2",

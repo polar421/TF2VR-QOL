@@ -35,6 +35,8 @@ const string TF2VRSB_MANAGED_COUNT = "tf2vrsb_managed_count"
 const string TF2VRSB_BOOKMARK = "tf2vrsb_bookmark"
 const string TF2VRSB_FLY = "tf2vrsb_fly"
 const string TF2VRSB_DEBUG = "tf2vrsb_debug"
+const string TF2VRSB_MAP_CATEGORY = "tf2vrsb_map_category"
+const int TF2VRSB_MAP_RESULTS_PER_PAGE = 14
 
 const string TF2VRSB_REQUEST_MAP = "tf2vrsb_request_map"
 const string TF2VRSB_REQUEST_X = "tf2vrsb_request_x"
@@ -58,11 +60,16 @@ struct
 
 	array<string> mapIds
 	array<string> mapNames
+	array<string> mapCategories
+	array<string> mapModes
+	array<string> mapSources
 	array<int> mapFiltered
 	array<int> mapFavorites
 	bool mapsFavoritesOnly
 	bool mapsFavoritesLoaded
 	bool mapsFavoritesLoading
+	int mapPage
+	int mapPages
 
 	var rootSession
 	var rootMap
@@ -73,9 +80,12 @@ struct
 	var mapsDetails
 	var mapsStatus
 	var mapsSearch
+	var mapsCategorySwitch
 	var mapsFavoritesSwitch
 	var mapsFavoriteButton
 	var mapsSummary
+	var mapsPrev
+	var mapsNext
 
 
 	var playerBookmark
@@ -222,41 +232,105 @@ void function TF2VRSB_InitMaps()
 	file.mapsDetails = Hud_GetChild( file.mapsMenu, "MapDetails" )
 	file.mapsStatus = Hud_GetChild( file.mapsMenu, "MapStatus" )
 	file.mapsSearch = Hud_GetChild( file.mapsMenu, "SearchEntry" )
+	file.mapsCategorySwitch = Hud_GetChild( file.mapsMenu, "CategorySwitch" )
 	file.mapsFavoritesSwitch = Hud_GetChild( file.mapsMenu, "FavoritesSwitch" )
 	file.mapsFavoriteButton = Hud_GetChild( file.mapsMenu, "FavoriteSelected" )
 	file.mapsSummary = Hud_GetChild( file.mapsMenu, "ResultSummary" )
-	file.mapButtons = TF2VRSB_GetButtons( file.mapsMenu, "Map", 13 )
+	file.mapsPrev = Hud_GetChild( file.mapsMenu, "BtnPrev" )
+	file.mapsNext = Hud_GetChild( file.mapsMenu, "BtnNext" )
+	file.mapButtons = TF2VRSB_GetButtons( file.mapsMenu, "Map", TF2VRSB_MAP_RESULTS_PER_PAGE )
 
-	array<string> ids = [
-		"sp_training", "sp_crashsite", "sp_sewers1", "sp_boomtown_start",
-		"sp_boomtown", "sp_boomtown_end", "sp_hub_timeshift", "sp_timeshift_spoke02",
-		"sp_beacon", "sp_beacon_spoke0", "sp_tday", "sp_s2s", "sp_skyway_v1"
-	]
-	array<string> names = [
-		"TRAINING", "CRASH SITE", "SEWERS", "BOOMTOWN // START",
-		"BOOMTOWN", "BOOMTOWN // END", "TIMESHIFT HUB", "TIMESHIFT SPOKE",
-		"BEACON", "BEACON SPOKE", "T-DAY", "S2S", "SKYWAY"
-	]
-	file.mapIds = ids
-	file.mapNames = names
+	file.mapIds = []
+	file.mapNames = []
+	file.mapCategories = []
+	file.mapModes = []
+	file.mapSources = []
 	file.mapFiltered = []
 	file.mapFavorites = []
 	file.mapsFavoritesOnly = false
 	file.mapsFavoritesLoaded = false
 	file.mapsFavoritesLoading = false
+	file.mapPage = 0
+	file.mapPages = 1
+
+	// Campaign IDs are the 13 entries already verified against tf2vr_memories.nut.
+	TF2VRSB_AddCampaignMap( "sp_training", "TRAINING", "SINGLE-PLAYER" )
+	TF2VRSB_AddCampaignMap( "sp_crashsite", "CRASH SITE", "SINGLE-PLAYER" )
+	TF2VRSB_AddCampaignMap( "sp_sewers1", "SEWERS", "SINGLE-PLAYER" )
+	TF2VRSB_AddCampaignMap( "sp_boomtown_start", "BOOMTOWN // START", "SINGLE-PLAYER" )
+	TF2VRSB_AddCampaignMap( "sp_boomtown", "BOOMTOWN", "SINGLE-PLAYER" )
+	TF2VRSB_AddCampaignMap( "sp_boomtown_end", "BOOMTOWN // END", "SINGLE-PLAYER" )
+	TF2VRSB_AddCampaignMap( "sp_hub_timeshift", "TIMESHIFT HUB", "SINGLE-PLAYER // HUB" )
+	TF2VRSB_AddCampaignMap( "sp_timeshift_spoke02", "TIMESHIFT SPOKE", "SINGLE-PLAYER" )
+	TF2VRSB_AddCampaignMap( "sp_beacon", "BEACON", "SINGLE-PLAYER" )
+	TF2VRSB_AddCampaignMap( "sp_beacon_spoke0", "BEACON SPOKE", "SINGLE-PLAYER" )
+	TF2VRSB_AddCampaignMap( "sp_tday", "T-DAY", "SINGLE-PLAYER" )
+	TF2VRSB_AddCampaignMap( "sp_s2s", "S2S", "SINGLE-PLAYER" )
+	TF2VRSB_AddCampaignMap( "sp_skyway_v1", "SKYWAY", "SINGLE-PLAYER" )
+
+	// Vanilla multiplayer IDs and titles from Northstar's map table.
+	TF2VRSB_AddMultiplayerMap( "mp_angel_city", "ANGEL CITY", "MULTIPLAYER", "MULTIPLAYER" )
+	TF2VRSB_AddMultiplayerMap( "mp_black_water_canal", "BLACK WATER CANAL", "MULTIPLAYER", "MULTIPLAYER" )
+	TF2VRSB_AddMultiplayerMap( "mp_colony02", "COLONY", "MULTIPLAYER", "MULTIPLAYER" )
+	TF2VRSB_AddMultiplayerMap( "mp_complex3", "COMPLEX", "MULTIPLAYER", "MULTIPLAYER" )
+	TF2VRSB_AddMultiplayerMap( "mp_crashsite3", "CRASH SITE", "MULTIPLAYER", "MULTIPLAYER" )
+	TF2VRSB_AddMultiplayerMap( "mp_drydock", "DRYDOCK", "MULTIPLAYER", "MULTIPLAYER" )
+	TF2VRSB_AddMultiplayerMap( "mp_eden", "EDEN", "MULTIPLAYER", "MULTIPLAYER" )
+	TF2VRSB_AddMultiplayerMap( "mp_thaw", "EXOPLANET", "MULTIPLAYER", "MULTIPLAYER" )
+	TF2VRSB_AddMultiplayerMap( "mp_forwardbase_kodai", "FORWARD BASE KODAI", "MULTIPLAYER", "MULTIPLAYER" )
+	TF2VRSB_AddMultiplayerMap( "mp_glitch", "GLITCH", "MULTIPLAYER", "MULTIPLAYER" )
+	TF2VRSB_AddMultiplayerMap( "mp_grave", "BOOMTOWN", "MULTIPLAYER", "MULTIPLAYER" )
+	TF2VRSB_AddMultiplayerMap( "mp_homestead", "HOMESTEAD", "MULTIPLAYER", "MULTIPLAYER" )
+	TF2VRSB_AddMultiplayerMap( "mp_relic02", "RELIC", "MULTIPLAYER", "MULTIPLAYER" )
+	TF2VRSB_AddMultiplayerMap( "mp_rise", "RISE", "MULTIPLAYER", "MULTIPLAYER" )
+	TF2VRSB_AddMultiplayerMap( "mp_wargames", "WAR GAMES", "MULTIPLAYER", "MULTIPLAYER" )
+
+	TF2VRSB_AddMultiplayerMap( "mp_coliseum", "COLISEUM", "LIVE FIRE / COLISEUM", "LIVE FIRE / COLISEUM" )
+	TF2VRSB_AddMultiplayerMap( "mp_coliseum_column", "PILLARS", "LIVE FIRE / COLISEUM", "LIVE FIRE / COLISEUM" )
+	TF2VRSB_AddMultiplayerMap( "mp_lf_deck", "DECK", "LIVE FIRE / COLISEUM", "LIVE FIRE / COLISEUM" )
+	TF2VRSB_AddMultiplayerMap( "mp_lf_meadow", "MEADOW", "LIVE FIRE / COLISEUM", "LIVE FIRE / COLISEUM" )
+	TF2VRSB_AddMultiplayerMap( "mp_lf_stacks", "STACKS", "LIVE FIRE / COLISEUM", "LIVE FIRE / COLISEUM" )
+	TF2VRSB_AddMultiplayerMap( "mp_lf_township", "TOWNSHIP", "LIVE FIRE / COLISEUM", "LIVE FIRE / COLISEUM" )
+	TF2VRSB_AddMultiplayerMap( "mp_lf_traffic", "TRAFFIC", "LIVE FIRE / COLISEUM", "LIVE FIRE / COLISEUM" )
+	TF2VRSB_AddMultiplayerMap( "mp_lf_uma", "UMA", "LIVE FIRE / COLISEUM", "LIVE FIRE / COLISEUM" )
+
+	TF2VRSB_AddMultiplayerMap( "mp_box", "BOX", "LOBBY / TEST", "LOBBY / TEST" )
+	TF2VRSB_AddMultiplayerMap( "mp_lobby", "LOBBY", "LOBBY / TEST", "LOBBY / TEST" )
 
 	if ( file.mapsSearch != null )
 		Hud_AddEventHandler( file.mapsSearch, UIE_CHANGE, TF2VRSB_OnMapSearchChanged )
+	if ( file.mapsCategorySwitch != null )
+		Hud_AddEventHandler( file.mapsCategorySwitch, UIE_CHANGE, TF2VRSB_OnMapCategoryChanged )
 	if ( file.mapsFavoritesSwitch != null )
 		Hud_AddEventHandler( file.mapsFavoritesSwitch, UIE_CLICK, TF2VRSB_OnMapFavoritesFilter )
 	if ( file.mapsFavoriteButton != null )
 		Hud_AddEventHandler( file.mapsFavoriteButton, UIE_CLICK, TF2VRSB_OnToggleMapFavorite )
+	if ( file.mapsPrev != null )
+		Hud_AddEventHandler( file.mapsPrev, UIE_CLICK, TF2VRSB_OnMapPagePrev )
+	if ( file.mapsNext != null )
+		Hud_AddEventHandler( file.mapsNext, UIE_CLICK, TF2VRSB_OnMapPageNext )
+	TF2VRSB_SetButtonLabel( file.mapsMenu, "BtnPrev", "PREVIOUS PAGE" )
+	TF2VRSB_SetButtonLabel( file.mapsMenu, "BtnNext", "NEXT PAGE" )
 
 	TF2VRSB_WireVertical( file.mapButtons )
 	if ( file.mapsSearch != null && file.mapButtons.len() > 0 )
 		Hud_SetNavUp( file.mapButtons[ 0 ], file.mapsSearch )
 	if ( file.mapsSearch != null && file.mapButtons.len() > 1 )
 		Hud_SetNavUp( file.mapButtons[ 1 ], file.mapsSearch )
+	if ( file.mapsPrev != null && file.mapButtons.len() > 0 )
+	{
+		Hud_SetNavDown( file.mapButtons[ file.mapButtons.len() - 1 ], file.mapsPrev )
+		Hud_SetNavUp( file.mapsPrev, file.mapButtons[ file.mapButtons.len() - 1 ] )
+	}
+	if ( file.mapsPrev != null && file.mapsNext != null )
+	{
+		Hud_SetNavRight( file.mapsPrev, file.mapsNext )
+		Hud_SetNavLeft( file.mapsNext, file.mapsPrev )
+		Hud_SetNavDown( file.mapsPrev, file.mapsNext )
+		Hud_SetNavUp( file.mapsNext, file.mapsPrev )
+	}
+	if ( file.mapsNext != null && file.mapButtons.len() > 0 )
+		Hud_SetNavDown( file.mapsNext, file.mapButtons[ 0 ] )
 
 	for ( int i = 0; i < file.mapButtons.len(); i++ )
 	{
@@ -273,10 +347,30 @@ void function TF2VRSB_InitMaps()
 	AddMenuEventHandler( file.mapsMenu, eUIEvent.MENU_OPEN, TF2VRSB_OnMapsOpen )
 }
 
+void function TF2VRSB_AddMapEntry( string id, string name, string category, string mode, string source )
+{
+	file.mapIds.append( id )
+	file.mapNames.append( name )
+	file.mapCategories.append( category )
+	file.mapModes.append( mode )
+	file.mapSources.append( source )
+}
+
+void function TF2VRSB_AddCampaignMap( string id, string name, string mode )
+{
+	TF2VRSB_AddMapEntry( id, name, "CAMPAIGN", mode, "TF2VR CAMPAIGN" )
+}
+
+void function TF2VRSB_AddMultiplayerMap( string id, string name, string category, string mode )
+{
+	TF2VRSB_AddMapEntry( id, name, category, mode, "NORTHSTAR MP LIST" )
+}
+
 void function TF2VRSB_OnMapsOpen()
 {
 	TF2VRSB_LogEvent( "menu-open", "maps" )
 	TF2VRSB_RequestStatus()
+	file.mapPage = 0
 	if ( !file.mapsFavoritesLoaded && !file.mapsFavoritesLoading )
 		TF2VRSB_LoadMapFavorites()
 	TF2VRSB_RefreshMapCatalog()
@@ -309,9 +403,13 @@ bool function TF2VRSB_IsMapFavorite( int index )
 	return false
 }
 
-bool function TF2VRSB_MapSelectionVisible()
+bool function TF2VRSB_MapSelectionOnPage()
 {
-	for ( int i = 0; i < file.mapFiltered.len(); i++ )
+	int start = file.mapPage * TF2VRSB_MAP_RESULTS_PER_PAGE
+	int end = start + TF2VRSB_MAP_RESULTS_PER_PAGE
+	if ( end > file.mapFiltered.len() )
+		end = file.mapFiltered.len()
+	for ( int i = start; i < end; i++ )
 	{
 		if ( file.mapFiltered[ i ] == file.selectedMap )
 			return true
@@ -319,15 +417,50 @@ bool function TF2VRSB_MapSelectionVisible()
 	return false
 }
 
+string function TF2VRSB_MapCategoryName( int category )
+{
+	switch ( category )
+	{
+		case 1: return "CAMPAIGN"
+		case 2: return "MULTIPLAYER"
+		case 3: return "LIVE FIRE / COLISEUM"
+		case 4: return "LOBBY / TEST"
+	}
+	return "ALL"
+}
+
 void function TF2VRSB_OnMapSearchChanged( var button )
 {
+	file.mapPage = 0
+	TF2VRSB_RefreshMapCatalog()
+}
+
+void function TF2VRSB_OnMapCategoryChanged( var button )
+{
+	file.mapPage = 0
+	TF2VRSB_LogEvent( "map-filter", "category=" + string( GetConVarInt( TF2VRSB_MAP_CATEGORY ) ) )
 	TF2VRSB_RefreshMapCatalog()
 }
 
 void function TF2VRSB_OnMapFavoritesFilter( var button )
 {
 	file.mapsFavoritesOnly = !file.mapsFavoritesOnly
+	file.mapPage = 0
 	TF2VRSB_LogEvent( "map-filter", file.mapsFavoritesOnly ? "favorites-only" : "all-maps" )
+	TF2VRSB_RefreshMapCatalog()
+}
+
+void function TF2VRSB_OnMapPagePrev( var button )
+{
+	if ( file.mapPage > 0 )
+		file.mapPage--
+	TF2VRSB_RefreshMapCatalog()
+}
+
+void function TF2VRSB_OnMapPageNext( var button )
+{
+	if ( file.mapPage < file.mapPages - 1 )
+		file.mapPage++
 	TF2VRSB_RefreshMapCatalog()
 }
 
@@ -453,29 +586,50 @@ void function TF2VRSB_RefreshMapCatalog()
 	if ( file.mapsSearch != null )
 		query = Hud_GetUTF8Text( file.mapsSearch ).tolower()
 
+	int category = GetConVarInt( TF2VRSB_MAP_CATEGORY )
+	if ( category < 0 || category > 4 )
+		category = 0
+	string categoryName = TF2VRSB_MapCategoryName( category )
+
 	file.mapFiltered = []
 	for ( int i = 0; i < file.mapIds.len(); i++ )
 	{
+		if ( category > 0 && file.mapCategories[ i ] != categoryName )
+			continue
 		if ( file.mapsFavoritesOnly && !TF2VRSB_IsMapFavorite( i ) )
 			continue
 		if ( query != "" )
 		{
-			string haystack = ( file.mapNames[ i ] + " " + file.mapIds[ i ] ).tolower()
+			string haystack = ( file.mapNames[ i ] + " " + file.mapIds[ i ] + " "
+				+ file.mapCategories[ i ] + " " + file.mapModes[ i ] + " " + file.mapSources[ i ] ).tolower()
 			if ( haystack.find( query ) == null )
 				continue
 		}
 		file.mapFiltered.append( i )
 	}
 
-	if ( !TF2VRSB_MapSelectionVisible() )
-		file.selectedMap = file.mapFiltered.len() > 0 ? file.mapFiltered[ 0 ] : -1
+	file.mapPages = ( file.mapFiltered.len() + TF2VRSB_MAP_RESULTS_PER_PAGE - 1 ) / TF2VRSB_MAP_RESULTS_PER_PAGE
+	if ( file.mapPages < 1 )
+		file.mapPages = 1
+	if ( file.mapPage >= file.mapPages )
+		file.mapPage = file.mapPages - 1
+	if ( file.mapPage < 0 )
+		file.mapPage = 0
+
+	if ( !TF2VRSB_MapSelectionOnPage() )
+	{
+		int start = file.mapPage * TF2VRSB_MAP_RESULTS_PER_PAGE
+		file.selectedMap = start < file.mapFiltered.len() ? file.mapFiltered[ start ] : -1
+	}
 
 	string current = GetConVarString( TF2VRSB_MAP )
+	int pageStart = file.mapPage * TF2VRSB_MAP_RESULTS_PER_PAGE
 	for ( int slot = 0; slot < file.mapButtons.len(); slot++ )
 	{
-		if ( slot < file.mapFiltered.len() )
+		int position = pageStart + slot
+		if ( position < file.mapFiltered.len() )
 		{
-			int index = file.mapFiltered[ slot ]
+			int index = file.mapFiltered[ position ]
 			string label = ""
 			if ( file.mapIds[ index ] == current )
 				label += "> "
@@ -495,9 +649,9 @@ void function TF2VRSB_RefreshMapCatalog()
 	if ( file.mapsSummary != null )
 	{
 		Hud_SetText( file.mapsSummary, "SHOWING " + string( file.mapFiltered.len() ) + "/"
-			+ string( file.mapIds.len() ) + "  //  "
-			+ ( file.mapsFavoritesOnly ? "FAVORITES ONLY" : "ALL MAPS" ) + "  //  "
-			+ string( file.mapFavorites.len() ) + " FAVORITES  //  * = FAVORITE" )
+			+ string( file.mapIds.len() ) + "  //  " + categoryName
+			+ "  //  PAGE " + string( file.mapPage + 1 ) + "/" + string( file.mapPages )
+			+ "  //  " + string( file.mapFavorites.len() ) + " FAVORITES" )
 	}
 	if ( file.mapsFavoritesSwitch != null )
 		SetButtonRuiText( file.mapsFavoritesSwitch, file.mapsFavoritesOnly
@@ -508,10 +662,14 @@ void function TF2VRSB_RefreshMapCatalog()
 		bool hasSelection = file.selectedMap >= 0
 		Hud_SetEnabled( file.mapsFavoriteButton, hasSelection )
 		if ( hasSelection && TF2VRSB_IsMapFavorite( file.selectedMap ) )
-			SetButtonRuiText( file.mapsFavoriteButton, "REMOVE SELECTED FAVORITE" )
+			SetButtonRuiText( file.mapsFavoriteButton, "REMOVE FAVORITE" )
 		else
-			SetButtonRuiText( file.mapsFavoriteButton, "ADD SELECTED TO FAVORITES" )
+			SetButtonRuiText( file.mapsFavoriteButton, "ADD FAVORITE" )
 	}
+	if ( file.mapsPrev != null )
+		Hud_SetEnabled( file.mapsPrev, file.mapPage > 0 )
+	if ( file.mapsNext != null )
+		Hud_SetEnabled( file.mapsNext, file.mapPage < file.mapPages - 1 )
 
 	if ( file.mapsCurrent != null )
 		Hud_SetText( file.mapsCurrent, "CURRENT MAP: " + TF2VRSB_DisplayMap( current ) + "  [" + current + "]" )
@@ -532,21 +690,20 @@ void function TF2VRSB_UpdateMapDetails()
 	string current = GetConVarString( TF2VRSB_MAP )
 	int index = file.selectedMap
 	string id = file.mapIds[ index ]
-	string text = file.mapNames[ index ] + "  [" + id + "]\n"
-	if ( id == current )
-		text += "CURRENT SESSION MAP\n"
-	else
-		text += "CATALOG CANDIDATE - NOT LOADED BY THIS BUILD\n"
-	text += "FAVORITE: " + ( TF2VRSB_IsMapFavorite( index ) ? "YES" : "NO" )
+	string text = ( id == current ? "> " : "" ) + file.mapNames[ index ] + "  [" + id + "]\n"
+	text += "CATEGORY: " + file.mapCategories[ index ] + "  //  MODE: " + file.mapModes[ index ] + "\n"
+	text += "SOURCE: " + file.mapSources[ index ] + "  //  FAVORITE: "
+	text += ( TF2VRSB_IsMapFavorite( index ) ? "YES" : "NO" )
 	text += "  //  MAP TRAVEL DISABLED"
 	Hud_SetText( file.mapsDetails, text )
 }
 
 void function TF2VRSB_SelectMapSlot( int slot )
 {
-	if ( slot < 0 || slot >= file.mapFiltered.len() )
+	int position = file.mapPage * TF2VRSB_MAP_RESULTS_PER_PAGE + slot
+	if ( position < 0 || position >= file.mapFiltered.len() )
 		return
-	file.selectedMap = file.mapFiltered[ slot ]
+	file.selectedMap = file.mapFiltered[ position ]
 	TF2VRSB_LogEvent( "map-select", "index=" + string( file.selectedMap ) + " id=" + file.mapIds[ file.selectedMap ] )
 	TF2VRSB_RefreshMapCatalog()
 }
@@ -976,6 +1133,31 @@ string function TF2VRSB_DisplayMap( string mapName )
 		case "sp_tday": return "T-DAY"
 		case "sp_s2s": return "S2S"
 		case "sp_skyway_v1": return "SKYWAY"
+		case "mp_angel_city": return "ANGEL CITY"
+		case "mp_black_water_canal": return "BLACK WATER CANAL"
+		case "mp_colony02": return "COLONY"
+		case "mp_complex3": return "COMPLEX"
+		case "mp_crashsite3": return "CRASH SITE"
+		case "mp_drydock": return "DRYDOCK"
+		case "mp_eden": return "EDEN"
+		case "mp_thaw": return "EXOPLANET"
+		case "mp_forwardbase_kodai": return "FORWARD BASE KODAI"
+		case "mp_glitch": return "GLITCH"
+		case "mp_grave": return "BOOMTOWN"
+		case "mp_homestead": return "HOMESTEAD"
+		case "mp_relic02": return "RELIC"
+		case "mp_rise": return "RISE"
+		case "mp_wargames": return "WAR GAMES"
+		case "mp_coliseum": return "COLISEUM"
+		case "mp_coliseum_column": return "PILLARS"
+		case "mp_lf_deck": return "DECK"
+		case "mp_lf_meadow": return "MEADOW"
+		case "mp_lf_stacks": return "STACKS"
+		case "mp_lf_township": return "TOWNSHIP"
+		case "mp_lf_traffic": return "TRAFFIC"
+		case "mp_lf_uma": return "UMA"
+		case "mp_box": return "BOX"
+		case "mp_lobby": return "LOBBY"
 	}
 	if ( mapName == "" )
 		return "NO CAMPAIGN MAP"

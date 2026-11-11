@@ -4,14 +4,14 @@ Extra OpenXR actions and optional features for [CircuitLord's Titanfall 2 VR mod
 
 ## Campaign sandbox (experimental)
 
-Version 1.7.0 adds a read-only **VR Diagnostics** page and live controller action tester to the settings menu, alongside the experimental sandbox in the **real campaign pause menu**. The sandbox retains its searchable map catalog with persistent favorites, searchable NPC catalog, managed NPC removal, log-based diagnostics and campaign fly/noclip toggle. Load a single-player mission, pause, and press **Y** for **SANDBOX / DEV TOOLS**. The entry is appended to `InGameSPMenu`; the vanilla Resume, Restart, Settings and Quit entries are not replaced. B returns to the pause menu.
+Version 1.7.0 adds a read-only **VR Diagnostics** page and live controller action tester to the settings menu, alongside the experimental sandbox in the **real campaign pause menu**. The sandbox retains its 38-entry map catalog with metadata, category filters, paging and persistent favorites, plus its searchable NPC catalog, managed NPC removal, log-based diagnostics and campaign fly/noclip toggle. Load a single-player mission, pause, and press **Y** for **SANDBOX / DEV TOOLS**. The entry is appended to `InGameSPMenu`; the vanilla Resume, Restart, Settings and Quit entries are not replaced. B returns to the pause menu.
 
 This is a deliberately small, source-verified vertical slice. Pages are wired to real actions through the documented UI → CLIENT (`RunClientScript`) → SERVER (`ClientCommand` and `AddClientCommandCallback`) path; there are no decorative buttons for systems that have not been validated. Implementation is not the same as gameplay verification: see the testing status below. The interface uses dark panels, orange technical labels and native controller navigation so it can be read inside the game's own VR menu path.
 
 | Screen | State | What it does |
 |---|---|---|
 | **Mission Control** | Implemented; not run in game | Live campaign map, NPC and sandbox-managed counts, server status, and navigation |
-| **Maps & Environments** | Implemented; not run in game | Searches the 13 campaign map IDs, marks the current map and favorites, and shows catalog details. Favorites persist in the mod's Safe I/O folder. Travel is intentionally disabled |
+| **Maps & Environments** | Implemented; not run in game | Searches 38 map entries, filters five categories, pages 14 at a time, marks the current map and favorites, and shows ID/category/mode/source details. Favorites persist in the mod's Safe I/O folder. Travel is intentionally disabled |
 | **NPC Browser** | Implemented; not run in game | Searches 62 catalog entries, filters six categories and pages six results at a time |
 | **NPC Details** | Implemented; not run in game | Shows AI settings ID, BaseClass, support status, restrictions, dependencies, team and spawn action |
 | **Managed NPCs** | Implemented; not run in game | Tracks stable sandbox IDs, removes one selected NPC, pages the roster and clears only sandbox-owned handles |
@@ -19,7 +19,9 @@ This is a deliberately small, source-verified vertical slice. Pages are wired to
 | **Position Presets** | Implemented; not run in game | Wires three position slots under the mod's own Safe I/O folder, map-locked on load |
 | **Developer Information** | Implemented; not run in game | Map ID, session mode, coordinates, counts, cap and spawn distance, plus a layout dump button, opacity control, debug-log switch and on-screen bounds toggle |
 
-The map catalog is searchable by display name or map ID. Favorites are stored as a short list of known map IDs in `sandbox_map_favorites.txt` under the mod's Safe I/O folder; unknown IDs are ignored. Favoriting, filtering and selecting a map only update the page—none of them can start a level transition.
+The map catalog contains **38 entries**: the 13 campaign IDs cross-checked against `tf2vr_memories.nut`, plus 25 vanilla multiplayer IDs taken from [Northstar's published map table](https://docs.northstar.tf/Wiki/hosting-a-server-with-northstar/server-settings/file-names). Each entry records its category, mode and source. The five filters are **All**, **Campaign**, **Multiplayer**, **Live Fire / Coliseum**, and **Lobby / Test**. Search matches display name, map ID, category, mode or source, and the list shows 14 entries per page.
+
+Favorites are stored as a short list of known map IDs in `sandbox_map_favorites.txt` under the mod's Safe I/O folder; unknown IDs are ignored. Favoriting, filtering, paging and selecting a map only update the page—none of them can start a level transition. The multiplayer entries are catalog references only: this build does not start a multiplayer server or load those maps through the campaign sandbox.
 
 The NPC catalog separates AI settings identifiers from entity classes. Spawning uses `CreateNPCFromAISettings` followed by `DispatchSpawn`, and the server accepts 24 source-verified AI settings. Titans, dropships, gunships, turrets and deprecated variants remain visible as unavailable references because they need specialized spawners. The path places accepted NPCs 100-300 units ahead of the player, requires a clear trace and solid ground, and caps them with the `NPC CAP` switch. Individual removal and `CLEAR MANAGED NPCs` require a second click and only call `Destroy()` on stable IDs recorded by the sandbox. Campaign entities are never scanned and deleted.
 

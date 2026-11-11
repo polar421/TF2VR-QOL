@@ -86,13 +86,21 @@ def main() -> int:
     # are a bounded list of known map IDs in the mod-scoped Safe I/O folder.
     for required in (
         "TF2VRSB_OnMapSearchChanged",
+        "TF2VRSB_OnMapCategoryChanged",
         "TF2VRSB_OnMapFavoritesFilter",
+        "TF2VRSB_OnMapPagePrev",
+        "TF2VRSB_OnMapPageNext",
         "TF2VRSB_OnToggleMapFavorite",
         "TF2VRSB_LoadMapFavorites",
         "TF2VRSB_OnMapFavoritesLoaded",
         "TF2VRSB_SaveMapFavoritesThread",
         "TF2VRSB_RefreshMapCatalog",
+        "TF2VRSB_MapCategoryName",
+        "TF2VRSB_MapSelectionOnPage",
+        "TF2VRSB_AddMultiplayerMap",
         "TF2VRSB_MapFavoritesPath",
+        "TF2VRSB_MAP_CATEGORY",
+        "const int TF2VRSB_MAP_RESULTS_PER_PAGE = 14",
         'return "sandbox_map_favorites.txt"',
     ):
         if required not in ui:
@@ -102,9 +110,42 @@ def main() -> int:
         "sp_boomtown", "sp_boomtown_end", "sp_hub_timeshift",
         "sp_timeshift_spoke02", "sp_beacon", "sp_beacon_spoke0",
         "sp_tday", "sp_s2s", "sp_skyway_v1",
+        "mp_angel_city", "mp_black_water_canal", "mp_colony02",
+        "mp_complex3", "mp_crashsite3", "mp_drydock", "mp_eden",
+        "mp_thaw", "mp_forwardbase_kodai", "mp_glitch", "mp_grave",
+        "mp_homestead", "mp_relic02", "mp_rise", "mp_wargames",
+        "mp_coliseum", "mp_coliseum_column", "mp_lf_deck", "mp_lf_meadow",
+        "mp_lf_stacks", "mp_lf_township", "mp_lf_traffic", "mp_lf_uma",
+        "mp_box", "mp_lobby",
     ):
         if f'"{map_id}"' not in ui:
             problems.append(f"tf2vrsb_menu.nut: missing map catalog ID {map_id}")
+    campaign_calls = re.findall(r'TF2VRSB_AddCampaignMap\(\s*"([^"]+)"', ui)
+    multiplayer_calls = re.findall(r'TF2VRSB_AddMultiplayerMap\(\s*"([^"]+)"', ui)
+    if len(campaign_calls) != 13:
+        problems.append(f"tf2vrsb_menu.nut: expected 13 campaign map entries, found {len(campaign_calls)}")
+    if len(multiplayer_calls) != 25:
+        problems.append(f"tf2vrsb_menu.nut: expected 25 multiplayer map entries, found {len(multiplayer_calls)}")
+    if len(set(campaign_calls + multiplayer_calls)) != 38:
+        problems.append("tf2vrsb_menu.nut: map catalog IDs must be 38 unique entries")
+    maps_resource = read(mod / "mod/resource/ui/menus/tf2vrsb_maps.menu")
+    for required in (
+        "CategorySwitch",
+        'ConVar "tf2vrsb_map_category"',
+        '"ALL MAPS" 0',
+        '"CAMPAIGN" 1',
+        '"MULTIPLAYER" 2',
+        '"LIVE FIRE / COLISEUM" 3',
+        '"LOBBY / TEST" 4',
+        "Map13",
+        "BtnPrev",
+        "BtnNext",
+    ):
+        if required not in maps_resource:
+            problems.append(f"tf2vrsb_maps.menu: missing map catalog control {required}")
+    for index in range(14):
+        if not re.search(r"^\s*Map" + str(index) + r"\s*$", maps_resource, re.MULTILINE):
+            problems.append(f"tf2vrsb_maps.menu: missing paged map slot Map{index}")
 
     # Diagnostics labels and lifecycle. These are settings-menu controls, not
     # part of the campaign sandbox, so they are checked separately.
@@ -168,7 +209,7 @@ def main() -> int:
         resource = read(mod / "mod" / rel)
         if 'bgcolor_override "242 141 28 255"' not in resource:
             problems.append(f"{rel}: menu overlay background must be fully opaque")
-        overlay_count = 20 if Path(rel).name == "tf2vrsb_maps.menu" else 15
+        overlay_count = 22 if Path(rel).name == "tf2vrsb_maps.menu" else 15
         if resource.count('bgcolor_override "0 220 255 255"') != overlay_count:
             problems.append(
                 f"{rel}: expected {overlay_count} fully opaque control overlay backgrounds"
@@ -206,7 +247,7 @@ def main() -> int:
                 problems.append(f"{rel}: SetButtonLabel missing {match.group(1)}")
         required_overlay = set(overlay_controls)
         if Path(rel).name == "tf2vrsb_maps.menu":
-            required_overlay |= {f"Debug{index}" for index in range(15, 20)}
+            required_overlay |= {f"Debug{index}" for index in range(15, 22)}
         missing_overlay = required_overlay - controls
         if missing_overlay:
             problems.append(

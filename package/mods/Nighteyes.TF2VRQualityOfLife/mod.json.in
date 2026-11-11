@@ -1,6 +1,6 @@
 {
     "Name": "Nighteyes.TF2VRQualityOfLife",
-    "Description": "TF2VR Quality of life: extra OpenXR actions for Titanfall 2 VR (Reload Grab, Crouch, Tactical Ability), a live OpenXR diagnostics and controller tester, plus an in-game settings menu and an experimental campaign pause-menu sandbox with a searchable map catalog and favorites, NPC spawning, position bookmarks, saved positions, fly/noclip, and debug diagnostics. Menu changes are written back into the layer's TF2VRBetterBindings.ini.",
+    "Description": "TF2VR Quality of life: extra OpenXR actions for Titanfall 2 VR (Reload Grab, Crouch, Tactical Ability), a live OpenXR diagnostics and controller tester, plus an in-game settings menu and an experimental campaign pause-menu sandbox with a 38-entry map catalog, category filters, paging and favorites, NPC spawning, position bookmarks, saved positions, fly/noclip, and debug diagnostics. Menu changes are written back into the layer's TF2VRBetterBindings.ini.",
     "Version": "@PROJECT_VERSION@",
     "LoadPriority": 3,
     "Dependencies": {
@@ -71,6 +71,7 @@
         { "Name": "tf2vrsb_result", "DefaultValue": "" },
         { "Name": "tf2vrsb_cap", "DefaultValue": "6" },
         { "Name": "tf2vrsb_spawn_distance", "DefaultValue": "150" },
+        { "Name": "tf2vrsb_map_category", "DefaultValue": "0" },
         { "Name": "tf2vrsb_npc_category", "DefaultValue": "0" },
         { "Name": "tf2vrsb_spawn_team", "DefaultValue": "1" },
         { "Name": "tf2vrsb_request_npc", "DefaultValue": "" },

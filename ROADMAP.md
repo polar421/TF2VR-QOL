@@ -10,7 +10,7 @@ allowed to change more campaign state.
   Ability**, with an in-game settings page and saved calibration.
 - An experimental campaign pause-menu sandbox with a 62-entry NPC catalog,
   stable managed-NPC IDs, individual removal, a position bookmark, three saved
-  presets, fly/noclip and a searchable read-only map catalog with persistent favorites.
+  presets, fly/noclip and a searchable read-only 38-entry map catalog with metadata, category filters, paging and persistent favorites.
 - Layout logging, an on-screen bounds overlay, and saved overlay opacity.
 - A read-only VR diagnostics page and live text action tester in the settings menu, built from verified OpenXR action-state and pose hooks.
 - A Linux/MinGW cross-build with a static package and menu verifier.

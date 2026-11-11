@@ -10,7 +10,7 @@
 
 > **1.6.0 implementation note.** The NPC catalog, browser, details page and managed roster were implemented before live VR diagnostics because they could be validated against extracted game scripts, while OpenXR/controller diagnostics require a running headset and runtime that are unavailable here. This is a dependency-driven ordering change, not a claim that the NPC slice has passed runtime testing.
 
-> **1.7.0 implementation note.** The settings menu now has a read-only VR diagnostics page and text action tester fed by layer-published ConVars. It reports runtime class/version, app API version, current interaction profiles, pose validity, configured actions and live trigger/grip/stick/button action states. It has not been run in Titanfall 2 or a headset. The sandbox map catalog also gained search by name/ID and persistent favorites in 1.7.0. Report export, setup-health checks, calibration compatibility and graphical controller visualization remain planned.
+> **1.7.0 implementation note.** The settings menu now has a read-only VR diagnostics page and text action tester fed by layer-published ConVars. It reports runtime class/version, app API version, current interaction profiles, pose validity, configured actions and live trigger/grip/stick/button action states. It has not been run in Titanfall 2 or a headset. The sandbox map catalog also gained metadata, five category filters, 14-entry paging, search by name/ID/category/mode/source and persistent favorites in 1.7.0, plus 25 multiplayer reference entries. Report export, setup-health checks, calibration compatibility and graphical controller visualization remain planned.
 
 ## 1. Project vision
 
@@ -114,9 +114,9 @@ The requested phase order is kept, with two adjustments:
 | NPC catalog and managed roster | Implemented; runtime untested | 62 catalog entries, six categories, search, details, 24 server-accepted AI settings, stable IDs, individual removal and bulk clear |
 | Player bookmark and fly/noclip | Implemented; runtime untested | Session bookmark; movement-type toggle |
 | Three position presets | Implemented; runtime untested | Fixed slots in mod-safe I/O, map-locked load |
-| Campaign map catalog | Implemented; runtime untested | 13 known campaign IDs, search by name/ID and persistent favorites; no transitions |
+| Campaign map catalog | Implemented; runtime untested | 38 entries: 13 campaign IDs plus 25 Northstar-sourced multiplayer references; category/mode/source metadata, five filters, 14-entry pages, search and persistent favorites; no transitions or MP hosting |
 | Developer telemetry, layout logs and overlay | Implemented; runtime untested | Read-only UI diagnostics; fixed overlay boxes |
-| Build and package verification | Implemented | 93 ConVars, seven scripts, 15 menus, static package cross-checks only |
+| Build and package verification | Implemented | 94 ConVars, seven scripts, 15 menus, static package cross-checks only |
 | Automated tests / CI | Not implemented | No test project is present and no CI workflow exists |
 | Runtime VR diagnostics dashboard | Implemented text v1; runtime untested | Layer publishes runtime class/version, profiles, tracking and action state through ConVars; no report export or setup-health checks |
 | Live controller tester | Implemented text v1; runtime untested | Trigger, grip, stick, stick click, primary, crouch, tactical and reload are sampled; no graphical silhouette, battery or face-button data |
@@ -188,7 +188,7 @@ The requested phase order is kept, with two adjustments:
 
 **Goal:** make the existing sandbox a dependable campaign tool.
 
-- Map catalog metadata and richer discovery; search and favorites are already implemented.
+- Map catalog recent list, map-specific notes and custom-map discovery; metadata, categories, search, paging and favorites are already implemented.
 - Managed NPC roster and individual removal.
 - Player utility profiles.
 - Save/load format v1 for presets and sandbox data.
@@ -341,21 +341,21 @@ Do not promise a visual silhouette until RUI image/layout capabilities and a reu
 
 ### F. Advanced Map Browser
 
-**Phase 3 · Priority P2 · Feasibility HIGH for catalog UI, MEDIUM for custom metadata, LOW for transitions · Complexity L · Status Partial — search and favorites implemented**
+**Phase 3 · Priority P2 · Feasibility HIGH for catalog UI, MEDIUM for custom metadata, LOW for transitions · Complexity L · Status Partial — metadata, categories, search, paging and favorites implemented**
 
-**Purpose.** Make the existing 13-map catalog a useful reference and navigation tool without implying unsafe map travel.
+**Purpose.** Make the existing 38-entry catalog a useful reference and navigation tool without implying unsafe map travel.
 
-**User experience.** Search by name or map ID, persistent favorites, categories, recently viewed, map descriptions, compatibility badges, dependency notes and optional preview images. Travel remains a separately gated action.
+**User experience.** Search by name, map ID, category, mode or source; persistent favorites, category filters, 14-entry pages, map descriptions, compatibility badges, dependency notes and optional preview images. Recently viewed entries remain planned. Travel remains a separately gated action.
 
 | Planning area | Detail |
 |---|---|
-| Existing | 13 known campaign IDs, current-map marker, details panel, name/ID search and Safe I/O favorites; no transition |
-| Add | Metadata model, categories, recent list, map-specific notes; custom-map discovery only if a verified source exists |
+| Existing | 38 entries (13 campaign IDs and 25 Northstar-sourced multiplayer references), current-map marker, category/mode/source metadata, five filters, details panel, name/ID/category/mode/source search, paging and Safe I/O favorites; no transition |
+| Add | Recent list, map-specific notes; custom-map discovery only if a verified source exists |
 | Likely files | `tf2vrsb_map*.nut/menu`, Safe I/O metadata, possibly C++ file scanning |
 | APIs to verify | No verified custom-map registry; `GetMapName` is current-map only; preview images need an asset source and RUI image support |
 | Dependencies | E/K for saved metadata; transition research separate |
-| Risks | Inaccurate map IDs; multiplayer/campaign mode confusion; stale custom-map paths; missing images; users assuming selection loads a map |
-| Testing | All 13 IDs, unknown current map, missing metadata, favorites persistence, search with controller, custom map absent/present |
+| Risks | Inaccurate map IDs; multiplayer/campaign mode confusion; stale custom-map paths; missing images; users assuming selection loads or hosts a map |
+| Testing | All 38 IDs, category filters, three pages, unknown current map, missing metadata, favorites persistence, search with controller, custom map absent/present |
 | Acceptance | Catalog is accurate and clearly read-only; no selection triggers a level change; custom maps are shown only when a tested discovery source exists |
 
 **Map transitions** require their own technical gate: checkpoint state, autosaves, mission scripts and level teardown must be tested on a disposable save before any `ChangeLevel` UI is exposed.

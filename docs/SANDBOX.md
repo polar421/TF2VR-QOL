@@ -42,7 +42,7 @@ been run in Titanfall 2; the runtime test plan at the end is still outstanding.
 |---|---|---|
 | Campaign pause-menu entry | Implemented | `InGameSPMenu` is used by the installed TF2VR sources and the menu API is present in Northstar |
 | Dashboard / category navigation | Implemented | Eight UI pages, explicit nav links, B footer, controller focus |
-| Maps & Environments | Searchable read-only catalog | 13 IDs cross-checked against the installed `tf2vr_memories.nut`; persistent favorites in mod-scoped Safe I/O; no map transition |
+| Maps & Environments | Read-only catalog with metadata and filters | 38 entries: 13 campaign IDs cross-checked against the installed `tf2vr_memories.nut` and 25 vanilla multiplayer IDs from [Northstar's map table](https://docs.northstar.tf/Wiki/hosting-a-server-with-northstar/server-settings/file-names); category/mode/source, five filters, search, 14-entry pages and persistent favorites in mod-scoped Safe I/O; no map transition |
 | Safe map switching | Not implemented | `ChangeLevel` exists but campaign transition side effects are not runtime-tested |
 | World Editor | Not implemented | No verified `CreateProp` usage or object registry was found in the installed Northstar/campaign scripts; placement is withheld |
 | NPC catalog browser | Implemented; runtime untested | 62 catalog entries, six categories, search, paging, details, support status and restrictions |
@@ -55,7 +55,7 @@ been run in Titanfall 2; the runtime test plan at the end is still outstanding.
 | Debug overlays / menu position | Implemented as logs + on-screen bounds | `[TF2VRSB][layout]` dumps geometry and text; **Y** tints the menu orange and focusable controls cyan using live HUD bounds |
 | Visual design | Implemented resources | Original dark industrial layout, orange accents, technical labels |
 | VR / WiVRn | Not physically tested | Native menu path is used; no separate OpenXR overlay was added |
-| Packaging | Implemented | CMake package, version 1.7.0, verifier covers files, seven scripts, 93 ConVars and 15 menu resources; `scripts/verify-sandbox.py` cross-checks controls, bridge targets, commands, allow-list entries and ConVars |
+| Packaging | Implemented | CMake package, version 1.7.0, verifier covers files, seven scripts, 94 ConVars and 15 menu resources; `scripts/verify-sandbox.py` cross-checks controls, bridge targets, commands, allow-list entries and ConVars |
 
 ## Verified interfaces
 
