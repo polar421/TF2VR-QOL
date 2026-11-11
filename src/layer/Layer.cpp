@@ -182,7 +182,8 @@ struct LayerState
     XrAction reloadGrab = XR_NULL_HANDLE;
     XrAction crouch = XR_NULL_HANDLE;
     XrAction tactical = XR_NULL_HANDLE;
-    std::vector<XrPath> crouchSuggestedProfiles;
+    bool wine = false;
+    std::vector<XrPath> suggestedProfiles;
     std::vector<GripSlot> grips;
     ButtonState crouchButton;
     CrouchState crouchState;
@@ -263,12 +264,14 @@ void InitializeOnce()
             s.configSize = attributes.nFileSizeLow;
         }
         std::wstring process = ProcessFileName();
+        HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
+        s.wine = ntdll && GetProcAddress(ntdll, "wine_get_version") != nullptr;
         s.active = _wcsicmp(process.c_str(), s.config.targetProcess.c_str()) == 0;
         if (!s.active)
             return;
 
         LogOpen(s.directory + L"\\" + kLogFileName);
-        Log("layer active in %s", NarrowPath(process).c_str());
+        Log("layer active in %s (wine=%d)", NarrowPath(process).c_str(), s.wine);
         Log("config: reload_grab=%d grenade_toggle=%d", s.config.reloadGrabEnabled, s.config.grenadeToggle);
         Log("config: crouch=%d press_cmd='%s' release_cmd='%s'", s.config.crouchEnabled, s.config.crouchPressCommand.c_str(),
             s.config.crouchReleaseCommand.c_str());
@@ -913,7 +916,7 @@ XrResult XRAPI_CALL HookDestroyInstance(XrInstance instance)
     s.reloadGrab = XR_NULL_HANDLE;
     s.crouch = XR_NULL_HANDLE;
     s.tactical = XR_NULL_HANDLE;
-    s.crouchSuggestedProfiles.clear();
+    s.suggestedProfiles.clear();
     s.grips.clear();
     s.crouchButton = {};
     s.tacticalButton = {};
@@ -957,49 +960,115 @@ XrResult XRAPI_CALL HookCreateActionSet(XrInstance instance, const XrActionSetCr
     s.reloadGrab = reloadGrab;
     s.tacticalButton = {};
     s.crouchButton = {};
-    s.crouchSuggestedProfiles.clear();
+    s.suggestedProfiles.clear();
     return result;
+}
+
+bool IsTouchController(const std::string& profile)
+{
+    return profile.find("/touch_controller") != std::string::npos;
+}
+
+bool IsIndexController(const std::string& profile)
+{
+    return profile.find("/index_controller") != std::string::npos;
 }
 
 bool SupportsThumbstickClick(const std::string& profile)
 {
-    return profile.find("/touch_controller") != std::string::npos || profile.find("/index_controller") != std::string::npos ||
-           profile.find("/mixed_reality_controller") != std::string::npos || profile.find("/odyssey_controller") != std::string::npos ||
-           profile.find("/vive_cosmos_controller") != std::string::npos;
+    return IsTouchController(profile) || IsIndexController(profile) || profile.find("/mixed_reality_controller") != std::string::npos ||
+           profile.find("/odyssey_controller") != std::string::npos || profile.find("/vive_cosmos_controller") != std::string::npos;
+}
+
+bool SupportsTriggerClick(const std::string& profile)
+{
+    return IsTouchController(profile) || IsIndexController(profile) || profile.find("/vive_controller") != std::string::npos ||
+           profile.find("/vive_cosmos_controller") != std::string::npos || profile.find("/mixed_reality_controller") != std::string::npos ||
+           profile.find("/odyssey_controller") != std::string::npos;
+}
+
+const char* TacticalBindingPath(const std::string& profile)
+{
+    if (IsTouchController(profile))
+        return "/user/hand/left/input/x/click";
+    if (IsIndexController(profile))
+        return "/user/hand/left/input/a/click";
+    return nullptr;
 }
 
 // WiVRn's dashboard has no per-app OpenXR binding editor, and xrizer is an
 // OpenVR compatibility layer, so neither can bind an action created here.
-// Submit a suggested binding alongside the game's own suggestions instead.
+// Submit suggested bindings alongside the game's own suggestions instead.
+// Windows keeps the manual SteamVR binding flow for the added actions.
 XrResult XRAPI_CALL HookSuggestInteractionProfileBindings(XrInstance instance, const XrInteractionProfileSuggestedBinding* suggested)
 {
     LayerState& s = State();
     if (!s.next.suggestInteractionProfileBindings)
         return XR_ERROR_FUNCTION_UNSUPPORTED;
-    if (!suggested || !suggested->suggestedBindings || suggested->countSuggestedBindings == 0 || s.crouch == XR_NULL_HANDLE ||
-        s.config.crouchBinding == "none")
+    if (!suggested || !suggested->suggestedBindings || suggested->countSuggestedBindings == 0)
         return s.next.suggestInteractionProfileBindings(instance, suggested);
 
     std::string profile = PathText(s, suggested->interactionProfile);
-    if (!SupportsThumbstickClick(profile))
-        return s.next.suggestInteractionProfileBindings(instance, suggested);
-    if (std::find(s.crouchSuggestedProfiles.begin(), s.crouchSuggestedProfiles.end(), suggested->interactionProfile) != s.crouchSuggestedProfiles.end())
+    if (std::find(s.suggestedProfiles.begin(), s.suggestedProfiles.end(), suggested->interactionProfile) != s.suggestedProfiles.end())
         return s.next.suggestInteractionProfileBindings(instance, suggested);
 
     std::vector<XrActionSuggestedBinding> bindings(suggested->suggestedBindings, suggested->suggestedBindings + suggested->countSuggestedBindings);
-    if (s.config.crouchBinding == "right_thumbstick_click" || s.config.crouchBinding == "both_thumbstick_click")
+    bool crouchAdded = false;
+    bool reloadAdded = false;
+    bool tacticalAdded = false;
+
+    if (s.crouch != XR_NULL_HANDLE && s.config.crouchBinding != "none" && SupportsThumbstickClick(profile))
     {
-        XrPath path = ToPath(s, "/user/hand/right/input/thumbstick/click");
-        if (path != XR_NULL_PATH)
-            bindings.push_back({s.crouch, path});
+        if (s.config.crouchBinding == "right_thumbstick_click" || s.config.crouchBinding == "both_thumbstick_click")
+        {
+            XrPath path = ToPath(s, "/user/hand/right/input/thumbstick/click");
+            if (path != XR_NULL_PATH)
+            {
+                bindings.push_back({s.crouch, path});
+                crouchAdded = true;
+            }
+        }
+        if (s.config.crouchBinding == "left_thumbstick_click" || s.config.crouchBinding == "both_thumbstick_click")
+        {
+            XrPath path = ToPath(s, "/user/hand/left/input/thumbstick/click");
+            if (path != XR_NULL_PATH)
+            {
+                bindings.push_back({s.crouch, path});
+                crouchAdded = true;
+            }
+        }
     }
-    if (s.config.crouchBinding == "left_thumbstick_click" || s.config.crouchBinding == "both_thumbstick_click")
+
+    if (s.wine)
     {
-        XrPath path = ToPath(s, "/user/hand/left/input/thumbstick/click");
-        if (path != XR_NULL_PATH)
-            bindings.push_back({s.crouch, path});
+        if (s.reloadGrab != XR_NULL_HANDLE && SupportsTriggerClick(profile))
+        {
+            XrPath left = ToPath(s, "/user/hand/left/input/trigger/click");
+            XrPath right = ToPath(s, "/user/hand/right/input/trigger/click");
+            if (left != XR_NULL_PATH)
+            {
+                bindings.push_back({s.reloadGrab, left});
+                reloadAdded = true;
+            }
+            if (right != XR_NULL_PATH)
+            {
+                bindings.push_back({s.reloadGrab, right});
+                reloadAdded = true;
+            }
+        }
+        const char* tacticalPath = s.tactical != XR_NULL_HANDLE ? TacticalBindingPath(profile) : nullptr;
+        if (tacticalPath)
+        {
+            XrPath path = ToPath(s, tacticalPath);
+            if (path != XR_NULL_PATH)
+            {
+                bindings.push_back({s.tactical, path});
+                tacticalAdded = true;
+            }
+        }
     }
-    if (bindings.size() == suggested->countSuggestedBindings)
+
+    if (!crouchAdded && !reloadAdded && !tacticalAdded)
         return s.next.suggestInteractionProfileBindings(instance, suggested);
 
     XrInteractionProfileSuggestedBinding copy = *suggested;
@@ -1008,12 +1077,17 @@ XrResult XRAPI_CALL HookSuggestInteractionProfileBindings(XrInstance instance, c
     XrResult result = s.next.suggestInteractionProfileBindings(instance, &copy);
     if (XR_FAILED(result))
     {
-        Log("crouch binding for %s was rejected (%d); using the game's bindings", profile.c_str(), result);
+        Log("suggested bindings for %s were rejected (%d); using the game's bindings", profile.c_str(), result);
         return s.next.suggestInteractionProfileBindings(instance, suggested);
     }
 
-    s.crouchSuggestedProfiles.push_back(suggested->interactionProfile);
-    Log("suggested crouch binding '%s' for %s", s.config.crouchBinding.c_str(), profile.c_str());
+    s.suggestedProfiles.push_back(suggested->interactionProfile);
+    if (crouchAdded)
+        Log("suggested crouch binding '%s' for %s", s.config.crouchBinding.c_str(), profile.c_str());
+    if (reloadAdded)
+        Log("suggested reload grab on both trigger clicks for %s", profile.c_str());
+    if (tacticalAdded)
+        Log("suggested tactical on left %s for %s", IsTouchController(profile) ? "X" : "A", profile.c_str());
     return result;
 }
 
