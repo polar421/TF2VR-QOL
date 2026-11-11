@@ -174,6 +174,7 @@ required_convars = {
     "tf2vrsb_map", "tf2vrsb_mode", "tf2vrsb_ready", "tf2vrsb_x", "tf2vrsb_y",
     "tf2vrsb_z", "tf2vrsb_yaw", "tf2vrsb_npc_count", "tf2vrsb_entity_count",
     "tf2vrsb_managed_count", "tf2vrsb_bookmark", "tf2vrsb_fly", "tf2vrsb_debug",
+    "tf2vrsb_overlay",
     "tf2vrsb_result", "tf2vrsb_cap",
     "tf2vrsb_spawn_distance", "tf2vrsb_request_map", "tf2vrsb_request_x",
     "tf2vrsb_request_y", "tf2vrsb_request_z", "tf2vrsb_request_yaw",
