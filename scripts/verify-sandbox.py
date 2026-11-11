@@ -13,7 +13,7 @@ import re
 import sys
 from pathlib import Path
 
-MOD_DIR = "mods/Nighteyes.TF2VRBetterBindings"
+MOD_DIR = "mods/Nighteyes.TF2VRQualityOfLife"
 
 
 def read(path: Path) -> str:

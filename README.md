@@ -39,7 +39,7 @@ See [docs/SANDBOX.md](docs/SANDBOX.md) for the PDF-to-implementation checklist, 
 
 Bind them in SteamVR → Settings → Controllers → **Manage Controller Bindings** → Titanfall 2 VR → **Edit**. On Linux, bind them in the controller binding editor of the active OpenXR runtime if it exposes the app's actions; they are part of the Titanfall 2 VR **gameplay** action set.
 
-WiVRn's dashboard does not expose per-app OpenXR actions, and xrizer is the OpenVR compatibility layer, so neither lists these actions. For those setups, use **Action Settings → Crouch Binding** in the in-game menu, or set `[crouch] binding=right_thumbstick_click` in `TF2VR\packages\Nighteyes-TF2VRBetterBindings-<version>\plugins\layer\TF2VRBetterBindings.ini` (also `left_thumbstick_click`, `both_thumbstick_click`, or `none`). It is applied at startup, so restart the game after changing it. The layer also suggests **Reload Grab** on both trigger clicks and **Tactical Ability** on left **X** (Touch/Meta) or left **A** (Index); both actions are enabled by default.
+WiVRn's dashboard does not expose per-app OpenXR actions, and xrizer is the OpenVR compatibility layer, so neither lists these actions. For those setups, use **Action Settings → Crouch Binding** in the in-game menu, or set `[crouch] binding=right_thumbstick_click` in `TF2VR\packages\Nighteyes-TF2VRQualityOfLife-<version>\plugins\layer\TF2VRBetterBindings.ini` (also `left_thumbstick_click`, `both_thumbstick_click`, or `none`). It is applied at startup, so restart the game after changing it. The layer also suggests **Reload Grab** on both trigger clicks and **Tactical Ability** on left **X** (Touch/Meta) or left **A** (Index); both actions are enabled by default.
 
 | Action | What it does | Bind it to |
 |---|---|---|
@@ -51,7 +51,7 @@ Tip: set the mod's **VR Settings → Gun Grip** to **Toggle** to hold your gun w
 
 ## Calibration is saved after the first run
 
-The first time you start the game, calibrate normally. Once Titanfall2VR reports the calibration as complete, the plugin writes it to `TF2VR\packages\Nighteyes-TF2VRBetterBindings-<version>\plugins\layer\TF2VRBetterBindings.calibration.ini`. On later launches the plugin restores the saved height and arm span and marks the native startup calibration as done, so the calibration screen is skipped.
+The first time you start the game, calibrate normally. Once Titanfall2VR reports the calibration as complete, the plugin writes it to `TF2VR\packages\Nighteyes-TF2VRQualityOfLife-<version>\plugins\layer\TF2VRBetterBindings.calibration.ini`. On later launches the plugin restores the saved height and arm span and marks the native startup calibration as done, so the calibration screen is skipped.
 
 The file is tied to the installed `Titanfall2VR.dll`. If Titanfall2VR is updated, the old file is ignored and you calibrate once again, after which the new values are saved.
 
@@ -76,7 +76,7 @@ Select a row to change its value. The menu writes the same `TF2VRBetterBindings.
 - If a row says **NOT SAVED**, the plugin DLL is older than the menu: rebuild so `TF2VRBetterBindings.dll` contains the settings bridge. The menu still works, it just cannot write the file.
 
 > [!IMPORTANT]
-> **Optional features** can also be turned on from **Action Settings** and **General Options**. Editing `TF2VR\packages\Nighteyes-TF2VRBetterBindings-<version>\plugins\layer\TF2VRBetterBindings.ini` by hand still works, and the menu always reads the values that are in that file.
+> **Optional features** can also be turned on from **Action Settings** and **General Options**. Editing `TF2VR\packages\Nighteyes-TF2VRQualityOfLife-<version>\plugins\layer\TF2VRBetterBindings.ini` by hand still works, and the menu always reads the values that are in that file.
 >
 > | Setting | What it does |
 > |---|---|
@@ -103,10 +103,21 @@ This is an unofficial add-on. It does not modify or include any of CircuitLord's
 
 ## Install
 
-1. Download `Nighteyes-TF2VRBetterBindings-<version>.zip` from the [Releases](../../releases) page. You need Titanfall 2 VR installed with CircuitLord's installer.
-2. Delete any older `Nighteyes-TF2VRBetterBindings-<version>` folder (copy its `TF2VRBetterBindings.ini` first to keep your settings). Extract the zip into `<Titanfall 2 folder>\TF2VR\packages\`, so you get `TF2VR\packages\Nighteyes-TF2VRBetterBindings-<version>\plugins\...`.
+1. Download `Nighteyes-TF2VRQualityOfLife-<version>.zip` from the [Releases](../../releases) page. You need Titanfall 2 VR installed with CircuitLord's installer.
+2. Extract the zip into `<Titanfall 2 folder>\TF2VR\packages\`, so you get `TF2VR\packages\Nighteyes-TF2VRQualityOfLife-<version>\plugins\...`. If you are upgrading from the old package name, follow the upgrade steps below first, and remove the old folder before launching.
 3. **START THE GAME, QUIT, AND START IT AGAIN! IT DOES NOT WORK ON THE FIRST START!** This also applies after every update.
 4. Bind the actions you want in SteamVR, or in your OpenXR runtime's binding editor on Linux. If the editor has no per-app actions, use the layer's Linux suggestions described above; set `[crouch] binding` for crouch.
+
+### Upgrading from `Nighteyes.TF2VRBetterBindings`
+
+The package and Northstar mod ID are now **TF2VR Quality of life**, but `TF2VRBetterBindings.dll`, `TF2VRBetterBindingsLayer.dll`, `TF2VRBetterBindings.ini`, `TF2VRBetterBindings.calibration.ini` and the layer manifest keep their names. Your settings and calibration therefore remain valid.
+
+1. Extract the new zip next to the old `Nighteyes-TF2VRBetterBindings-<version>` folder.
+2. Copy `plugins\layer\TF2VRBetterBindings.ini` and, if present, `plugins\layer\TF2VRBetterBindings.calibration.ini` from the old folder into the same `plugins\layer` folder of the new package. This replaces the new package's default INI with your settings.
+3. Delete the old folder before launching the game. Do not run both packages at once: both would load the same DLL and actions.
+4. Start the game, quit, and start it again as usual.
+
+`scripts/build-linux.sh --install "<Titanfall 2>/TF2VR/packages"` performs the copy automatically. It imports the newest settings and calibration it finds in either package name, then reminds you to remove the other folder.
 
 ### Linux / Proton
 
@@ -122,7 +133,7 @@ Titanfall 2 VR uses the Windows OpenXR loader with WineOpenXR as its runtime und
 
 ## Uninstall
 
-Delete the `Nighteyes-TF2VRBetterBindings-<version>` folder. A leftover layer registration under `HKEY_CURRENT_USER\Software\Khronos\OpenXR\1\ApiLayers\Implicit` on Windows, or under `HKEY_LOCAL_MACHINE\Software\Khronos\OpenXR\1\ApiLayers\Implicit` in the Proton prefix, is harmless. `unregister-layer.ps1` in the package removes the per-user entry; add `-Machine` to remove the machine-wide one.
+Delete the `Nighteyes-TF2VRQualityOfLife-<version>` folder. A leftover layer registration under `HKEY_CURRENT_USER\Software\Khronos\OpenXR\1\ApiLayers\Implicit` on Windows, or under `HKEY_LOCAL_MACHINE\Software\Khronos\OpenXR\1\ApiLayers\Implicit` in the Proton prefix, is harmless. `unregister-layer.ps1` in the package removes the per-user entry; add `-Machine` to remove the machine-wide one.
 
 ## Building from source
 
@@ -134,7 +145,7 @@ cmake --build build --config Release
 cmake --build build --config Release --target dist_package
 ```
 
-`dist_package` produces `build\package\Nighteyes-TF2VRBetterBindings-<version>\` and `build\Nighteyes-TF2VRBetterBindings-<version>.zip`. Configure with `-DTF2VR_PACKAGES_DIR="<Titanfall 2>\TF2VR\packages"` to get an `install_tf2vr` target that copies the package there, keeping an existing `.ini`.
+`dist_package` produces `build\package\Nighteyes-TF2VRQualityOfLife-<version>\` and `build\Nighteyes-TF2VRQualityOfLife-<version>.zip`. Configure with `-DTF2VR_PACKAGES_DIR="<Titanfall 2>\TF2VR\packages"` to get an `install_tf2vr` target that copies the package there, keeping an existing `.ini`.
 
 ### Building on Linux
 
@@ -145,7 +156,7 @@ scripts/build-linux.sh --clean
 scripts/build-linux.sh --install "<Titanfall 2>/TF2VR/packages"
 ```
 
-It writes `build-linux/package/Nighteyes-TF2VRBetterBindings-<version>/` and `build-linux/Nighteyes-TF2VRBetterBindings-<version>.zip`, and fails if a DLL is not x64, a file is missing, `mod.json` or the ini holds the wrong values, or the zip is incomplete. `--install` copies the package and keeps an existing `TF2VRBetterBindings.ini`.
+It writes `build-linux/package/Nighteyes-TF2VRQualityOfLife-<version>/` and `build-linux/Nighteyes-TF2VRQualityOfLife-<version>.zip`, and fails if a DLL is not x64, a file is missing, `mod.json` or the ini holds the wrong values, or the zip is incomplete. `--install` copies the package, keeps an existing `TF2VRBetterBindings.ini`, and imports the newest INI and calibration from an older package folder when the new package is installed for the first time.
 
 Requirements: CMake 3.24+, a MinGW-w64 x86_64 g++ (`sudo apt install g++-mingw-w64-x86-64` on Debian/Ubuntu, `mingw-w64-gcc` on Arch, `mingw64-gcc-c++` on Fedora), Git and Python 3. Ubuntu 22.04 packages CMake 3.22, so `python3 -m pip install --user "cmake>=3.24"` is needed there.
 

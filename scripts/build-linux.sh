@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cross-compile the Windows build of TF2VR Better Bindings on Linux, assemble
+# Cross-compile the Windows build of TF2VR Quality of life on Linux, assemble
 # the release package and check what came out.
 #
 #   scripts/build-linux.sh --clean
@@ -17,8 +17,9 @@ Options:
   --build-dir DIR    CMake build directory (default: build-linux)
   --clean            delete the build directory before configuring
   --install DIR      copy the package into DIR (a TF2VR\packages folder),
-                     keeping an existing plugins/layer/TF2VRBetterBindings.ini
-                     and plugins/layer/TF2VRBetterBindings.calibration.ini
+                     keeping existing plugins/layer/TF2VRBetterBindings.ini
+                     and .calibration.ini files, and migrating them from an
+                     older TF2VR Better Bindings package when present
   --jobs N           parallel build jobs (default: all CPUs)
   --check-deps-only  report missing tools and exit
   -h, --help         show this help
@@ -51,7 +52,7 @@ if [ -z "$version" ]; then
     echo "error: could not read the project version from CMakeLists.txt" >&2
     exit 1
 fi
-package_name="Nighteyes-TF2VRBetterBindings-$version"
+package_name="Nighteyes-TF2VRQualityOfLife-$version"
 
 install_hint() {
     if has apt-get; then
@@ -138,7 +139,7 @@ from pathlib import Path
 pkg = Path(sys.argv[1])
 zip_path = Path(sys.argv[2])
 version = sys.argv[3]
-mod_dir = "mods/Nighteyes.TF2VRBetterBindings"
+mod_dir = "mods/Nighteyes.TF2VRQualityOfLife"
 menu_pages = ["about", "actions", "controls", "general", "restore", "root"]
 sandbox_pages = ["root", "maps", "npcs", "player", "presets", "developer"]
 
@@ -435,6 +436,22 @@ if [ -n "$install_dir" ]; then
         exit 1
     fi
     destination="$install_dir/$package_name"
+
+    # A package rename must not lose the layer settings or calibration. Look
+    # for the newest config in an older copy before the destination is created.
+    migration_source=""
+    shopt -s nullglob
+    for candidate in "$install_dir"/Nighteyes-TF2VRBetterBindings-* \
+                     "$install_dir"/Nighteyes-TF2VRQualityOfLife-*; do
+        [ "$candidate" = "$destination" ] && continue
+        candidate_ini="$candidate/plugins/layer/TF2VRBetterBindings.ini"
+        [ -f "$candidate_ini" ] || continue
+        if [ -z "$migration_source" ] || [ "$candidate_ini" -nt "$migration_source/plugins/layer/TF2VRBetterBindings.ini" ]; then
+            migration_source="$candidate"
+        fi
+    done
+    shopt -u nullglob
+
     mkdir -p "$destination"
     kept_ini=""
     if [ -f "$destination/plugins/layer/TF2VRBetterBindings.ini" ]; then
@@ -451,15 +468,22 @@ if [ -n "$install_dir" ]; then
         cp "$kept_ini" "$destination/plugins/layer/TF2VRBetterBindings.ini"
         rm -f "$kept_ini"
         echo "kept the existing TF2VRBetterBindings.ini"
+    elif [ -n "$migration_source" ]; then
+        cp "$migration_source/plugins/layer/TF2VRBetterBindings.ini" "$destination/plugins/layer/TF2VRBetterBindings.ini"
+        echo "migrated settings from $migration_source"
     fi
     if [ -n "$kept_calibration" ]; then
         cp "$kept_calibration" "$destination/plugins/layer/TF2VRBetterBindings.calibration.ini"
         rm -f "$kept_calibration"
         echo "kept the existing TF2VRBetterBindings.calibration.ini"
+    elif [ -n "$migration_source" ] && [ -f "$migration_source/plugins/layer/TF2VRBetterBindings.calibration.ini" ]; then
+        cp "$migration_source/plugins/layer/TF2VRBetterBindings.calibration.ini" "$destination/plugins/layer/TF2VRBetterBindings.calibration.ini"
+        echo "migrated calibration from $migration_source"
     fi
     echo "installed: $destination"
     shopt -s nullglob
-    for other in "$install_dir"/Nighteyes-TF2VRBetterBindings-*; do
+    for other in "$install_dir"/Nighteyes-TF2VRBetterBindings-* \
+                 "$install_dir"/Nighteyes-TF2VRQualityOfLife-*; do
         if [ "$other" != "$destination" ]; then
             echo "note: another copy is installed at $other - remove it so only one package loads"
         fi

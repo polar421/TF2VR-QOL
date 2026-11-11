@@ -13,8 +13,8 @@ FetchContent_Declare(openxr_sdk
 FetchContent_MakeAvailable(openxr_sdk)
 set(OPENXR_INCLUDE_DIR "${openxr_sdk_SOURCE_DIR}/include")
 
-set(MOD_NAME "Nighteyes.TF2VRBetterBindings")
-set(PACKAGE_NAME "Nighteyes-TF2VRBetterBindings-${PROJECT_VERSION}")
+set(MOD_NAME "Nighteyes.TF2VRQualityOfLife")
+set(PACKAGE_NAME "Nighteyes-TF2VRQualityOfLife-${PROJECT_VERSION}")
 set(LAYER_MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/manifest/XR_APILAYER_NIGHTEYES_tf2vr_better_bindings.json")
 set(LAYER_CONFIG "${CMAKE_CURRENT_SOURCE_DIR}/config/TF2VRBetterBindings.ini")
 set(COMMON_DEFINITIONS WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE _WIN32_WINNT=0x0601)
