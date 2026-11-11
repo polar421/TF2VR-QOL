@@ -46,8 +46,8 @@ been run in Titanfall 2; the runtime test plan at the end is still outstanding.
 | Gauntlet Builder | Not implemented | Requires tested scenario markers, ordering, timing and a verified server think/trigger path; no inert page is shipped |
 | Save & Load | Implemented slice | Three map-locked position presets in mod-scoped Safe I/O |
 | Rename / duplicate / browse / delete presets | Not implemented | Three fixed slots; no file browser |
-| Developer Tools | Implemented readout + logs | Map, mode, coordinates, entity/NPC/managed counts, limits; layout dump and debug switch |
-| Debug overlays / menu position | Implemented as logs | `[TF2VRSB][layout]` dumps screen size, page and control geometry and text; no overlay API is used |
+| Developer Tools | Implemented readout + logs | Map, mode, coordinates, entity/NPC/managed counts, limits; layout dump, debug switch and on-screen bounds toggle |
+| Debug overlays / menu position | Implemented as logs + on-screen bounds | `[TF2VRSB][layout]` dumps geometry and text; **Y** tints the menu orange and focusable controls cyan using live HUD bounds |
 | Visual design | Implemented resources | Original dark industrial layout, orange accents, technical labels |
 | VR / WiVRn | Not physically tested | Native menu path is used; no separate OpenXR overlay was added |
 | Packaging | Implemented | CMake package, version 1.5.0, verifier covers files, six scripts, 36 ConVars and menus; `scripts/verify-sandbox.py` cross-checks controls, bridge targets, commands, allow-list entries and ConVars |
@@ -64,6 +64,7 @@ menu, and Northstar's public modding documentation before use:
 - `Hud_GetX`, `Hud_GetY`, `Hud_GetAbsX`, `Hud_GetAbsY`, `Hud_GetWidth`,
   `Hud_GetHeight`, `Hud_GetParent`, `Hud_IsVisible`, `Hud_IsEnabled`,
   `Hud_GetScriptID`, `Hud_GetUTF8Text`, `GetScreenSize`, `WaitFrame`
+- `Hud_SetPos`, `Hud_SetSize`, `Hud_Show`, `Hud_Hide` for the overlay's own labels
 - `RunClientScript` from the UI VM
 - `player.ClientCommand` from the CLIENT VM
 - `AddClientCommandCallback(string, bool functionref(entity, array<string>))`
@@ -83,15 +84,16 @@ own save directory. They are not pointed at campaign saves. `TraceLine` uses
 the documented five-argument form and rejects both a start-solid trace and a
 blocked forward trace before creating an NPC. The HUD geometry getters are the
 same ones already used by the settings debug logger in `ui/tf2vrbb_menu.nut`;
-they are read-only here. `IsNoclipping`/`SetPhysics` and the two movement-type
-constants match the installed Northstar `_northstar_cheatcommands.nut`.
+the measured controls are never resized or moved, only the overlay's own labels.
+`IsNoclipping`/`SetPhysics` and the two movement-type constants match the
+installed Northstar `_northstar_cheatcommands.nut`.
 
 ## Execution contexts
 
 | Script | Context | Responsibility |
 |---|---|---|
 | `ui/tf2vrsb_menu.nut` | UI | Menus, labels, controller navigation, Safe I/O preset text, status display |
-| `ui/tf2vrsb_debug.nut` | UI | Log-only layout, state and event diagnostics; no world access |
+| `ui/tf2vrsb_debug.nut` | UI | Layout/state/event logging and the on-screen bounds overlay; no world access |
 | `tf2vrsb_client.nut` | CLIENT | Forwards an allow-listed UI command through `ClientCommand` |
 | `tf2vrsb_server.nut` | SERVER | Campaign validation, NPC creation/cleanup, teleport, fly, counts |
 
@@ -137,11 +139,17 @@ writes these prefixes to Northstar's `nslog`:
 - `[TF2VRSB][event] <kind> <detail>` for navigation, commands and preset loads
 - `[TF2VRSB][server] ...` for accepted server actions
 
+Press **Y** on any sandbox page to toggle the on-screen bounds overlay.
+`DebugMenu` follows the page's `Panel`; `Debug0`-`Debug14` follow its focusable
+controls. The overlay is off by default, independent of `tf2vrsb_debug`, and
+only resizes and displays its own HUD labels.
+
 `tf2vrsb_debug` defaults to `1`. Setting it to `0` suppresses every diagnostic
-line; setting it back to `1` restores them. Developer Information's **LOG
-CURRENT LAYOUT TO NSLOG** writes a fresh page dump only while logging is on.
-The module reads geometry and ConVars; it never moves a control, changes a
-menu resource or calls a server API.
+line; setting it back to `1` restores them. It does not affect the on-screen
+overlay. Developer Information's **LOG CURRENT LAYOUT TO NSLOG** writes a fresh
+page dump only while logging is on. The module reads geometry and ConVars; it
+only moves and shows its own overlay labels, never the measured controls, and
+does not change menu resources at runtime or call a server API.
 
 ## Data and safety
 
@@ -153,8 +161,9 @@ menu resource or calls a server API.
   directory. They contain `map x y z yaw` and no user or campaign data.
 - Fly changes only the local player's movement type. Noclip ignores collision
   and can leave campaign bounds; it must be toggled off to land.
-- Diagnostics are log-only and contain menu geometry, ConVar state and action
-  names. They do not modify campaign data.
+- Diagnostics are read-only for the measured controls and contain menu geometry,
+  ConVar state and action names. The optional overlay only resizes its own HUD
+  labels. Neither path modifies campaign data.
 - The map catalog cannot change levels.
 - No campaign map file, campaign save, Northstar core file, Proton prefix,
   launch option or XR runtime configuration is modified by this mod.
@@ -179,8 +188,10 @@ the development environment:
    player ignores collision, and a second press returns to walking with velocity
    cleared. Check `tf2vrsb_fly` follows the actual state.
 8. Open Developer Information and confirm the `[TF2VRSB][layout]` block contains
-   the page and control positions; use **LOG CURRENT LAYOUT TO NSLOG**, then turn
-   **DEBUG LOGGING** off and confirm new page opens stop logging.
+   the page and control positions; use **LOG CURRENT LAYOUT TO NSLOG**. Press
+   **Y** and confirm the orange menu box and cyan control boxes align with the
+   page while logging is on, then turn **DEBUG LOGGING** off and confirm new
+   page opens stop logging while the overlay still toggles.
 9. Check `tf2vrsb_*` ConVars and the server log for rejected actions.
 10. Repeat the menu and gameplay checks in the Quest 3S through WiVRn, looking
     for readability, focus, input handoff, fly comfort, and frame-time regressions.

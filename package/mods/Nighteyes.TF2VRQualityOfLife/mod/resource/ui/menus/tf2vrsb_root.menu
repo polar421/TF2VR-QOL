@@ -242,5 +242,226 @@
 			ControlName CNestedPanel
 			InheritProperties FooterButtons
 		}
+		DebugMenu
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 50
+			visible 0
+			paintbackground 1
+			bgcolor_override "242 141 28 32"
+		}
+		Debug0
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		Debug1
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		Debug2
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		Debug3
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		Debug4
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		Debug5
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		Debug6
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		Debug7
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		Debug8
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		Debug9
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		Debug10
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		Debug11
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		Debug12
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		Debug13
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		Debug14
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 52"
+		}
+		DebugLegend
+		{
+			ControlName Label
+			labelText "LAYOUT BOUNDS  //  ORANGE=MENU  CYAN=CONTROLS  //  Y TOGGLES"
+			font Default_16
+			fgcolor_override "242 141 28 255"
+			wide 1100
+			tall 22
+			xpos 120
+			ypos 208
+			zpos 52
+			visible 0
+		}
 	}
 }

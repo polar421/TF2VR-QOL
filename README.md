@@ -15,7 +15,7 @@ This is a deliberately small, source-verified vertical slice. Pages are wired to
 | **NPC Sandbox** | Implemented; not run in game | Wires hostile IMC soldier, hostile IMC spectre, and friendly soldier spawns in front of the player. Enforces a 2-10 NPC cap and clears only NPCs this sandbox created |
 | **Player Utilities** | Implemented; not run in game | Wires save, return and clear for a position bookmark, plus a noclip fly toggle with a live status label |
 | **Position Presets** | Implemented; not run in game | Wires three position slots under the mod's own Safe I/O folder, map-locked on load |
-| **Developer Information** | Implemented; not run in game | Map ID, session mode, coordinates, counts, cap and spawn distance, plus a layout dump button and debug-log switch |
+| **Developer Information** | Implemented; not run in game | Map ID, session mode, coordinates, counts, cap and spawn distance, plus a layout dump button, debug-log switch and on-screen bounds toggle |
 
 The NPC path places NPCs 100-300 units ahead of the player, requires a clear trace and solid ground, and caps them with the `NPC CAP` switch. `CLEAR MANAGED NPCs` asks for a second click and only calls `Destroy()` on handles recorded by the sandbox. Campaign entities are never scanned and deleted.
 
@@ -25,13 +25,15 @@ Position presets are plain text in Northstar's mod-scoped Safe I/O folder. They 
 
 **FLY (NOCLIP)** in Player Utilities toggles the player between `MOVETYPE_NOCLIP` and `MOVETYPE_WALK`, using the same API as Northstar's `_northstar_cheatcommands.nut`. It is campaign-only, requires a living player, and clears velocity when toggled. Noclip ignores collision, so it can pass through geometry and leave campaign bounds; tap the row again to land. It is not an overlay, a teleport, god mode or a campaign-progression tool.
 
-**DEBUG LOGGING** is on by default (`tf2vrsb_debug 1`). Opening a sandbox page writes `[TF2VRSB][layout]` lines containing the screen size, the page's own position and size, and each control's relative/absolute position, size, visibility, enabled state, parent geometry, script ID and text. `[state]` lines record the status ConVars, and `[event]` lines record page navigation, map selection, status requests, commands and preset loads. The SERVER VM adds `[TF2VRSB][server]` lines for accepted actions. **LOG CURRENT LAYOUT TO NSLOG** in Developer Information dumps the current page again, and the **DEBUG LOGGING** switch stops the diagnostics when you want a quiet log. Read them in `TF2VR\logs\nslog*.txt`. Nothing is drawn over the menu and no geometry is changed by logging.
+**DEBUG LOGGING** is on by default (`tf2vrsb_debug 1`). Opening a sandbox page writes `[TF2VRSB][layout]` lines containing the screen size, the page's own position and size, and each control's relative/absolute position, size, visibility, enabled state, parent geometry, script ID and text. `[state]` lines record the status ConVars, and `[event]` lines record page navigation, map selection, status requests, commands and preset loads. The SERVER VM adds `[TF2VRSB][server]` lines for accepted actions. **LOG CURRENT LAYOUT TO NSLOG** in Developer Information dumps the current page again, and the **DEBUG LOGGING** switch stops the diagnostics when you want a quiet log. Read them in `TF2VR\logs\nslog*.txt`.
+
+Press **Y** on any sandbox page to toggle an on-screen layout overlay. It draws the menu panel in orange and each focusable control and the footer in cyan from the live HUD bounds, so spacing and clipping can be checked without reading the log. The overlay is off by default, works independently of debug logging, and lasts for the current UI session.
 
 ### Not implemented in this build
 
 Map transitions, world-object placement/editing, individual NPC removal, and the Gauntlet builder are **not** exposed as working controls. They depend on level-transition, spawn-model, navigation and scenario behavior that cannot be validated without a game session, and a bad implementation can corrupt a campaign state or delete unrelated entities. The map page and Developer Information page say so rather than presenting inert controls. Position preset rename, duplicate, browse and delete are also not implemented; there are three fixed slots.
 
-The sandbox has been source-inspected, packaged and statically checked, but **has not been run in Titanfall 2 or a Quest 3S/WiVRn headset in this development environment**. The pause footer, NPC spawning, teleports, fly/noclip, layout logging, Safe I/O and native-menu VR presentation remain runtime tests. Treat the feature as experimental and start with a disposable campaign session.
+The sandbox has been source-inspected, packaged and statically checked, but **has not been run in Titanfall 2 or a Quest 3S/WiVRn headset in this development environment**. The pause footer, NPC spawning, teleports, fly/noclip, layout logging, on-screen bounds, Safe I/O and native-menu VR presentation remain runtime tests. Treat the feature as experimental and start with a disposable campaign session.
 
 See [docs/SANDBOX.md](docs/SANDBOX.md) for the PDF-to-implementation checklist, API evidence, VM boundaries and test plan.
 

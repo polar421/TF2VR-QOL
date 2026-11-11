@@ -13,6 +13,7 @@ global function TF2VRSB_LogPresetsLayout
 global function TF2VRSB_LogDeveloperLayout
 global function TF2VRSB_LogState
 global function TF2VRSB_LogEvent
+global function TF2VRSB_ToggleLayoutOverlay
 
 void function TF2VRSB_DebugInit()
 {
@@ -89,13 +90,21 @@ void function TF2VRSB_LogControl( var menu, string name )
 
 void function TF2VRSB_LogPage( string page, var menu, array<string> names )
 {
-	if ( !TF2VRSB_DebugEnabled() )
-		return
 	if ( menu == null )
 	{
+		file.activeLayoutMenu = null
 		print( "[TF2VRSB][layout] page=" + page + " menu=NULL\n" )
 		return
 	}
+
+	// Keep the overlay independent of the nslog switch: it is useful on its
+	// own, and the debug page can turn logging off while bounds stay visible.
+	file.activeLayoutPage = page
+	file.activeLayoutMenu = menu
+	TF2VRSB_DrawLayoutOverlay( page, menu )
+
+	if ( !TF2VRSB_DebugEnabled() )
+		return
 
 	print( "[TF2VRSB][layout] page=" + page
 		+ " screen=" + string( GetScreenSize()[ 0 ] ) + "x"
@@ -106,6 +115,135 @@ void function TF2VRSB_LogPage( string page, var menu, array<string> names )
 		TF2VRSB_LogControl( menu, names[ i ] )
 
 	TF2VRSB_LogState( "layout:" + page )
+}
+
+array<string> function TF2VRSB_LayoutOverlayNames( string page )
+{
+	array<string> names = []
+	if ( page == "root" )
+	{
+		for ( int i = 0; i < 6; i++ )
+			names.append( "Row" + string( i ) )
+		names.append( "FooterButtons" )
+		return names
+	}
+	if ( page == "maps" )
+	{
+		for ( int i = 0; i < 13; i++ )
+			names.append( "Map" + string( i ) )
+		names.append( "FooterButtons" )
+		return names
+	}
+	if ( page == "npcs" )
+	{
+		names.append( "SpawnHostileSoldier" )
+		names.append( "SpawnHostileSpectre" )
+		names.append( "SpawnFriendlySoldier" )
+		names.append( "ClearManaged" )
+		names.append( "SwitchNpcCap" )
+		names.append( "SwitchSpawnDistance" )
+		names.append( "BtnBack" )
+		names.append( "FooterButtons" )
+		return names
+	}
+	if ( page == "player" )
+	{
+		names.append( "SaveBookmark" )
+		names.append( "ReturnBookmark" )
+		names.append( "ClearBookmark" )
+		names.append( "ToggleFly" )
+		names.append( "BtnBack" )
+		names.append( "FooterButtons" )
+		return names
+	}
+	if ( page == "presets" )
+	{
+		names.append( "Save1" )
+		names.append( "Load1" )
+		names.append( "Save2" )
+		names.append( "Load2" )
+		names.append( "Save3" )
+		names.append( "Load3" )
+		names.append( "BtnBack" )
+		names.append( "FooterButtons" )
+		return names
+	}
+	if ( page == "developer" )
+	{
+		names.append( "LogLayout" )
+		names.append( "Refresh" )
+		names.append( "SwitchDebug" )
+		names.append( "BtnBack" )
+		names.append( "FooterButtons" )
+	}
+	return names
+}
+
+bool function TF2VRSB_PlaceLayoutBox( var menu, string boxName, var target )
+{
+	if ( menu == null || target == null || !Hud_IsVisible( target ) )
+		return false
+
+	var box = Hud_GetChild( menu, boxName )
+	int width = Hud_GetWidth( target )
+	int height = Hud_GetHeight( target )
+	if ( box == null || width <= 0 || height <= 0 )
+		return false
+
+	Hud_SetPos( box, Hud_GetAbsX( target ) - Hud_GetAbsX( menu ),
+		Hud_GetAbsY( target ) - Hud_GetAbsY( menu ) )
+	Hud_SetSize( box, width, height )
+	Hud_Show( box )
+	return true
+}
+
+void function TF2VRSB_DrawLayoutOverlay( string page, var menu )
+{
+	file.activeLayoutPage = page
+	file.activeLayoutMenu = menu
+	if ( menu == null )
+		return
+
+	for ( int i = 0; i < 15; i++ )
+	{
+		var box = Hud_GetChild( menu, "Debug" + string( i ) )
+		if ( box != null )
+			Hud_Hide( box )
+	}
+
+	var menuBox = Hud_GetChild( menu, "DebugMenu" )
+	var legend = Hud_GetChild( menu, "DebugLegend" )
+	if ( menuBox != null )
+		Hud_Hide( menuBox )
+	if ( legend != null )
+		Hud_Hide( legend )
+
+	if ( !file.layoutOverlayShown )
+		return
+
+	int drawn = 0
+	if ( TF2VRSB_PlaceLayoutBox( menu, "DebugMenu", Hud_GetChild( menu, "Panel" ) ) )
+		drawn++
+
+	array<string> names = TF2VRSB_LayoutOverlayNames( page )
+	for ( int i = 0; i < names.len() && i < 15; i++ )
+	{
+		if ( TF2VRSB_PlaceLayoutBox( menu, "Debug" + string( i ), Hud_GetChild( menu, names[ i ] ) ) )
+			drawn++
+	}
+
+	if ( drawn > 0 && legend != null )
+		Hud_Show( legend )
+	if ( TF2VRSB_DebugEnabled() )
+		print( "[TF2VRSB][overlay] page=" + page + " visible=1 boxes=" + string( drawn ) + "\n" )
+}
+
+void function TF2VRSB_ToggleLayoutOverlay( var button )
+{
+	file.layoutOverlayShown = !file.layoutOverlayShown
+	TF2VRSB_DrawLayoutOverlay( file.activeLayoutPage, file.activeLayoutMenu )
+	if ( TF2VRSB_DebugEnabled() )
+		print( "[TF2VRSB][overlay] visible=" + ( file.layoutOverlayShown ? "1" : "0" ) + "\n" )
 }
 
 void function TF2VRSB_LogRootLayout( var menu )

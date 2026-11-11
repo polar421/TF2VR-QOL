@@ -90,6 +90,10 @@ struct
 	int selectedMap
 	bool clearArmed
 	string lastLoggedResult
+
+	bool layoutOverlayShown
+	string activeLayoutPage
+	var activeLayoutMenu
 } file
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -164,6 +168,7 @@ void function TF2VRSB_InitRoot()
 			} )
 	}
 	AddMenuFooterOption( file.rootMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
+	TF2VRSB_AddLayoutFooter( file.rootMenu )
 	AddMenuEventHandler( file.rootMenu, eUIEvent.MENU_OPEN, TF2VRSB_OnRootOpen )
 }
 
@@ -241,6 +246,7 @@ void function TF2VRSB_InitMaps()
 			} )
 	}
 	AddMenuFooterOption( file.mapsMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
+	TF2VRSB_AddLayoutFooter( file.mapsMenu )
 	AddMenuEventHandler( file.mapsMenu, eUIEvent.MENU_OPEN, TF2VRSB_OnMapsOpen )
 }
 
@@ -330,6 +336,7 @@ void function TF2VRSB_InitNpcs()
 	TF2VRSB_WireVertical( file.npcButtons )
 
 	AddMenuFooterOption( file.npcsMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
+	TF2VRSB_AddLayoutFooter( file.npcsMenu )
 	AddMenuEventHandler( file.npcsMenu, eUIEvent.MENU_OPEN, TF2VRSB_OnNpcsOpen )
 }
 
@@ -425,6 +432,7 @@ void function TF2VRSB_InitPlayer()
 	TF2VRSB_WireVertical( file.playerButtons )
 
 	AddMenuFooterOption( file.playerMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
+	TF2VRSB_AddLayoutFooter( file.playerMenu )
 	AddMenuEventHandler( file.playerMenu, eUIEvent.MENU_OPEN, TF2VRSB_OnPlayerOpen )
 }
 
@@ -503,6 +511,7 @@ void function TF2VRSB_InitPresets()
 	TF2VRSB_WireVertical( file.presetButtons )
 
 	AddMenuFooterOption( file.presetsMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
+	TF2VRSB_AddLayoutFooter( file.presetsMenu )
 	AddMenuEventHandler( file.presetsMenu, eUIEvent.MENU_OPEN, TF2VRSB_OnPresetsOpen )
 }
 
@@ -649,6 +658,7 @@ void function TF2VRSB_InitDeveloper()
 	TF2VRSB_WireVertical( file.developerButtons )
 
 	AddMenuFooterOption( file.developerMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
+	TF2VRSB_AddLayoutFooter( file.developerMenu )
 	AddMenuEventHandler( file.developerMenu, eUIEvent.MENU_OPEN, TF2VRSB_OnDeveloperOpen )
 }
 
@@ -773,7 +783,8 @@ void function TF2VRSB_UpdateStatusLabels()
 			+ " // FLY=" + ( flying ? "ON" : "OFF" )
 			+ " DEBUG=" + ( GetConVarInt( TF2VRSB_DEBUG ) == 1 ? "ON" : "OFF" ) + "\n"
 			+ "AVAILABLE: PAUSE MENU, SESSION INFO, MAP CATALOG, NPCs, BOOKMARK, FLY, POSITION PRESETS.\n"
-			+ "NOT AVAILABLE: MAP TRAVEL, WORLD OBJECTS, GAUNTLET MARKERS. THESE REQUIRE IN-GAME VALIDATION." )
+			+ "NOT AVAILABLE: MAP TRAVEL, WORLD OBJECTS, GAUNTLET MARKERS. THESE REQUIRE IN-GAME VALIDATION.\n"
+			+ "Y TOGGLES ON-SCREEN LAYOUT BOUNDS: ORANGE=MENU, CYAN=CONTROLS." )
 
 	if ( file.presetStatus != null )
 		Hud_SetText( file.presetStatus, result )
@@ -837,6 +848,14 @@ void function TF2VRSB_SetButtonLabel( var menu, string childName, string label )
 	var button = Hud_GetChild( menu, childName )
 	if ( button != null )
 		SetButtonRuiText( button, label )
+}
+
+void function TF2VRSB_AddLayoutFooter( var menu )
+{
+	AddMenuFooterOption( menu, BUTTON_Y,
+		PrependControllerPrompts( BUTTON_Y, " LAYOUT BOUNDS" ),
+		"LAYOUT BOUNDS",
+		TF2VRSB_ToggleLayoutOverlay )
 }
 
 void function TF2VRSB_WireVertical( array<var> buttons )

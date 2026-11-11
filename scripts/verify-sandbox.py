@@ -76,6 +76,9 @@ def main() -> int:
         "presetsMenu": "TF2VRSBSandboxPresets",
         "developerMenu": "TF2VRSBSandboxDeveloper",
     }
+    overlay_controls = {"DebugMenu", "DebugLegend"} | {
+        f"Debug{index}" for index in range(15)
+    }
     for variable, menu_id in menu_vars.items():
         rel = menu_paths.get(menu_id)
         if not rel:
@@ -93,6 +96,13 @@ def main() -> int:
         ):
             if match.group(1) not in controls:
                 problems.append(f"{rel}: SetButtonLabel missing {match.group(1)}")
+        missing_overlay = overlay_controls - controls
+        if missing_overlay:
+            problems.append(
+                f"{rel}: missing overlay controls {', '.join(sorted(missing_overlay))}"
+            )
+        if f"TF2VRSB_AddLayoutFooter( file.{variable} )" not in ui:
+            problems.append(f"{menu_id}: layout overlay footer is not registered")
 
     for variable, prefix, count in re.findall(
         r'TF2VRSB_GetButtons\(\s*file\.(\w+)\s*,\s*"([^"]+)"\s*,\s*(\d+)\s*\)', ui
@@ -127,13 +137,22 @@ def main() -> int:
         if f'"{command}"' not in client:
             problems.append(f"CLIENT allow-list is missing SERVER command: {command}")
 
-    # The diagnostic module must stay log-only and expose the expected hooks.
-    for required in ("TF2VRSB_LogPage(", "TF2VRSB_LogState(", "TF2VRSB_LogEvent(", "Hud_GetAbsX("):
+    # The diagnostic module may manipulate only its own overlay labels; it
+    # must expose the expected hooks and stay out of server/world APIs.
+    for required in (
+        "TF2VRSB_LogPage(",
+        "TF2VRSB_LogState(",
+        "TF2VRSB_LogEvent(",
+        "TF2VRSB_DrawLayoutOverlay(",
+        "Hud_GetAbsX(",
+        "Hud_SetPos(",
+        "Hud_SetSize(",
+    ):
         if required not in debug:
             problems.append(f"debug UI module is missing {required}")
     for forbidden in ("RunClientScript(", "ClientCommand(", "SetOrigin(", "CreateNPC("):
         if forbidden in debug:
-            problems.append(f"debug UI module must stay log-only: {forbidden}")
+            problems.append(f"debug UI module must not call server/world API: {forbidden}")
 
     # ConVar declarations used by either script.
     for label, text in (("UI", ui), ("DEBUG", debug), ("CLIENT", client), ("SERVER", server)):
