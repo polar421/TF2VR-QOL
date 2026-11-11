@@ -4,7 +4,7 @@ Extra OpenXR actions and optional features for [CircuitLord's Titanfall 2 VR mod
 
 ## Campaign sandbox (experimental)
 
-Version 1.5.0 adds an experimental sandbox entry to the **real campaign pause menu**, with log-based menu diagnostics and a campaign fly/noclip toggle. Load a single-player mission, pause, and press **Y** for **SANDBOX / DEV TOOLS**. The entry is appended to `InGameSPMenu`; the vanilla Resume, Restart, Settings and Quit entries are not replaced. B returns to the pause menu.
+Version 1.6.0 expands the experimental sandbox in the **real campaign pause menu** with a searchable NPC catalog, managed NPC removal, log-based diagnostics and a campaign fly/noclip toggle. Load a single-player mission, pause, and press **Y** for **SANDBOX / DEV TOOLS**. The entry is appended to `InGameSPMenu`; the vanilla Resume, Restart, Settings and Quit entries are not replaced. B returns to the pause menu.
 
 This is a deliberately small, source-verified vertical slice. Pages are wired to real actions through the documented UI → CLIENT (`RunClientScript`) → SERVER (`ClientCommand` and `AddClientCommandCallback`) path; there are no decorative buttons for systems that have not been validated. Implementation is not the same as gameplay verification: see the testing status below. The interface uses dark panels, orange technical labels and native controller navigation so it can be read inside the game's own VR menu path.
 
@@ -12,12 +12,14 @@ This is a deliberately small, source-verified vertical slice. Pages are wired to
 |---|---|---|
 | **Mission Control** | Implemented; not run in game | Live campaign map, NPC and sandbox-managed counts, server status, and navigation |
 | **Maps & Environments** | Catalog only | Lists the 13 campaign map IDs used by the game, marks the current one and shows whether travel is available. Travel is intentionally disabled |
-| **NPC Sandbox** | Implemented; not run in game | Wires hostile IMC soldier, hostile IMC spectre, and friendly soldier spawns in front of the player. Enforces a 2-10 NPC cap and clears only NPCs this sandbox created |
+| **NPC Browser** | Implemented; not run in game | Searches 62 catalog entries, filters six categories and pages six results at a time |
+| **NPC Details** | Implemented; not run in game | Shows AI settings ID, BaseClass, support status, restrictions, dependencies, team and spawn action |
+| **Managed NPCs** | Implemented; not run in game | Tracks stable sandbox IDs, removes one selected NPC, pages the roster and clears only sandbox-owned handles |
 | **Player Utilities** | Implemented; not run in game | Wires save, return and clear for a position bookmark, plus a noclip fly toggle with a live status label |
 | **Position Presets** | Implemented; not run in game | Wires three position slots under the mod's own Safe I/O folder, map-locked on load |
 | **Developer Information** | Implemented; not run in game | Map ID, session mode, coordinates, counts, cap and spawn distance, plus a layout dump button, opacity control, debug-log switch and on-screen bounds toggle |
 
-The NPC path places NPCs 100-300 units ahead of the player, requires a clear trace and solid ground, and caps them with the `NPC CAP` switch. `CLEAR MANAGED NPCs` asks for a second click and only calls `Destroy()` on handles recorded by the sandbox. Campaign entities are never scanned and deleted.
+The NPC catalog separates AI settings identifiers from entity classes. Spawning uses `CreateNPCFromAISettings` followed by `DispatchSpawn`, and the server accepts 24 source-verified AI settings. Titans, dropships, gunships, turrets and deprecated variants remain visible as unavailable references because they need specialized spawners. The path places accepted NPCs 100-300 units ahead of the player, requires a clear trace and solid ground, and caps them with the `NPC CAP` switch. Individual removal and `CLEAR MANAGED NPCs` require a second click and only call `Destroy()` on stable IDs recorded by the sandbox. Campaign entities are never scanned and deleted.
 
 Position presets are plain text in Northstar's mod-scoped Safe I/O folder. They contain a map ID, three coordinates and yaw. The SERVER VM rejects a preset from another map, a malformed preset, or out-of-range coordinates. Campaign saves, map files and the Proton prefix are not read or modified.
 
@@ -31,11 +33,11 @@ Press **Y** on any sandbox page to toggle an on-screen layout overlay. It draws 
 
 ### Not implemented in this build
 
-Map transitions, world-object placement/editing, individual NPC removal, and the Gauntlet builder are **not** exposed as working controls. They depend on level-transition, spawn-model, navigation and scenario behavior that cannot be validated without a game session, and a bad implementation can corrupt a campaign state or delete unrelated entities. The map page and Developer Information page say so rather than presenting inert controls. Position preset rename, duplicate, browse and delete are also not implemented; there are three fixed slots.
+Map transitions, world-object placement/editing, a general entity browser, and the Gauntlet builder are **not** exposed as working controls. They depend on level-transition, spawn-model, navigation and scenario behavior that cannot be validated without a game session, and a bad implementation can corrupt a campaign state or delete unrelated entities. The map page and Developer Information page say so rather than presenting inert controls. Position preset rename, duplicate, browse and delete are also not implemented; there are three fixed slots.
 
-The sandbox has been source-inspected, packaged and statically checked, but **has not been run in Titanfall 2 or a Quest 3S/WiVRn headset in this development environment**. The pause footer, NPC spawning, teleports, fly/noclip, layout logging, on-screen bounds, Safe I/O and native-menu VR presentation remain runtime tests. Treat the feature as experimental and start with a disposable campaign session.
+The sandbox has been source-inspected, packaged and statically checked, but **has not been run in Titanfall 2 or a Quest 3S/WiVRn headset in this development environment**. The pause footer, catalog search and paging, NPC spawning, individual removal, teleports, fly/noclip, layout logging, on-screen bounds, Safe I/O and native-menu VR presentation remain runtime tests. Treat the feature as experimental and start with a disposable campaign session.
 
-See [SANDBOX.md](SANDBOX.md) for how the sandbox works, or [docs/SANDBOX.md](docs/SANDBOX.md) for the implementation checklist, API evidence, VM boundaries and runtime test plan.
+See [SANDBOX.md](SANDBOX.md) for how the sandbox works, or [docs/SANDBOX.md](docs/SANDBOX.md) for the implementation checklist, API evidence, VM boundaries and runtime test plan. The remaining planned work is tracked in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Actions
 

@@ -63,7 +63,7 @@
 		PanelHeader
 		{
 			ControlName Label
-			labelText "NPC SANDBOX"
+			labelText "NPC BROWSER"
 			font Default_41
 			allcaps 1
 			fgcolor_override "255 255 255 255"
@@ -88,7 +88,7 @@
 		SubHeader
 		{
 			ControlName Label
-			labelText "SANDBOX-SPAWNED ACTORS ONLY // HOSTILE OR PLAYER TEAM"
+			labelText "CAMPAIGN NPC CATALOG // SEARCH, FILTER, INSPECT, SPAWN"
 			font Default_21
 			fgcolor_override "242 141 28 255"
 			allcaps 1
@@ -96,122 +96,195 @@
 			ypos 350
 		}
 
-		ManagedValue
+		SearchEntry
+		{
+			ControlName TextEntry
+			xpos 152
+			ypos 378
+			zpos 100
+			wide 430
+			tall 38
+			visible 1
+			enabled 1
+			textHidden 0
+			editable 1
+			maxchars 48
+			NumericInputOnly 0
+			textAlignment west
+			font Default_21
+			keyboardTitle "SEARCH NPC CATALOG"
+			keyboardDescription "TYPE A NAME, CATEGORY, CLASS OR AI SETTINGS IDENTIFIER"
+			allowRightClickMenu 0
+			allowSpecialCharacters 0
+			unicode 0
+			navDown Npc0
+			navRight SwitchCategory
+		}
+
+		SwitchCategory
+		{
+			ControlName RuiButton
+			InheritProperties SwitchButton
+			style DialogListButton
+			wide 368
+			xpos 620
+			ypos 378
+			ConVar "tf2vrsb_npc_category"
+			list
+			{
+				"ALL CATEGORIES" 0
+				"HUMAN CHARACTERS" 1
+				"MECHANICAL CHARACTERS" 2
+				"WILDLIFE" 3
+				"DRONES & AIRCRAFT" 4
+				"LARGE NPCs" 5
+				"OTHER SUPPORTED ENTITIES" 6
+			}
+		}
+
+		ResultSummary
 		{
 			ControlName Label
-			labelText "MANAGED: 0 / 6"
+			labelText "CATEGORY: ALL // LOADING CATALOG"
 			font Default_21
 			fgcolor_override "255 255 255 255"
 			wide 836
 			tall 26
 			xpos 152
-			ypos 382
+			ypos 424
 		}
 
-		SpawnHostileSoldier
+		Npc0
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
 			classname ModButton
 			textAlignment west
 			wide 836
-			tall 48
+			tall 44
 			xpos 152
-			ypos 425
+			ypos 460
 			scriptID "0"
 		}
 
-		SpawnHostileSpectre
+		Npc1
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
 			classname ModButton
 			textAlignment west
 			wide 836
-			tall 48
+			tall 44
 			xpos 152
-			ypos 481
+			ypos 511
 			scriptID "1"
 		}
 
-		SpawnFriendlySoldier
+		Npc2
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
 			classname ModButton
 			textAlignment west
 			wide 836
-			tall 48
+			tall 44
 			xpos 152
-			ypos 537
+			ypos 562
 			scriptID "2"
 		}
 
-		ClearManaged
+		Npc3
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
 			classname ModButton
 			textAlignment west
 			wide 836
-			tall 48
+			tall 44
 			xpos 152
-			ypos 593
+			ypos 613
 			scriptID "3"
 		}
 
-		SwitchNpcCap
-		{
-			ControlName RuiButton
-			InheritProperties SwitchButton
-			style DialogListButton
-			wide 836
-			xpos 152
-			ypos 655
-			ConVar "tf2vrsb_cap"
-			list
-			{
-				"NPC CAP: 2" 2
-				"NPC CAP: 4" 4
-				"NPC CAP: 6" 6
-				"NPC CAP: 8" 8
-				"NPC CAP: 10" 10
-			}
-		}
-
-		SwitchSpawnDistance
-		{
-			ControlName RuiButton
-			InheritProperties SwitchButton
-			style DialogListButton
-			wide 836
-			xpos 152
-			ypos 711
-			ConVar "tf2vrsb_spawn_distance"
-			list
-			{
-				"SPAWN AHEAD: 100 UNITS" 100
-				"SPAWN AHEAD: 150 UNITS" 150
-				"SPAWN AHEAD: 200 UNITS" 200
-				"SPAWN AHEAD: 250 UNITS" 250
-				"SPAWN AHEAD: 300 UNITS" 300
-			}
-		}
-
-		BtnBack
+		Npc4
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
 			classname ModButton
 			textAlignment west
 			wide 836
-			tall 48
+			tall 44
 			xpos 152
-			ypos 773
+			ypos 664
+			scriptID "4"
+		}
+
+		Npc5
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 836
+			tall 44
+			xpos 152
+			ypos 715
+			scriptID "5"
+		}
+
+		BtnPrev
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 404
+			tall 44
+			xpos 152
+			ypos 770
 			scriptID "6"
 		}
 
-		NpcStatus
+		BtnNext
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 404
+			tall 44
+			xpos 584
+			ypos 770
+			scriptID "7"
+		}
+
+		BtnManaged
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 404
+			tall 44
+			xpos 152
+			ypos 822
+			scriptID "8"
+		}
+
+		BtnClear
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 404
+			tall 44
+			xpos 584
+			ypos 822
+			scriptID "9"
+		}
+
+		BrowserStatus
 		{
 			ControlName Label
 			labelText "WAITING FOR SERVER VM"
@@ -219,10 +292,10 @@
 			fgcolor_override "242 141 28 255"
 			allcaps 1
 			wide 836
-			tall 34
+			tall 38
 			wrap 1
 			xpos 152
-			ypos 835
+			ypos 878
 		}
 
 		FooterButtons

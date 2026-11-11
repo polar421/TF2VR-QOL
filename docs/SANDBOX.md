@@ -3,7 +3,7 @@
 For a practical walkthrough of the shipped sandbox, see
 [`SANDBOX.md`](../SANDBOX.md).
 
-This document records what the 1.5.0 sandbox actually implements, which
+This document records what the 1.6.0 sandbox actually implements, which
 interfaces were verified before use, and what remains blocked on runtime
 testing. It is a checklist, not a claim that every proposed PDF feature exists.
 
@@ -15,13 +15,15 @@ The entry is a footer option on `InGameSPMenu`, the campaign pause menu:
 - **B** — back
 
 `AddMenuFooterOption` appends the option; it does not replace an existing
-button or resource. The same UI VM registers six sandbox pages:
+button or resource. The UI VM registers eight sandbox pages:
 
 | Menu ID | Resource |
 |---|---|
 | `TF2VRSBSandboxRoot` | `tf2vrsb_root.menu` |
 | `TF2VRSBSandboxMaps` | `tf2vrsb_maps.menu` |
-| `TF2VRSBSandboxNpcs` | `tf2vrsb_npcs.menu` |
+| `TF2VRSBSandboxNpcBrowser` | `tf2vrsb_npcs.menu` |
+| `TF2VRSBSandboxNpcDetails` | `tf2vrsb_npc_details.menu` |
+| `TF2VRSBSandboxNpcManaged` | `tf2vrsb_npc_managed.menu` |
 | `TF2VRSBSandboxPlayer` | `tf2vrsb_player.menu` |
 | `TF2VRSBSandboxPresets` | `tf2vrsb_presets.menu` |
 | `TF2VRSBSandboxDeveloper` | `tf2vrsb_developer.menu` |
@@ -36,15 +38,15 @@ examples were treated as proposals, not APIs.
 `Implemented` below means the packaged source contains the wired action. No row has
 been run in Titanfall 2; the runtime test plan at the end is still outstanding.
 
-| Requirement | State in 1.5.0 | Evidence / limitation |
+| Requirement | State in 1.6.0 | Evidence / limitation |
 |---|---|---|
 | Campaign pause-menu entry | Implemented | `InGameSPMenu` is used by the installed TF2VR sources and the menu API is present in Northstar |
 | Dashboard / category navigation | Implemented | Six UI pages, explicit nav links, B footer, controller focus |
 | Maps & Environments | Read-only catalog | 13 IDs cross-checked against the installed `tf2vr_memories.nut`; no map transition |
 | Safe map switching | Not implemented | `ChangeLevel` exists but campaign transition side effects are not runtime-tested |
 | World Editor | Not implemented | No verified `CreateProp` usage or object registry was found in the installed Northstar/campaign scripts; placement is withheld |
-| NPC Sandbox | Implemented slice | Hostile soldier, hostile spectre, friendly soldier, cap, clear managed |
-| NPC browser / individual removal | Not implemented | Only three server-validated NPC classes and bulk cleanup are exposed |
+| NPC catalog browser | Implemented; runtime untested | 62 catalog entries, six categories, search, paging, details, support status and restrictions |
+| NPC spawning / individual removal | Implemented; runtime untested | 24 server-accepted AI settings; stable managed IDs; two-click single removal and bulk clear |
 | Player Utilities | Implemented slice | Session bookmark save/return/clear; noclip fly toggle with status |
 | Gauntlet Builder | Not implemented | Requires tested scenario markers, ordering, timing and a verified server think/trigger path; no inert page is shipped |
 | Save & Load | Implemented slice | Three map-locked position presets in mod-scoped Safe I/O |
@@ -53,7 +55,7 @@ been run in Titanfall 2; the runtime test plan at the end is still outstanding.
 | Debug overlays / menu position | Implemented as logs + on-screen bounds | `[TF2VRSB][layout]` dumps geometry and text; **Y** tints the menu orange and focusable controls cyan using live HUD bounds |
 | Visual design | Implemented resources | Original dark industrial layout, orange accents, technical labels |
 | VR / WiVRn | Not physically tested | Native menu path is used; no separate OpenXR overlay was added |
-| Packaging | Implemented | CMake package, version 1.5.0, verifier covers files, six scripts, 38 ConVars and menus; `scripts/verify-sandbox.py` cross-checks controls, bridge targets, commands, allow-list entries and ConVars |
+| Packaging | Implemented | CMake package, version 1.6.0, verifier covers files, seven scripts, 62 ConVars and 14 menu resources; `scripts/verify-sandbox.py` cross-checks controls, bridge targets, commands, allow-list entries and ConVars |
 
 ## Verified interfaces
 
@@ -62,8 +64,8 @@ menu, and Northstar's public modding documentation before use:
 
 - `AddMenu`, `GetMenu`, `AdvanceMenu`, `CloseActiveMenu`,
   `AddMenuFooterOption`, `AddMenuEventHandler`, `FocusDefaultMenuItem`
-- `Hud_GetChild`, `Hud_SetText`, `Hud_AddEventHandler`, `Hud_SetNavUp`,
-  `Hud_SetNavDown`, `SetButtonRuiText`
+- `Hud_GetChild`, `Hud_SetText`, `Hud_SetEnabled`, `Hud_GetUTF8Text`,
+  `Hud_AddEventHandler`, `Hud_SetNavUp`, `Hud_SetNavDown`, `SetButtonRuiText`
 - `Hud_GetX`, `Hud_GetY`, `Hud_GetAbsX`, `Hud_GetAbsY`, `Hud_GetWidth`,
   `Hud_GetHeight`, `Hud_GetParent`, `Hud_IsVisible`, `Hud_IsEnabled`,
   `Hud_GetScriptID`, `Hud_GetUTF8Text`, `GetScreenSize`, `WaitFrame`
@@ -74,7 +76,7 @@ menu, and Northstar's public modding documentation before use:
 - `GetConVarString`, `GetConVarInt`, `GetConVarFloat`, `SetConVarString`,
   `SetConVarInt`
 - `IsSingleplayer`, `GetMapName`, `IsValid`, `IsAlive`, `GetNPCArray`
-- `CreateNPC`, `DispatchSpawn`, `npc.Destroy`
+- `CreateNPCFromAISettings`, `CreateNPC`, `DispatchSpawn`, `npc.Destroy`
 - `player.GetOrigin`, `GetAngles`, `GetTeam`, `EyePosition`, `SetOrigin`,
   `SetAngles`, `SetVelocity`, `IsOnGround`
 - `player.IsNoclipping`, `player.SetPhysics`, `MOVETYPE_NOCLIP`, `MOVETYPE_WALK`
@@ -96,6 +98,7 @@ installed Northstar `_northstar_cheatcommands.nut`.
 | Script | Context | Responsibility |
 |---|---|---|
 | `ui/tf2vrsb_menu.nut` | UI | Menus, labels, controller navigation, Safe I/O preset text, status display |
+| `ui/tf2vrsb_npc_browser.nut` | UI | Catalog search/filter, details, team selection, managed roster and layout logs; no world access |
 | `ui/tf2vrsb_debug.nut` | UI | Layout/state/event logging and the on-screen bounds overlay; no world access |
 | `tf2vrsb_client.nut` | CLIENT | Forwards an allow-listed UI command through `ClientCommand` |
 | `tf2vrsb_server.nut` | SERVER | Campaign validation, NPC creation/cleanup, teleport, fly, counts |
@@ -105,9 +108,8 @@ directly. It calls `RunClientScript("TF2VRSB_SendCommand", ...)`; the CLIENT VM
 checks a fixed allow-list and forwards one of these narrow commands:
 
 - `tf2vrsb_status`
-- `tf2vrsb_spawn_imc_soldier`
-- `tf2vrsb_spawn_imc_spectre`
-- `tf2vrsb_spawn_friendly_soldier`
+- `tf2vrsb_spawn_npc`
+- `tf2vrsb_remove_managed`
 - `tf2vrsb_clear_managed`
 - `tf2vrsb_save_bookmark`
 - `tf2vrsb_return_bookmark`
@@ -120,11 +122,13 @@ The SERVER VM checks all of the following before acting:
 1. `IsSingleplayer()` is true.
 2. A map is active.
 3. The player entity is valid and alive.
-4. The player is on the ground.
-5. The NPC cap and spawn distance are clamped to safe limits.
-6. The forward spawn point has a clear trace.
-7. Only recorded handles are destroyed.
-8. A preset's map ID matches the current map and its coordinates are bounded.
+4. The player is on the ground for spawning.
+5. The requested AI settings ID is in the 24-entry server allow-list.
+6. The NPC cap and spawn distance are clamped to safe limits.
+7. The forward spawn point has a clear trace.
+8. Individual removal names a stable sandbox ID, not a world-space entity reference.
+9. Only recorded handles are destroyed.
+10. A preset's map ID matches the current map and its coordinates are bounded.
 
 The fly command uses a narrower check than NPC spawning: the player must be in
 a single-player campaign, on a map, valid and alive. It does not require ground
@@ -161,8 +165,9 @@ does not change menu resources at runtime or call a server API.
 
 ## Data and safety
 
-- Sandbox NPC handles are kept in a separate array and capped at 20 even if a
-  ConVar is edited externally.
+- Sandbox NPC handles are kept in separate arrays with stable IDs and capped at
+  20 even if a ConVar is edited externally. Individual removal matches the ID
+  recorded at spawn; it never searches the world for a matching class.
 - Map changes discard handles without touching the old level.
 - Bookmarks disappear when the map changes.
 - Presets are stored as `sandbox_position_<slot>.txt` in the mod's Safe I/O
@@ -185,9 +190,11 @@ the development environment:
    pause entries still work.
 2. Open/close each page with controller and keyboard; confirm focus returns to
    gameplay.
-3. Spawn one of each NPC type, observe team behavior, press clear twice, and
-   verify only sandbox NPCs disappear.
-4. Set the cap to 2 and confirm a third spawn is rejected.
+3. Search and filter the catalog; inspect disabled Titan, dropship and turret
+   entries; spawn one entry from each enabled category.
+4. Remove one managed NPC by pressing its row twice; verify only that ID is
+   destroyed. Set the cap to 2 and confirm a third spawn is rejected; clear twice
+   and verify only sandbox NPCs disappear.
 5. Save a bookmark, move, return, and clear it. Change map and confirm the
    bookmark is gone.
 6. Save a position preset, restart the game, load it on the same map, and

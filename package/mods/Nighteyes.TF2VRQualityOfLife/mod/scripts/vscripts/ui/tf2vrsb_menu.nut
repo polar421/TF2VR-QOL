@@ -9,12 +9,14 @@
 global function TF2VRSB_AddSandboxMenus
 global function TF2VRSB_AddPauseEntry
 
-const string TF2VRSB_VERSION = "1.5.0"
+const string TF2VRSB_VERSION = "1.6.0"
 const string TF2VRSB_PAUSE_MENU = "InGameSPMenu"
 
 const string TF2VRSB_ROOT = "TF2VRSBSandboxRoot"
 const string TF2VRSB_MAPS = "TF2VRSBSandboxMaps"
-const string TF2VRSB_NPCS = "TF2VRSBSandboxNpcs"
+const string TF2VRSB_NPCS = "TF2VRSBSandboxNpcBrowser"
+const string TF2VRSB_NPC_DETAILS = "TF2VRSBSandboxNpcDetails"
+const string TF2VRSB_NPC_MANAGED = "TF2VRSBSandboxNpcManaged"
 const string TF2VRSB_PLAYER = "TF2VRSBSandboxPlayer"
 const string TF2VRSB_PRESETS = "TF2VRSBSandboxPresets"
 const string TF2VRSB_DEVELOPER = "TF2VRSBSandboxDeveloper"
@@ -44,14 +46,12 @@ struct
 {
 	var rootMenu
 	var mapsMenu
-	var npcsMenu
 	var playerMenu
 	var presetsMenu
 	var developerMenu
 
 	array<var> rootButtons
 	array<var> mapButtons
-	array<var> npcButtons
 	array<var> playerButtons
 	array<var> presetButtons
 	array<var> developerButtons
@@ -68,8 +68,6 @@ struct
 	var mapsDetails
 	var mapsStatus
 
-	var npcManaged
-	var npcStatus
 
 	var playerBookmark
 	var playerPosition
@@ -103,7 +101,6 @@ void function TF2VRSB_AddSandboxMenus()
 {
 	AddMenu( TF2VRSB_ROOT, $"resource/ui/menus/tf2vrsb_root.menu", TF2VRSB_InitRoot )
 	AddMenu( TF2VRSB_MAPS, $"resource/ui/menus/tf2vrsb_maps.menu", TF2VRSB_InitMaps )
-	AddMenu( TF2VRSB_NPCS, $"resource/ui/menus/tf2vrsb_npcs.menu", TF2VRSB_InitNpcs )
 	AddMenu( TF2VRSB_PLAYER, $"resource/ui/menus/tf2vrsb_player.menu", TF2VRSB_InitPlayer )
 	AddMenu( TF2VRSB_PRESETS, $"resource/ui/menus/tf2vrsb_presets.menu", TF2VRSB_InitPresets )
 	AddMenu( TF2VRSB_DEVELOPER, $"resource/ui/menus/tf2vrsb_developer.menu", TF2VRSB_InitDeveloper )
@@ -292,105 +289,6 @@ void function TF2VRSB_UpdateMapButtons()
 
 	if ( file.mapsCurrent != null )
 		Hud_SetText( file.mapsCurrent, "CURRENT MAP: " + TF2VRSB_DisplayMap( current ) + "  [" + current + "]" )
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// NPC sandbox
-////////////////////////////////////////////////////////////////////////////////
-
-void function TF2VRSB_InitNpcs()
-{
-	file.npcsMenu = GetMenu( TF2VRSB_NPCS )
-	file.npcManaged = Hud_GetChild( file.npcsMenu, "ManagedValue" )
-	file.npcStatus = Hud_GetChild( file.npcsMenu, "NpcStatus" )
-
-	var spawnSoldier = Hud_GetChild( file.npcsMenu, "SpawnHostileSoldier" )
-	var spawnSpectre = Hud_GetChild( file.npcsMenu, "SpawnHostileSpectre" )
-	var spawnFriendly = Hud_GetChild( file.npcsMenu, "SpawnFriendlySoldier" )
-	var clearManaged = Hud_GetChild( file.npcsMenu, "ClearManaged" )
-	var capSwitch = Hud_GetChild( file.npcsMenu, "SwitchNpcCap" )
-	var distanceSwitch = Hud_GetChild( file.npcsMenu, "SwitchSpawnDistance" )
-	var backButton = Hud_GetChild( file.npcsMenu, "BtnBack" )
-
-	TF2VRSB_SetButtonLabel( file.npcsMenu, "SpawnHostileSoldier", "SPAWN HOSTILE IMC SOLDIER" )
-	TF2VRSB_SetButtonLabel( file.npcsMenu, "SpawnHostileSpectre", "SPAWN HOSTILE IMC SPECTRE" )
-	TF2VRSB_SetButtonLabel( file.npcsMenu, "SpawnFriendlySoldier", "SPAWN FRIENDLY SOLDIER" )
-	TF2VRSB_SetButtonLabel( file.npcsMenu, "ClearManaged", "CLEAR MANAGED NPCs" )
-	TF2VRSB_SetButtonLabel( file.npcsMenu, "BtnBack", "BACK TO MISSION CONTROL" )
-
-	Hud_AddEventHandler( spawnSoldier, UIE_CLICK, TF2VRSB_OnSpawnHostileSoldier )
-	Hud_AddEventHandler( spawnSpectre, UIE_CLICK, TF2VRSB_OnSpawnHostileSpectre )
-	Hud_AddEventHandler( spawnFriendly, UIE_CLICK, TF2VRSB_OnSpawnFriendlySoldier )
-	Hud_AddEventHandler( clearManaged, UIE_CLICK, TF2VRSB_OnClearManaged )
-	Hud_AddEventHandler( backButton, UIE_CLICK, TF2VRSB_OnBack )
-
-	file.npcButtons = []
-	file.npcButtons.append( spawnSoldier )
-	file.npcButtons.append( spawnSpectre )
-	file.npcButtons.append( spawnFriendly )
-	file.npcButtons.append( clearManaged )
-	file.npcButtons.append( capSwitch )
-	file.npcButtons.append( distanceSwitch )
-	file.npcButtons.append( backButton )
-	TF2VRSB_WireVertical( file.npcButtons )
-
-	AddMenuFooterOption( file.npcsMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
-	TF2VRSB_AddLayoutFooter( file.npcsMenu )
-	AddMenuEventHandler( file.npcsMenu, eUIEvent.MENU_OPEN, TF2VRSB_OnNpcsOpen )
-}
-
-void function TF2VRSB_OnNpcsOpen()
-{
-	file.clearArmed = false
-	TF2VRSB_SetButtonLabel( file.npcsMenu, "ClearManaged", "CLEAR MANAGED NPCs" )
-	TF2VRSB_LogEvent( "menu-open", "npcs" )
-	TF2VRSB_RequestStatus()
-	FocusDefaultMenuItem( file.npcsMenu )
-	thread TF2VRSB_LogNpcsLayout( file.npcsMenu )
-}
-
-void function TF2VRSB_OnSpawnHostileSoldier( var button )
-{
-	TF2VRSB_BeginAction( "tf2vrsb_spawn_imc_soldier", "SPAWNING HOSTILE SOLDIER" )
-}
-
-void function TF2VRSB_OnSpawnHostileSpectre( var button )
-{
-	TF2VRSB_BeginAction( "tf2vrsb_spawn_imc_spectre", "SPAWNING HOSTILE SPECTRE" )
-}
-
-void function TF2VRSB_OnSpawnFriendlySoldier( var button )
-{
-	TF2VRSB_BeginAction( "tf2vrsb_spawn_friendly_soldier", "SPAWNING FRIENDLY SOLDIER" )
-}
-
-void function TF2VRSB_OnClearManaged( var button )
-{
-	if ( !file.clearArmed )
-	{
-		file.clearArmed = true
-		TF2VRSB_SetButtonLabel( file.npcsMenu, "ClearManaged", "CONFIRM: CLEAR MANAGED NPCs" )
-		SetConVarString( TF2VRSB_RESULT, "CLICK AGAIN TO REMOVE ONLY SANDBOX NPCs" )
-		TF2VRSB_UpdateStatusLabels()
-		thread TF2VRSB_DisarmClearAfterTime()
-		return
-	}
-
-	file.clearArmed = false
-	TF2VRSB_SetButtonLabel( file.npcsMenu, "ClearManaged", "CLEAR MANAGED NPCs" )
-	TF2VRSB_BeginAction( "tf2vrsb_clear_managed", "CLEARING MANAGED NPCs" )
-}
-
-void function TF2VRSB_DisarmClearAfterTime()
-{
-	for ( int i = 0; i < 180; i++ )
-	{
-		if ( !file.clearArmed )
-			return
-		WaitFrame()
-	}
-	file.clearArmed = false
-	TF2VRSB_SetButtonLabel( file.npcsMenu, "ClearManaged", "CLEAR MANAGED NPCs" )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -749,13 +647,6 @@ void function TF2VRSB_UpdateStatusLabels()
 		Hud_SetText( file.mapsCurrent, "CURRENT MAP: " + display + "  [" + mapName + "]" )
 	TF2VRSB_UpdateMapButtons()
 
-	if ( file.npcManaged != null )
-		Hud_SetText( file.npcManaged, "MANAGED: " + GetConVarString( TF2VRSB_MANAGED_COUNT )
-			+ " / " + string( GetConVarInt( "tf2vrsb_cap" ) )
-			+ "    LEVEL NPCs: " + GetConVarString( TF2VRSB_NPC_COUNT ) )
-	if ( file.npcStatus != null )
-		Hud_SetText( file.npcStatus, result )
-
 	if ( file.playerBookmark != null )
 		Hud_SetText( file.playerBookmark, "BOOKMARK: " + ( bookmark ? "SAVED IN THIS SESSION" : "NOT SET" ) )
 	if ( file.playerPosition != null )
@@ -785,7 +676,7 @@ void function TF2VRSB_UpdateStatusLabels()
 		Hud_SetText( file.devLimits, "TF2VR SANDBOX " + TF2VRSB_VERSION
 			+ " // FLY=" + ( flying ? "ON" : "OFF" )
 			+ " DEBUG=" + ( GetConVarInt( TF2VRSB_DEBUG ) == 1 ? "ON" : "OFF" ) + "\n"
-			+ "AVAILABLE: PAUSE MENU, SESSION INFO, MAP CATALOG, NPCs, BOOKMARK, FLY, POSITION PRESETS.\n"
+			+ "AVAILABLE: PAUSE MENU, SESSION INFO, MAP CATALOG, NPC BROWSER, BOOKMARK, FLY, POSITION PRESETS.\n"
 			+ "NOT AVAILABLE: MAP TRAVEL, WORLD OBJECTS, GAUNTLET MARKERS. THESE REQUIRE IN-GAME VALIDATION.\n"
 			+ "Y TOGGLES ON-SCREEN LAYOUT BOUNDS: ORANGE=MENU, CYAN=CONTROLS. THE CHOICE AND OPACITY ARE SAVED." )
 

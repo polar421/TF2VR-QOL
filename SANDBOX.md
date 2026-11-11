@@ -2,8 +2,8 @@
 
 The campaign sandbox is an experimental developer layer added by the
 **TF2VR Quality of life** Northstar mod. It lives in the real single-player
-pause menu and provides a small set of reversible tools: NPC spawning, a
-session bookmark, three saved positions, noclip fly and menu diagnostics.
+pause menu and provides a set of reversible tools: an NPC catalog, managed
+NPC removal, a session bookmark, three saved positions, noclip fly and menu diagnostics.
 
 It is **not** a map editor, a campaign-save editor, a multiplayer tool or a
 general entity spawner. The available controls are deliberately small, and
@@ -37,15 +37,17 @@ such as Resume, Restart, Settings and Quit are not replaced. The main-menu
 |---|---|
 | **Mission Control** | Shows the live map, session state, NPC counts and the most recent action result. Also the navigation hub. |
 | **Maps & Environments** | Lists the 13 campaign map IDs, marks the current map and shows catalog details. Map travel is disabled. |
-| **NPC Sandbox** | Spawns a hostile IMC soldier, hostile IMC spectre or friendly soldier, adjusts the cap and spawn distance, and clears sandbox-owned NPCs. |
+| **NPC Browser** | Searches and filters a 62-entry NPC catalog by category, opens details, and selects a spawn. |
+| **NPC Details** | Shows the class, AI settings ID, support status, restrictions, dependencies, team and spawn action. |
+| **Managed NPCs** | Lists tracked sandbox NPCs eight at a time, removes one by ID, and clears all tracked NPCs. |
 | **Player Utilities** | Saves, returns to and clears a session bookmark, and toggles noclip fly. |
 | **Position Presets** | Saves and loads three map-locked positions through the mod's Safe I/O folder. |
 | **Developer Information** | Shows telemetry, dumps the current layout to `nslog`, changes overlay opacity and toggles debug logging. |
 
 ### Mission Control
 
-Mission Control is the root page. Its rows open the other five pages or close
-the sandbox. The header shows the current campaign map and sandbox-managed NPC
+Mission Control is the root page. Its rows open the top-level sandbox pages or
+close the sandbox. The header shows the current campaign map and sandbox-managed NPC
 count. The status line shows the last action result, including rejected actions.
 
 ### Maps & Environments
@@ -58,37 +60,79 @@ The page intentionally has no **TRAVEL** control. Campaign transitions have
 side effects that have not been validated, so map switching remains outside this
 build.
 
-### NPC Sandbox
+### NPC Browser, Details and Managed Roster
 
-The page writes no world state directly. Every spawn or cleanup is a command to
-the server VM, which validates the request before acting.
+The old three-button page is now a catalog browser. The catalog contains **62
+entries**, grouped into six categories: **Human Characters**, **Mechanical
+Characters**, **Wildlife**, **Drones and Aircraft**, **Large NPCs** and **Other
+Supported Entities**. The browser supports text search, category filtering,
+six results per page, and a managed-NPC/status footer.
 
-| Control | Values |
+Source verification distinguishes an **AI settings identifier** from an entity
+class. The spawn path is `CreateNPCFromAISettings(aiSettings, team, origin,
+angles)` followed by `DispatchSpawn(npc)`. The server accepts only the 24
+entries in its explicit allow-list; the other catalog entries are shown as
+unavailable references with their restrictions.
+
+| Status | Meaning in this build |
 |---|---|
-| **NPC CAP** | 2, 4, 6, 8 or 10; default 6 |
-| **SPAWN AHEAD** | 100, 150, 200, 250 or 300 units; default 150 |
+| `VERIFIED_SPAWNABLE` | AI settings and the needed BaseClass were found in the game scripts, and the generic NPC creation path is documented. **Not yet exercised in game.** |
+| `NOT_TESTED` | Known AI settings, but the exact campaign-map behaviour has not been checked. Spawn is enabled only for the four elite-pilot entries. |
+| `VERIFIED_BUT_MAP_DEPENDENT` | The class exists but needs map geometry or a flight path. Spawn is disabled. |
+| `REQUIRES_SPECIAL_SPAWNER` | Needs a campaign spawner, Titan loadout, turret owner/model or scripted setup. Spawn is disabled. |
+| `AI_SETTING_ONLY` | Reference entry; not exposed for independent creation. |
+| `DEPRECATED` | Present in deprecated data; not exposed. |
+| `UNSUPPORTED` | No safe creation path is currently claimed. |
 
-The server accepts a spawn only when:
+The 24 server-accepted AI settings are:
 
-- the session is single-player and a map is active;
-- the local player is valid, alive and standing on solid ground;
-- the current managed count is below the cap;
-- the forward spawn point has a clear trace.
+- **Human:** `npc_soldier`, `npc_soldier_specialist`,
+  `npc_soldier_specialist_militia`, `npc_soldier_sidearm`,
+  `npc_soldier_shield_captain`, `npc_soldier_hero_bear`,
+  `npc_soldier_hero_sarah`, `npc_pilot_elite`,
+  `npc_pilot_elite_assassin`, `npc_pilot_elite_assassin_cqb`,
+  `npc_pilot_elite_assassin_sniper`.
+- **Mechanical:** `npc_spectre`, `npc_stalker`, `npc_marvin`,
+  `npc_super_spectre`, `npc_stalker_zombie`,
+  `npc_stalker_zombie_mossy`.
+- **Wildlife:** `npc_prowler`.
+- **Drones:** `npc_drone`, `npc_drone_beam`, `npc_drone_plasma`,
+  `npc_drone_worker`, `npc_frag_drone`, `npc_frag_drone_throwable`.
 
-The spawn point is placed ahead of the player along their view direction. The
-server hard-caps managed NPCs at 20 and clamps distance to 64-512 units even if
-the ConVars are edited outside the menu.
+Titans, dropships, gunships, turrets and the deprecated hero/story variants
+remain visible in the browser as **unavailable** entries. They are not sent to
+`CreateNPCFromAISettings`; their specialized spawner requirements are shown in
+Details. The large-entry category can therefore be inspected without offering
+a button that is known to be incomplete.
 
-The three available actors are:
+#### NPC Details
 
-- **Hostile IMC soldier** — `npc_soldier` on the opposing team.
-- **Hostile IMC spectre** — `npc_spectre` on the opposing team.
-- **Friendly soldier** — `npc_soldier` on the player's team.
+Selecting a browser row stores its catalog ID and opens a details page with:
 
-`CLEAR MANAGED NPCs` requires a second click. The confirmation expires after a
-few seconds. Cleanup calls `Destroy()` only on handles recorded by the sandbox;
-campaign NPCs are never scanned or removed. Changing maps discards the handle
-list without touching the old level.
+- display name, category and catalog status;
+- AI settings identifier and verified entity BaseClass;
+- creation path and the **runtime not tested** label;
+- current count for that type, total managed count, cap and spawn distance;
+- restrictions and dependencies;
+- a friendly/hostile team switch;
+- **SPAWN** only when the catalog entry is server-accepted;
+- **MANAGED NPCs** and **BACK**.
+
+The server clamps the cap to 1-20 and the spawn distance to 64-512 units. It
+also requires a living, grounded player, a campaign map and a clear forward
+trace. The spawn is placed along the player's view direction.
+
+#### Managed NPCs
+
+Every accepted spawn receives a stable sandbox ID and is stored in parallel
+arrays with its entity handle, AI settings ID and team. The managed page shows
+eight entries per page. Press a row twice to remove that specific ID; press
+**CLEAR ALL SANDBOX-MANAGED NPCs** twice to remove every tracked handle.
+
+Removal validates the requested ID against the tracked roster. The server never
+scans and destroys unrelated campaign NPCs. A destroyed or invalidated handle is
+pruned during the next status update. Changing maps discards the old handle list
+without touching the old level.
 
 ### Player Utilities
 
@@ -158,9 +202,8 @@ The UI never creates or destroys entities and never calls the server directly.
 The client forwards only these commands:
 
 - `tf2vrsb_status`
-- `tf2vrsb_spawn_imc_soldier`
-- `tf2vrsb_spawn_imc_spectre`
-- `tf2vrsb_spawn_friendly_soldier`
+- `tf2vrsb_spawn_npc`
+- `tf2vrsb_remove_managed`
 - `tf2vrsb_clear_managed`
 - `tf2vrsb_save_bookmark`
 - `tf2vrsb_return_bookmark`
@@ -177,6 +220,9 @@ keeps a menu click from becoming an arbitrary game command.
 | ConVar | Default | Purpose |
 |---|---|---|
 | `tf2vrsb_cap` | `6` | NPC cap; the UI offers 2-10, the server hard-caps at 20 |
+| `tf2vrsb_npc_category` | `0` | Browser category filter, 0 = all |
+| `tf2vrsb_spawn_team` | `1` | Details team selection, 0 = player team, 1 = hostile |
+| `tf2vrsb_managed_page` | `0` | Managed-roster page index |
 | `tf2vrsb_spawn_distance` | `150` | Spawn distance; the UI offers 100-300, the server clamps to 64-512 |
 | `tf2vrsb_debug` | `1` | Writes `[TF2VRSB]` diagnostic lines to `nslog` |
 | `tf2vrsb_overlay` | `0` | Archived layout-overlay visibility |
@@ -215,7 +261,7 @@ The following controls are deliberately absent:
 
 - Map travel or campaign transitions.
 - World-object placement or editing.
-- Individual NPC removal or a general entity browser.
+- A general world-entity browser (the NPC catalog is deliberately NPC-only).
 - A Gauntlet builder.
 - Preset rename, duplicate, browse or delete beyond the three fixed slots.
 
@@ -245,9 +291,11 @@ These checks still need a disposable campaign mission and a VR session:
 1. Confirm the pause footer appears and vanilla pause rows still work.
 2. Open and close every page with controller and keyboard; check focus and input
    handoff.
-3. Spawn all three NPC types and observe their teams and behavior.
-4. Set the cap to 2, confirm a third spawn is rejected, then clear twice and
-   verify only sandbox NPCs disappear.
+3. Search the catalog, switch every category, inspect a disabled Titan/turret
+   entry, then spawn a sample from each enabled category and observe team behavior.
+4. Spawn at least two different types, remove one by its managed row, and verify
+   only that entity disappears. Set the cap to 2, confirm a third spawn is
+   rejected, then clear twice and verify the remaining sandbox NPCs disappear.
 5. Save, return to and clear a bookmark; change maps and confirm it is gone.
 6. Save a preset, restart the game, load it on the same map, and confirm a
    different map rejects it.
@@ -268,7 +316,7 @@ Only after those checks should map, world-object or Gauntlet work be considered.
 | `package/.../mod/scripts/vscripts/ui/tf2vrsb_debug.nut` | Layout/state/event logs and bounds overlay |
 | `package/.../mod/scripts/vscripts/tf2vrsb_client.nut` | Allow-list command bridge |
 | `package/.../mod/scripts/vscripts/tf2vrsb_server.nut` | Campaign validation, NPCs, teleport, fly and status |
-| `package/.../mod/resource/ui/menus/tf2vrsb_*.menu` | Six sandbox page resources |
+| `package/.../mod/resource/ui/menus/tf2vrsb_*.menu` | Eight sandbox page resources |
 
 For the implementation checklist, verified interfaces, execution-context
 details and the original PDF mapping, see

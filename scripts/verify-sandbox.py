@@ -32,11 +32,14 @@ def main() -> int:
     convars = {entry.get("Name") for entry in convar_entries}
 
     ui_path = mod / "mod/scripts/vscripts/ui/tf2vrsb_menu.nut"
+    npc_ui_path = mod / "mod/scripts/vscripts/ui/tf2vrsb_npc_browser.nut"
     debug_path = mod / "mod/scripts/vscripts/ui/tf2vrsb_debug.nut"
     client_path = mod / "mod/scripts/vscripts/tf2vrsb_client.nut"
     server_path = mod / "mod/scripts/vscripts/tf2vrsb_server.nut"
     ui = read(ui_path)
+    npc_ui = read(npc_ui_path)
     debug = read(debug_path)
+    combined_ui = ui + "\n" + npc_ui
     client = read(client_path)
     server = read(server_path)
     problems: list[str] = []
@@ -78,12 +81,14 @@ def main() -> int:
     # Menu registrations and the resources they reference. The UI uses
     # string constants for menu IDs, so resolve those before comparing.
     constants = dict(re.findall(r'const\s+string\s+(\w+)\s*=\s*"([^"]+)"', ui))
+    constants.update(dict(re.findall(r'const\s+string\s+(\w+)\s*=\s*"([^"]+)"', npc_ui)))
     menu_paths: dict[str, str] = {}
-    for menu_token, rel in re.findall(r'AddMenu\(\s*(\w+)\s*,\s*\$"([^"]+)"', ui):
-        menu_id = constants.get(menu_token, menu_token)
-        menu_paths[menu_id] = rel
-        if not (mod / "mod" / rel).is_file():
-            problems.append(f"AddMenu resource missing: {rel}")
+    for source in (ui, npc_ui):
+        for menu_token, rel in re.findall(r'AddMenu\(\s*(\w+)\s*,\s*\$"([^"]+)"', source):
+            menu_id = constants.get(menu_token, menu_token)
+            menu_paths[menu_id] = rel
+            if not (mod / "mod" / rel).is_file():
+                problems.append(f"AddMenu resource missing: {rel}")
 
     controls_by_path: dict[str, set[str]] = {}
     for rel in sorted(set(menu_paths.values())):
@@ -115,7 +120,9 @@ def main() -> int:
     menu_vars = {
         "rootMenu": "TF2VRSBSandboxRoot",
         "mapsMenu": "TF2VRSBSandboxMaps",
-        "npcsMenu": "TF2VRSBSandboxNpcs",
+        "browserMenu": "TF2VRSBSandboxNpcBrowser",
+        "detailsMenu": "TF2VRSBSandboxNpcDetails",
+        "managedMenu": "TF2VRSBSandboxNpcManaged",
         "playerMenu": "TF2VRSBSandboxPlayer",
         "presetsMenu": "TF2VRSBSandboxPresets",
         "developerMenu": "TF2VRSBSandboxDeveloper",
@@ -130,13 +137,13 @@ def main() -> int:
             continue
         controls = controls_by_path[rel]
         for match in re.finditer(
-            r'Hud_GetChild\(\s*file\.' + variable + r'\s*,\s*"([^"]+)"\s*\)', ui
+            r'Hud_GetChild\(\s*file\.' + variable + r'\s*,\s*"([^"]+)"\s*\)', combined_ui
         ):
             if match.group(1) not in controls:
                 problems.append(f"{rel}: Hud_GetChild missing {match.group(1)}")
         for match in re.finditer(
             r'TF2VRSB_SetButtonLabel\(\s*file\.' + variable + r'\s*,\s*"([^"]+)"',
-            ui,
+            combined_ui,
         ):
             if match.group(1) not in controls:
                 problems.append(f"{rel}: SetButtonLabel missing {match.group(1)}")
@@ -145,31 +152,44 @@ def main() -> int:
             problems.append(
                 f"{rel}: missing overlay controls {', '.join(sorted(missing_overlay))}"
             )
-        if f"TF2VRSB_AddLayoutFooter( file.{variable} )" not in ui:
+        if (f"TF2VRSB_AddLayoutFooter( file.{variable} )" not in combined_ui
+                and f"TF2VRSB_NpcAddLayoutFooter( file.{variable} )" not in npc_ui):
             problems.append(f"{menu_id}: layout overlay footer is not registered")
 
-    for variable, prefix, count in re.findall(
-        r'TF2VRSB_GetButtons\(\s*file\.(\w+)\s*,\s*"([^"]+)"\s*,\s*(\d+)\s*\)', ui
+    for pattern, source in (
+        (r'TF2VRSB_GetButtons\(\s*file\.(\w+)\s*,\s*"([^"]+)"\s*,\s*(\d+)\s*\)', ui),
+        (r'TF2VRSB_NpcChildren\(\s*file\.(\w+)\s*,\s*"([^"]+)"\s*,\s*(\d+)\s*\)', npc_ui),
     ):
-        rel = menu_paths.get(menu_vars.get(variable, ""))
-        if not rel:
-            continue
-        for index in range(int(count)):
-            name = f"{prefix}{index}"
-            if name not in controls_by_path[rel]:
-                problems.append(f"{rel}: generated control missing {name}")
+        for variable, prefix, count in re.findall(pattern, source):
+            rel = menu_paths.get(menu_vars.get(variable, ""))
+            if not rel:
+                continue
+            for index in range(int(count)):
+                name = f"{prefix}{index}"
+                if name not in controls_by_path[rel]:
+                    problems.append(f"{rel}: generated control missing {name}")
+
+    for pattern in (
+        r'TF2VRSB_NpcBind\(\s*file\.(\w+)\s*,\s*"([^"]+)"',
+        r'TF2VRSB_NpcSet(?:Button|Enabled)\(\s*file\.(\w+)\s*,\s*"([^"]+)"',
+    ):
+        for variable, name in re.findall(pattern, npc_ui):
+            rel = menu_paths.get(menu_vars.get(variable, ""))
+            if rel and name not in controls_by_path[rel]:
+                problems.append(f"{rel}: referenced control missing {name}")
 
     # VM bridge and command coverage.
-    for target in sorted(set(re.findall(r'RunClientScript\(\s*"([^"]+)"', ui))):
+    for target in sorted(set(re.findall(r'RunClientScript\(\s*"([^"]+)"', combined_ui))):
         if not re.search(r"global\s+function\s+" + re.escape(target) + r"\b", client):
             problems.append(f"client bridge target is not global: {target}")
     if "player.ClientCommand( command )" not in client:
         problems.append("client bridge does not send player.ClientCommand")
 
     ui_commands = set(
-        re.findall(r'RunClientScript\(\s*"TF2VRSB_SendCommand"\s*,\s*"([^"]+)"', ui)
+        re.findall(r'RunClientScript\(\s*"TF2VRSB_SendCommand"\s*,\s*"([^"]+)"', combined_ui)
     )
-    ui_commands |= set(re.findall(r'TF2VRSB_BeginAction\(\s*"([^"]+)"', ui))
+    ui_commands |= set(re.findall(r'TF2VRSB_BeginAction\(\s*"([^"]+)"', combined_ui))
+    ui_commands |= set(re.findall(r'TF2VRSB_NpcBeginAction\(\s*"([^"]+)"', npc_ui))
     server_commands = set(
         re.findall(r'AddClientCommandCallback\(\s*"([^"]+)"', server)
     )
@@ -201,27 +221,31 @@ def main() -> int:
             problems.append(f"debug UI module must not call server/world API: {forbidden}")
 
     # ConVar declarations used by either script.
-    for label, text in (("UI", ui), ("DEBUG", debug), ("CLIENT", client), ("SERVER", server)):
+    for label, text in (("UI", combined_ui), ("DEBUG", debug), ("CLIENT", client), ("SERVER", server)):
         for match in re.finditer(
             r'(?:Get|Set)ConVar(?:String|Int|Float)\(\s*"((?:tf2vrbb|tf2vrsb)_[^"]+)"',
             text,
         ):
-            if match.group(1) not in convars:
-                problems.append(f"{label}: undeclared ConVar {match.group(1)}")
+            convar_name = match.group(1)
+            # Dynamic slot names are assembled from a declared prefix.
+            if convar_name.endswith("_"):
+                continue
+            if convar_name not in convars:
+                problems.append(f"{label}: undeclared ConVar {convar_name}")
 
     # The feature boundary must stay closed while these APIs are unverified.
     for needle, reason in (
         ("ChangeLevel(", "map transitions must remain disabled"),
         ("CreateProp(", "world object placement has no verified API"),
     ):
-        if needle in server or needle in ui:
+        if needle in server or needle in combined_ui:
             problems.append(f"{needle} appears, but {reason}")
 
     if "InGameSPMenu" not in ui:
         problems.append("pause entry does not target InGameSPMenu")
     if "AddMenuFooterOption( pauseMenu, BUTTON_Y" not in ui:
         problems.append("pause entry is not the Y footer option")
-    if "NSDeleteFile(" in ui:
+    if "NSDeleteFile(" in combined_ui:
         problems.append("preset deletion is not implemented and must not be advertised")
 
     # Preset path must stay inside the mod-scoped root.
@@ -238,7 +262,7 @@ def main() -> int:
     print(
         f"sandbox cross-references: {len(convars)} ConVars, "
         f"{len(menu_paths)} menus, {len(ui_commands)} commands, "
-        f"{len(controls_by_path)} resources, 6 scripts"
+        f"{len(controls_by_path)} resources, 7 scripts"
     )
     return 0
 

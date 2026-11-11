@@ -7,7 +7,6 @@
 global function TF2VRSB_DebugInit
 global function TF2VRSB_LogRootLayout
 global function TF2VRSB_LogMapsLayout
-global function TF2VRSB_LogNpcsLayout
 global function TF2VRSB_LogPlayerLayout
 global function TF2VRSB_LogPresetsLayout
 global function TF2VRSB_LogDeveloperLayout
@@ -178,16 +177,34 @@ array<string> function TF2VRSB_LayoutOverlayNames( string page )
 		names.append( "FooterButtons" )
 		return names
 	}
-	if ( page == "npcs" )
+	if ( page == "npc_browser" )
 	{
-		names.append( "SpawnHostileSoldier" )
-		names.append( "SpawnHostileSpectre" )
-		names.append( "SpawnFriendlySoldier" )
-		names.append( "ClearManaged" )
-		names.append( "SwitchNpcCap" )
-		names.append( "SwitchSpawnDistance" )
+		names.append( "SearchEntry" )
+		names.append( "SwitchCategory" )
+		for ( int i = 0; i < 6; i++ )
+			names.append( "Npc" + string( i ) )
+		names.append( "BtnPrev" )
+		names.append( "BtnNext" )
+		names.append( "BtnManaged" )
+		names.append( "BtnClear" )
+		return names
+	}
+	if ( page == "npc_details" )
+	{
+		names.append( "SwitchTeam" )
+		names.append( "SpawnSelected" )
+		names.append( "BtnManaged" )
 		names.append( "BtnBack" )
-		names.append( "FooterButtons" )
+		return names
+	}
+	if ( page == "npc_managed" )
+	{
+		for ( int i = 0; i < 8; i++ )
+			names.append( "Managed" + string( i ) )
+		names.append( "BtnPrev" )
+		names.append( "BtnNext" )
+		names.append( "BtnClear" )
+		names.append( "BtnBack" )
 		return names
 	}
 	if ( page == "player" )
@@ -324,18 +341,6 @@ void function TF2VRSB_LogMapsLayout( var menu )
 	TF2VRSB_LogPage( "maps", menu, names )
 }
 
-void function TF2VRSB_LogNpcsLayout( var menu )
-{
-	WaitFrame()
-	WaitFrame()
-	array<string> names = [
-		"Panel", "AccentTop", "PanelHeader", "HeaderRule", "SubHeader",
-		"ManagedValue", "SpawnHostileSoldier", "SpawnHostileSpectre",
-		"SpawnFriendlySoldier", "ClearManaged", "SwitchNpcCap",
-		"SwitchSpawnDistance", "BtnBack", "NpcStatus", "FooterButtons"
-	]
-	TF2VRSB_LogPage( "npcs", menu, names )
-}
 
 void function TF2VRSB_LogPlayerLayout( var menu )
 {

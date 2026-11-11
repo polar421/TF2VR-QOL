@@ -141,7 +141,7 @@ zip_path = Path(sys.argv[2])
 version = sys.argv[3]
 mod_dir = "mods/Nighteyes.TF2VRQualityOfLife"
 menu_pages = ["about", "actions", "controls", "general", "restore", "root"]
-sandbox_pages = ["root", "maps", "npcs", "player", "presets", "developer"]
+sandbox_pages = ["root", "maps", "npcs", "npc_details", "npc_managed", "player", "presets", "developer"]
 
 expected = [
     "LICENSE",
@@ -149,6 +149,7 @@ expected = [
     "ROADMAP.md",
     "SANDBOX.md",
     "docs/SANDBOX.md",
+    "docs/ROADMAP.md",
     "unregister-layer.ps1",
     f"{mod_dir}/mod.json",
     f"{mod_dir}/mod/scripts/vscripts/tf2vrbb_menu_state.nut",
@@ -156,6 +157,7 @@ expected = [
     f"{mod_dir}/mod/scripts/vscripts/tf2vrsb_client.nut",
     f"{mod_dir}/mod/scripts/vscripts/tf2vrsb_server.nut",
     f"{mod_dir}/mod/scripts/vscripts/ui/tf2vrsb_menu.nut",
+    f"{mod_dir}/mod/scripts/vscripts/ui/tf2vrsb_npc_browser.nut",
     f"{mod_dir}/mod/scripts/vscripts/ui/tf2vrsb_debug.nut",
 ]
 expected += [f"{mod_dir}/mod/resource/ui/menus/tf2vrbb_{page}.menu" for page in menu_pages]
@@ -178,7 +180,15 @@ required_convars = {
     "tf2vrsb_managed_count", "tf2vrsb_bookmark", "tf2vrsb_fly", "tf2vrsb_debug",
     "tf2vrsb_overlay", "tf2vrsb_overlay_opacity",
     "tf2vrsb_result", "tf2vrsb_cap",
-    "tf2vrsb_spawn_distance", "tf2vrsb_request_map", "tf2vrsb_request_x",
+    "tf2vrsb_spawn_distance", "tf2vrsb_npc_category", "tf2vrsb_spawn_team",
+    "tf2vrsb_request_npc", "tf2vrsb_request_team", "tf2vrsb_request_managed",
+    "tf2vrsb_selected_count", "tf2vrsb_managed_page", "tf2vrsb_managed_pages",
+    "tf2vrsb_managed_0", "tf2vrsb_managed_1", "tf2vrsb_managed_2",
+    "tf2vrsb_managed_3", "tf2vrsb_managed_4", "tf2vrsb_managed_5",
+    "tf2vrsb_managed_6", "tf2vrsb_managed_7", "tf2vrsb_managed_id_0",
+    "tf2vrsb_managed_id_1", "tf2vrsb_managed_id_2", "tf2vrsb_managed_id_3",
+    "tf2vrsb_managed_id_4", "tf2vrsb_managed_id_5", "tf2vrsb_managed_id_6",
+    "tf2vrsb_managed_id_7", "tf2vrsb_request_map", "tf2vrsb_request_x",
     "tf2vrsb_request_y", "tf2vrsb_request_z", "tf2vrsb_request_yaw",
 }
 
@@ -314,8 +324,8 @@ else:
         problems.append(f"mod.json is missing ConVar {name}")
 
     scripts = mod.get("Scripts", [])
-    if len(scripts) != 6:
-        problems.append(f"mod.json lists {len(scripts)} scripts, expected 6")
+    if len(scripts) != 7:
+        problems.append(f"mod.json lists {len(scripts)} scripts, expected 7")
     for script in scripts:
         run_on = script.get("RunOn")
         if run_on not in ("UI", "CLIENT", "SERVER"):
@@ -368,7 +378,7 @@ else:
     server_nut = read(pkg / mod_dir / "mod/scripts/vscripts/tf2vrsb_server.nut")
     if server_nut.count("{") != server_nut.count("}"):
         problems.append("tf2vrsb_server.nut: unbalanced braces")
-    for required in ("AddClientCommandCallback(", "CreateNPC(", "Destroy()", "SetOrigin(",
+    for required in ("AddClientCommandCallback(", "CreateNPCFromAISettings(", "Destroy()", "SetOrigin(",
                      "IsNoclipping(", "SetPhysics(", "MOVETYPE_NOCLIP"):
         if required not in server_nut:
             problems.append(f"tf2vrsb_server.nut: missing {required}")
@@ -425,7 +435,7 @@ if problems:
     sys.exit(1)
 
 print(f"verified {len(expected)} files: both DLLs x64, mod.json {version} with "
-      f"{len(required_convars)} ConVars, 6 UI/CLIENT/SERVER scripts and 12 menu resources, "
+      f"{len(required_convars)} ConVars, 7 UI/CLIENT/SERVER scripts and 14 menu resources, "
       f"ini and manifest consistent, zip complete")
 PY
 

@@ -8,8 +8,9 @@ allowed to change more campaign state.
 
 - Three optional OpenXR actions: **Reload Grab**, **Crouch** and **Tactical
   Ability**, with an in-game settings page and saved calibration.
-- An experimental campaign pause-menu sandbox with NPC spawning, a position
-  bookmark, three saved presets, fly/noclip and a read-only map catalog.
+- An experimental campaign pause-menu sandbox with a 62-entry NPC catalog,
+  stable managed-NPC IDs, individual removal, a position bookmark, three saved
+  presets, fly/noclip and a read-only map catalog.
 - Layout logging, an on-screen bounds overlay, and saved overlay opacity.
 - A Linux/MinGW cross-build with a static package and menu verifier.
 
@@ -37,7 +38,7 @@ Before a feature goes on the implementation list, it should pass these checks:
 | 0 | Validate the current build in game | M | None | Everything else depends on a trustworthy baseline |
 | 1 | Setup Check page | M | Low | Installation mistakes are the most common support problem |
 | 1 | Preset management | S | Low | Completes the most visible gap in the sandbox |
-| 1 | NPC sandbox polish | S | Low | Makes the existing spawner safer and less repetitive |
+| 1 | NPC catalog runtime validation | M | Medium | The 1.6.0 catalog and managed roster have not been exercised in game |
 | 1 | Overlay accessibility | S | Low | The diagnostic overlay is already useful; make it readable for more people |
 | 1 | Settings profiles and per-page resets | M | Low | Makes a growing settings file portable and recoverable |
 | 1 | Release automation | S | None | Prevents packaging regressions between releases |
@@ -55,8 +56,8 @@ Run the full test plan in [`SANDBOX.md`](SANDBOX.md) and record a pass/fail
 matrix with the game version, TF2VR version, headset and runtime. At minimum:
 
 - Open the pause entry and every sandbox page with controller and keyboard.
-- Spawn each NPC type, change the cap and distance, clear managed NPCs, and
-  confirm campaign NPCs survive.
+- Spawn a sample from each NPC category, remove one tracked NPC, change the cap
+  and distance, clear managed NPCs, and confirm campaign NPCs survive.
 - Save, return to and clear a bookmark; save and load a preset; confirm another
   map's preset is rejected.
 - Toggle fly, verify the status label and movement, then land.
@@ -66,7 +67,7 @@ matrix with the game version, TF2VR version, headset and runtime. At minimum:
 - Repeat the menu and comfort checks through WiVRn on the Quest 3S.
 
 **Exit criteria:** every shipped control either passes or is clearly labelled
-unsupported in the README. Fix blockers in a small `1.5.x` release before adding
+unsupported in the README. Fix blockers in a small `1.6.x` release before adding
 new surface area. Do not add another OpenXR action until the current three have
 been exercised in the headset.
 
@@ -102,17 +103,20 @@ Keep the three fixed slots, but make each one easier to manage:
 
 This completes the feature without adding a general file browser.
 
-### NPC sandbox polish
+### NPC catalog and managed roster (implemented in 1.6.0)
 
-Small additions that stay inside the existing managed-NPC safety model:
+The 1.6.0 build ships a 62-entry catalog, six category filters, text search,
+details, a 24-entry server allow-list and stable managed-NPC IDs. Required
+follow-up work is runtime validation, not more surface area:
 
-- Spawn two or three at once, clamped by the current cap.
-- **UNDO LAST SPAWN** for the most recent sandbox NPC.
-- Show the managed count and the most recent spawn result together.
+- Spawn one entry from each enabled category on a disposable campaign mission.
+- Confirm search, category paging and details work with controller and keyboard.
+- Remove a single managed ID and verify that no campaign NPC disappears.
+- Confirm map changes discard old handles without touching the old level.
 - Keep clear-managed confirmation and never remove unowned entities.
 
-Additional NPC classes and behaviour changes wait for runtime evidence that
-their models, teams and navigation work in campaign maps.
+Behaviour controls, spawn presets and squad commands still wait for runtime
+evidence that models, teams and navigation work in campaign maps.
 
 ### Overlay accessibility
 

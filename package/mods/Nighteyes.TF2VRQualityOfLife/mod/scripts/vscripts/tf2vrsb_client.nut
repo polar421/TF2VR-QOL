@@ -16,9 +16,8 @@ void function TF2VRSB_SendCommand( string command )
 {
 	array<string> allowed = [
 		"tf2vrsb_status",
-		"tf2vrsb_spawn_imc_soldier",
-		"tf2vrsb_spawn_imc_spectre",
-		"tf2vrsb_spawn_friendly_soldier",
+		"tf2vrsb_spawn_npc",
+		"tf2vrsb_remove_managed",
 		"tf2vrsb_clear_managed",
 		"tf2vrsb_save_bookmark",
 		"tf2vrsb_return_bookmark",
