@@ -1,0 +1,435 @@
+"resource/ui/menus/tf2vrbb_diagnostics.menu"
+{
+	menu
+	{
+		ControlName Frame
+		xpos 0
+		ypos 0
+		zpos 3
+		wide f0
+		tall f0
+		autoResize 0
+		visible 1
+		enabled 1
+		pinCorner 0
+		PaintBackgroundType 0
+		infocus_bgcolor_override "0 0 0 0"
+		outoffocus_bgcolor_override "0 0 0 0"
+
+		Vignette
+		{
+			ControlName ImagePanel
+			InheritProperties MenuVignette
+		}
+
+		ImgTopBar
+		{
+			ControlName ImagePanel
+			InheritProperties MenuTopBar
+		}
+
+		Title
+		{
+			ControlName Label
+			InheritProperties MenuTitle
+			labelText "TF2VR QUALITY OF LIFE"
+		}
+
+		Screen
+		{
+			ControlName Label
+			wide %100
+			tall %100
+			labelText ""
+			visible 0
+		}
+
+		Panel
+		{
+			ControlName Label
+			labelText ""
+			zpos -1
+			wide 760
+			tall 800
+			xpos 120
+			ypos 280
+			paintbackground 1
+			bgcolor_override "8 10 12 232"
+		}
+
+		AccentTop
+		{
+			ControlName Label
+			labelText ""
+			wide 760
+			tall 6
+			paintbackground 1
+			bgcolor_override "242 141 28 255"
+			xpos 120
+			ypos 280
+		}
+
+		PanelHeader
+		{
+			ControlName Label
+			labelText "VR DIAGNOSTICS"
+			font Default_41
+			allcaps 1
+			fgcolor_override "255 255 255 255"
+			auto_wide_tocontents 1
+			auto_tall_tocontents 1
+			xpos 152
+			ypos 306
+		}
+
+		HeaderRule
+		{
+			ControlName Label
+			labelText ""
+			wide 696
+			tall 2
+			paintbackground 1
+			bgcolor_override "96 104 112 255"
+			xpos 152
+			ypos 376
+		}
+
+		SubHeader
+		{
+			ControlName Label
+			labelText "Read-only samples from the OpenXR layer. Unsupported queries, missing bindings and inactive controllers are labelled rather than inferred."
+			font Default_21
+			fgcolor_override "176 182 188 255"
+			wide 696
+			tall 42
+			wrap 1
+			xpos 152
+			ypos 392
+		}
+
+		SectionSystem
+		{
+			ControlName Label
+			labelText "SYSTEM"
+			font Default_21
+			allcaps 1
+			fgcolor_override "242 141 28 255"
+			auto_wide_tocontents 1
+			auto_tall_tocontents 1
+			xpos 152
+			ypos 444
+		}
+
+		SectionInput
+		{
+			ControlName Label
+			labelText "LIVE INPUT"
+			font Default_21
+			allcaps 1
+			fgcolor_override "242 141 28 255"
+			auto_wide_tocontents 1
+			auto_tall_tocontents 1
+			xpos 496
+			ypos 444
+		}
+
+		Divider
+		{
+			ControlName Label
+			labelText ""
+			wide 2
+			tall 366
+			paintbackground 1
+			bgcolor_override "70 78 86 255"
+			xpos 476
+			ypos 470
+		}
+
+		LayerStatus
+		{
+			ControlName Label
+			labelText "LAYER: NO DATA"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 314
+			tall 24
+			xpos 152
+			ypos 476
+		}
+
+		SettingsStatus
+		{
+			ControlName Label
+			labelText "SETTINGS BRIDGE: NO DATA"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 314
+			tall 24
+			xpos 152
+			ypos 504
+		}
+
+		RuntimeInfo
+		{
+			ControlName Label
+			labelText "RUNTIME: NOT REPORTED"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 314
+			tall 24
+			xpos 152
+			ypos 532
+		}
+
+		ApiInfo
+		{
+			ControlName Label
+			labelText "APP API: NOT REPORTED"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 314
+			tall 24
+			xpos 152
+			ypos 560
+		}
+
+		ProfileLeft
+		{
+			ControlName Label
+			labelText "PROFILE L: NO PROFILE"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 314
+			tall 24
+			xpos 152
+			ypos 588
+		}
+
+		ProfileRight
+		{
+			ControlName Label
+			labelText "PROFILE R: NO PROFILE"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 314
+			tall 24
+			xpos 152
+			ypos 616
+		}
+
+		TrackingLeft
+		{
+			ControlName Label
+			labelText "TRACK L: NO POSE DATA"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 314
+			tall 24
+			xpos 152
+			ypos 644
+		}
+
+		TrackingRight
+		{
+			ControlName Label
+			labelText "TRACK R: NO POSE DATA"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 314
+			tall 24
+			xpos 152
+			ypos 672
+		}
+
+		ActionConfig
+		{
+			ControlName Label
+			labelText "CONFIGURED: RELOAD OFF / CROUCH OFF / TACTICAL OFF"
+			font Default_16
+			fgcolor_override "150 156 162 255"
+			wide 314
+			tall 44
+			wrap 1
+			xpos 152
+			ypos 704
+		}
+
+		TriggerLeft
+		{
+			ControlName Label
+			labelText "TRIGGER L  NO ACTIVE BINDING"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 334
+			tall 24
+			xpos 496
+			ypos 476
+		}
+
+		TriggerRight
+		{
+			ControlName Label
+			labelText "TRIGGER R  NO ACTIVE BINDING"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 334
+			tall 24
+			xpos 496
+			ypos 504
+		}
+
+		GripLeft
+		{
+			ControlName Label
+			labelText "GRIP L  NO ACTIVE BINDING"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 334
+			tall 24
+			xpos 496
+			ypos 532
+		}
+
+		GripRight
+		{
+			ControlName Label
+			labelText "GRIP R  NO ACTIVE BINDING"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 334
+			tall 24
+			xpos 496
+			ypos 560
+		}
+
+		StickLeft
+		{
+			ControlName Label
+			labelText "STICK L  NO ACTIVE BINDING"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 334
+			tall 24
+			xpos 496
+			ypos 588
+		}
+
+		StickRight
+		{
+			ControlName Label
+			labelText "STICK R  NO ACTIVE BINDING"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 334
+			tall 24
+			xpos 496
+			ypos 616
+		}
+
+		StickClick
+		{
+			ControlName Label
+			labelText "STICK CLICK  L NO SIGNAL  R NO SIGNAL"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 334
+			tall 24
+			xpos 496
+			ypos 644
+		}
+
+		Primary
+		{
+			ControlName Label
+			labelText "PRIMARY (JUMP)  NO SIGNAL"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 334
+			tall 24
+			xpos 496
+			ypos 672
+		}
+
+		Crouch
+		{
+			ControlName Label
+			labelText "CROUCH  NO SIGNAL"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 334
+			tall 24
+			xpos 496
+			ypos 700
+		}
+
+		Tactical
+		{
+			ControlName Label
+			labelText "TACTICAL  NO SIGNAL"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 334
+			tall 24
+			xpos 496
+			ypos 728
+		}
+
+		ReloadGrab
+		{
+			ControlName Label
+			labelText "RELOAD GRAB  L NO SIGNAL  R NO SIGNAL"
+			font Default_16
+			fgcolor_override "214 220 226 255"
+			wide 334
+			tall 24
+			xpos 496
+			ypos 756
+		}
+
+		SampleState
+		{
+			ControlName Label
+			labelText "SAMPLE: NONE - LAYER NOT PUBLISHING"
+			font Default_16
+			allcaps 1
+			fgcolor_override "242 141 28 255"
+			wide 696
+			tall 24
+			xpos 152
+			ypos 780
+		}
+
+		HintText
+		{
+			ControlName Label
+			labelText "Only actions created by Titanfall 2 VR are sampled. Face and menu buttons, battery state, controller models and runtime names are not exposed by this bridge, so they are not shown."
+			font Default_16
+			fgcolor_override "150 156 162 255"
+			wide 696
+			tall 42
+			wrap 1
+			xpos 152
+			ypos 814
+		}
+
+		BtnBack
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			labelText "BACK"
+			textAlignment center
+			wide 260
+			tall 54
+			scriptID "0"
+			xpos 152
+			ypos 884
+		}
+
+		FooterButtons
+		{
+			ControlName CNestedPanel
+			InheritProperties FooterButtons
+		}
+	}
+}

@@ -4,7 +4,7 @@ Extra OpenXR actions and optional features for [CircuitLord's Titanfall 2 VR mod
 
 ## Campaign sandbox (experimental)
 
-Version 1.6.0 expands the experimental sandbox in the **real campaign pause menu** with a searchable NPC catalog, managed NPC removal, log-based diagnostics and a campaign fly/noclip toggle. Load a single-player mission, pause, and press **Y** for **SANDBOX / DEV TOOLS**. The entry is appended to `InGameSPMenu`; the vanilla Resume, Restart, Settings and Quit entries are not replaced. B returns to the pause menu.
+Version 1.7.0 adds a read-only **VR Diagnostics** page and live controller action tester to the settings menu, alongside the experimental sandbox in the **real campaign pause menu**. The sandbox retains its searchable NPC catalog, managed NPC removal, log-based diagnostics and campaign fly/noclip toggle. Load a single-player mission, pause, and press **Y** for **SANDBOX / DEV TOOLS**. The entry is appended to `InGameSPMenu`; the vanilla Resume, Restart, Settings and Quit entries are not replaced. B returns to the pause menu.
 
 This is a deliberately small, source-verified vertical slice. Pages are wired to real actions through the documented UI → CLIENT (`RunClientScript`) → SERVER (`ClientCommand` and `AddClientCommandCallback`) path; there are no decorative buttons for systems that have not been validated. Implementation is not the same as gameplay verification: see the testing status below. The interface uses dark panels, orange technical labels and native controller navigation so it can be read inside the game's own VR menu path.
 
@@ -33,11 +33,24 @@ Press **Y** on any sandbox page to toggle an on-screen layout overlay. It draws 
 
 ### Not implemented in this build
 
-Map transitions, world-object placement/editing, a general entity browser, and the Gauntlet builder are **not** exposed as working controls. They depend on level-transition, spawn-model, navigation and scenario behavior that cannot be validated without a game session, and a bad implementation can corrupt a campaign state or delete unrelated entities. The map page and Developer Information page say so rather than presenting inert controls. Position preset rename, duplicate, browse and delete are also not implemented; there are three fixed slots.
+Map transitions, world-object placement/editing, a general entity browser, the Gauntlet builder, a diagnostic report export, and a graphical controller tester are **not** exposed as working controls. They depend on level-transition, spawn-model, navigation and scenario behavior that cannot be validated without a game session, and a bad implementation can corrupt a campaign state or delete unrelated entities. The map page and Developer Information page say so rather than presenting inert controls. Position preset rename, duplicate, browse and delete are also not implemented; there are three fixed slots.
 
-The sandbox has been source-inspected, packaged and statically checked, but **has not been run in Titanfall 2 or a Quest 3S/WiVRn headset in this development environment**. The pause footer, catalog search and paging, NPC spawning, individual removal, teleports, fly/noclip, layout logging, on-screen bounds, Safe I/O and native-menu VR presentation remain runtime tests. Treat the feature as experimental and start with a disposable campaign session.
+The sandbox has been source-inspected, packaged and statically checked, but **has not been run in Titanfall 2 or a Quest 3S/WiVRn headset in this development environment**. The pause footer, catalog search and paging, NPC spawning, individual removal, teleports, fly/noclip, layout logging, on-screen bounds, Safe I/O and native-menu VR presentation remain runtime tests. The VR diagnostics page and live action tester are likewise unverified at runtime; see the diagnostics section above. Treat the sandbox as experimental and start with a disposable campaign session.
 
 See [SANDBOX.md](SANDBOX.md) for how the sandbox works, or [docs/SANDBOX.md](docs/SANDBOX.md) for the implementation checklist, API evidence, VM boundaries and runtime test plan. The remaining planned work is tracked in [docs/ROADMAP.md](docs/ROADMAP.md).
+
+## VR diagnostics and controller tester
+
+Open **TF2VR QUALITY OF LIFE** from the main menu with **X**, then choose **VR DIAGNOSTICS**. The page is read-only and does not change settings.
+
+The **SYSTEM** column shows whether the layer is publishing samples, whether the settings bridge is connected, the runtime class and version returned by `xrGetInstanceProperties`, the app API version, the current interaction profile for each hand from `xrGetCurrentInteractionProfile`, per-hand pose validity from the existing aim spaces, and which optional actions are configured.
+
+The **LIVE INPUT** column shows the trigger and grip values, stick X/Y, stick click, primary/jump, crouch, tactical and reload states. Values come from the OpenXR actions Titanfall 2 VR already creates. **NO ACTIVE BINDING** means the runtime did not return an active binding or controller for that action; it is not a settings error. Opening the page enables sampling and closing it disables sampling. It does not write the settings INI.
+
+This first version is deliberately text-only. It does not show a controller silhouette, face or menu buttons, battery state, headset model or the raw runtime name, because those need assets or a separate string channel that has not been verified. There is no diagnostic report export yet.
+
+> [!IMPORTANT]
+> The diagnostics page and tester have been compiled and statically checked, but have **not been run in Titanfall 2 or a Quest 3S/WiVRn headset** here. The layer queries, ConVar transport, profile classification and live updates remain runtime tests.
 
 ## Actions
 
@@ -70,6 +83,7 @@ To recalibrate on purpose, delete `TF2VRBetterBindings.calibration.ini` and star
 | **Controls** | Lists the actions this add-on adds and what to bind them to |
 | **Action Settings** | Reload Grab, Grenade Toggle, Crouch, Crouch Binding, Crouch Mode, Uncrouch on Jump, Jump Delay, Tactical Ability, Tactical trigger blocking |
 | **General Options** | Sprint, and the two sprint heights |
+| **VR Diagnostics** | Read-only runtime, interaction-profile and tracking status, plus a live action tester |
 | **About** | Version, what the add-on is, and whether the settings file is connected |
 | **Restore Defaults** | Puts every setting above back to its default after a confirmation click |
 

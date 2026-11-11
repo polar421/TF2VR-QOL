@@ -140,7 +140,7 @@ pkg = Path(sys.argv[1])
 zip_path = Path(sys.argv[2])
 version = sys.argv[3]
 mod_dir = "mods/Nighteyes.TF2VRQualityOfLife"
-menu_pages = ["about", "actions", "controls", "general", "restore", "root"]
+menu_pages = ["about", "actions", "controls", "diagnostics", "general", "restore", "root"]
 sandbox_pages = ["root", "maps", "npcs", "npc_details", "npc_managed", "player", "presets", "developer"]
 
 expected = [
@@ -175,6 +175,19 @@ required_convars = {
     "tf2vrbb_crouch_button_mode", "tf2vrbb_crouch_binding", "tf2vrbb_uncrouch_on_jump", "tf2vrbb_jump_delay_ms",
     "tf2vrbb_tactical_enabled", "tf2vrbb_tactical_block_trigger",
     "tf2vrbb_sprint_enabled", "tf2vrbb_sprint_start_cm", "tf2vrbb_sprint_stop_cm",
+    "tf2vrbb_diag_enabled", "tf2vrbb_diag_api", "tf2vrbb_diag_seq",
+    "tf2vrbb_diag_runtime_kind", "tf2vrbb_diag_runtime_version", "tf2vrbb_diag_api_version",
+    "tf2vrbb_diag_profile_left", "tf2vrbb_diag_profile_right",
+    "tf2vrbb_diag_tracking_left", "tf2vrbb_diag_tracking_right",
+    "tf2vrbb_diag_trigger_left", "tf2vrbb_diag_trigger_right",
+    "tf2vrbb_diag_trigger_left_active", "tf2vrbb_diag_trigger_right_active",
+    "tf2vrbb_diag_grip_left", "tf2vrbb_diag_grip_right",
+    "tf2vrbb_diag_grip_left_active", "tf2vrbb_diag_grip_right_active",
+    "tf2vrbb_diag_stick_left_x", "tf2vrbb_diag_stick_left_y", "tf2vrbb_diag_stick_left_active",
+    "tf2vrbb_diag_stick_right_x", "tf2vrbb_diag_stick_right_y", "tf2vrbb_diag_stick_right_active",
+    "tf2vrbb_diag_stick_click_left", "tf2vrbb_diag_stick_click_right",
+    "tf2vrbb_diag_primary", "tf2vrbb_diag_crouch", "tf2vrbb_diag_tactical",
+    "tf2vrbb_diag_reload_left", "tf2vrbb_diag_reload_right",
     "tf2vrsb_map", "tf2vrsb_mode", "tf2vrsb_ready", "tf2vrsb_x", "tf2vrsb_y",
     "tf2vrsb_z", "tf2vrsb_yaw", "tf2vrsb_npc_count", "tf2vrsb_entity_count",
     "tf2vrsb_managed_count", "tf2vrsb_bookmark", "tf2vrsb_fly", "tf2vrsb_debug",
@@ -435,7 +448,7 @@ if problems:
     sys.exit(1)
 
 print(f"verified {len(expected)} files: both DLLs x64, mod.json {version} with "
-      f"{len(required_convars)} ConVars, 7 UI/CLIENT/SERVER scripts and 14 menu resources, "
+      f"{len(required_convars)} ConVars, 7 UI/CLIENT/SERVER scripts and 15 menu resources, "
       f"ini and manifest consistent, zip complete")
 PY
 

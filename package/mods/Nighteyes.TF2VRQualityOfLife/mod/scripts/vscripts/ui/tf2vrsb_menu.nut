@@ -9,7 +9,7 @@
 global function TF2VRSB_AddSandboxMenus
 global function TF2VRSB_AddPauseEntry
 
-const string TF2VRSB_VERSION = "1.6.0"
+const string TF2VRSB_VERSION = "1.7.0"
 const string TF2VRSB_PAUSE_MENU = "InGameSPMenu"
 
 const string TF2VRSB_ROOT = "TF2VRSBSandboxRoot"

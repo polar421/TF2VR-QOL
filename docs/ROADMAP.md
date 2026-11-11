@@ -1,14 +1,16 @@
 # TF2VR-QOL Comprehensive Development Roadmap
 
-**Status:** planning document plus the source-verified 1.6.0 NPC browser/managed-roster slice. Every other item remains proposed and requires separate approval and runtime testing.
+**Status:** planning document plus the source-verified 1.7.0 VR diagnostics/input-tester slice and 1.6.0 NPC browser/managed-roster slice. Every other item remains proposed and requires separate approval and runtime testing.
 
-**Source baseline:** TF2VR Quality of Life 1.6.0.
+**Source baseline:** TF2VR Quality of Life 1.7.0.
 
 **Reviewed:** 2026-11-11.
 
-> **Scope gate.** Except for the explicitly listed 1.6.0 NPC slice, this document does not add Squirrel scripts, menu pages, ConVars, configuration settings, C++ code, manifest entries, package files, or gameplay behaviour. Each remaining feature requires a separate implementation task, source review, runtime test plan and user approval.
+> **Scope gate.** Except for the explicitly listed 1.7.0 diagnostics/input-tester slice and 1.6.0 NPC slice, this document does not add Squirrel scripts, menu pages, ConVars, configuration settings, C++ code, manifest entries, package files, or gameplay behaviour. Each remaining feature requires a separate implementation task, source review, runtime test plan and user approval.
 
 > **1.6.0 implementation note.** The NPC catalog, browser, details page and managed roster were implemented before live VR diagnostics because they could be validated against extracted game scripts, while OpenXR/controller diagnostics require a running headset and runtime that are unavailable here. This is a dependency-driven ordering change, not a claim that the NPC slice has passed runtime testing.
+
+> **1.7.0 implementation note.** The settings menu now has a read-only VR diagnostics page and text action tester fed by layer-published ConVars. It reports runtime class/version, app API version, current interaction profiles, pose validity, configured actions and live trigger/grip/stick/button action states. It has not been run in Titanfall 2 or a headset. Report export, setup-health checks, calibration compatibility and graphical controller visualization remain planned.
 
 ## 1. Project vision
 
@@ -40,7 +42,7 @@ The project should remain:
 
 | Phase | Outcome | Exit gate |
 |---|---|---|
-| **0. Reliability** | Prove the existing 1.6.0 build in Titanfall 2 and a headset | Every shipped control tested or explicitly marked unsupported |
+| **0. Reliability** | Prove the existing 1.7.0 build in Titanfall 2 and a headset | Every shipped control tested or explicitly marked unsupported |
 | **1. VR diagnostics** | Runtime identity, setup check, input diagnostics and reports | A user can diagnose a missing layer, binding, setting or controller |
 | **2. Personalization** | Calibration profiles, sprint wizard, preset manager, comfort options | Profiles survive restart and can be recovered |
 | **3. Sandbox** | Map browser, managed NPC tools, player utilities, save/load v1 | Existing sandbox actions are safe and pleasant on a disposable save |
@@ -91,7 +93,7 @@ The requested phase order is kept, with two adjustments:
 |---|---|---|
 | `src/layer` | Windows OpenXR API layer loaded in the game process; intercepts actions, bindings, action states, aim/head poses and config reloads | No runtime-name query, current interaction-profile query, grip-pose tracking or direct bridge to the Squirrel UI |
 | `src/plugin` | Northstar plugin: settings mirror, registration and calibration persistence | Only a small set of ConVars and files are bridged; run-frame work is CPU-side |
-| `tf2vrbb_menu` | Main-menu settings pages | Fixed RUI resources; no live controller visualization |
+| `tf2vrbb_menu` | Main-menu settings pages, including read-only diagnostics | Fixed RUI resources; text-only live input, no graphical controller visualization |
 | `tf2vrsb_menu` | Campaign pause sandbox navigation and shared helpers | Three fixed preset slots; map catalog is read-only |
 | `tf2vrsb_npc_browser` | NPC browser, details and managed roster | Catalog data is UI-side; spawning and removal remain server-authoritative |
 | `tf2vrsb_client` | Nine-command allow-list bridge | UI cannot call the server directly |
@@ -105,7 +107,7 @@ The requested phase order is kept, with two adjustments:
 | Area | Status | Evidence / limitation |
 |---|---|---|
 | OpenXR actions for **Reload Grab**, **Crouch** and **Tactical Ability** | Implemented; no formal runtime test report | Layer creates and intercepts the actions; SteamVR manual binding or Wine-suggested bindings |
-| In-game settings menu | Implemented | Six pages, nine action rows and three general rows |
+| In-game settings menu | Implemented | Seven pages, nine action rows, three general rows and a diagnostics page |
 | Settings synchronization | Implemented | Twelve menu ConVars mirrored to the layer INI; action toggles restart-only |
 | Calibration persistence | Implemented | Single profile, file version 1, native image-size match, hard-coded Titanfall2VR offsets |
 | Campaign pause entry and eight sandbox pages | Implemented; runtime untested | `InGameSPMenu` footer and native RUI pages, including the NPC browser/details/managed pages |
@@ -114,10 +116,10 @@ The requested phase order is kept, with two adjustments:
 | Three position presets | Implemented; runtime untested | Fixed slots in mod-safe I/O, map-locked load |
 | Campaign map catalog | Implemented; runtime untested | 13 hard-coded campaign IDs; no transitions |
 | Developer telemetry, layout logs and overlay | Implemented; runtime untested | Read-only UI diagnostics; fixed overlay boxes |
-| Build and package verification | Implemented | 62 ConVars, seven scripts, 14 menus, static package cross-checks only |
+| Build and package verification | Implemented | 93 ConVars, seven scripts, 15 menus, static package cross-checks only |
 | Automated tests / CI | Not implemented | No test project is present and no CI workflow exists |
-| Runtime VR diagnostics dashboard | Planned | No dashboard or runtime identity bridge |
-| Live controller tester | Planned | Mapped action states exist in C++; no live UI bridge |
+| Runtime VR diagnostics dashboard | Implemented text v1; runtime untested | Layer publishes runtime class/version, profiles, tracking and action state through ConVars; no report export or setup-health checks |
+| Live controller tester | Implemented text v1; runtime untested | Trigger, grip, stick, stick click, primary, crouch, tactical and reload are sampled; no graphical silhouette, battery or face-button data |
 | Multi-profile calibration | Planned | Single profile only |
 | Sprint calibration wizard | Planned | Numerical thresholds exist; no live threshold view |
 | Advanced preset manager | Planned | No rename, duplicate, delete or import/export |
@@ -133,7 +135,7 @@ The requested phase order is kept, with two adjustments:
 ### 4.3 Constraints that shape the roadmap
 
 - The UI, CLIENT and SERVER VMs are separate. World actions must continue through the allow-listed command bridge.
-- The layer has no direct Squirrel/UI channel. Current communication is ConVars plus an INI file; a new layer-to-plugin/UI status channel is prerequisite work for several features.
+- The layer has no direct Squirrel/UI object channel. Settings use ConVars plus an INI file; diagnostics use a throttled, read-only set of integer ConVars. A richer status/report bridge is still prerequisite work for report export and setup checks.
 - Layer logging is compiled out in normal release builds. Diagnostics cannot depend only on `TF2VRBetterBindings.log`.
 - Calibration uses fixed RVAs and matches the native module by image size, not content hash. A game or Titanfall2VR update can invalidate it.
 - Console commands use a verified engine signature, but a hard-coded RVA. It must remain guarded by a prologue check.
@@ -231,9 +233,11 @@ The following catalogue covers every requested feature. Each entry states its pu
 
 ### A. VR Diagnostics Center
 
-**Phase 1 · Priority P1 · Feasibility MEDIUM · Complexity L · Status Planned**
+**Phase 1 · Priority P1 · Feasibility MEDIUM · Complexity L · Status Implemented text slice; runtime untested**
 
 **Purpose.** Give users one place to see whether OpenXR, the layer, actions, settings and calibration are healthy.
+
+**Implemented in 1.7.0:** layer publication, runtime class/version, app API, per-hand profile and tracking, configured actions, and live action input values. **Still planned:** system-property checks, calibration compatibility, setup-health checks and diagnostic report export.
 
 **User experience.** A read-only page with clear status rows, expandable details and a single **EXPORT DIAGNOSTIC REPORT** action. Unknown values read as `UNAVAILABLE`, never guessed.
 
@@ -252,7 +256,7 @@ The layer can access more than the UI can currently see. Direct runtime introspe
 
 ### B. Live Controller Input Tester
 
-**Phase 1 · Priority P1 for text v1, P2 for visualization · Feasibility MEDIUM for v1, LOW for full graphics · Complexity L · Status Planned**
+**Phase 1 · Priority P1 for text v1, P2 for visualization · Feasibility MEDIUM for v1, LOW for full graphics · Complexity L · Status Implemented text v1; runtime untested**
 
 **Purpose.** Let a user confirm that a physical controller, binding, tracking space and OpenXR action are working before blaming the game.
 
@@ -526,7 +530,7 @@ Do not implement inert course buttons before marker and timer behavior is proven
 - xrizer is an OpenVR compatibility layer and does not see native OpenXR actions.
 - The layer submits suggested bindings under Wine for supported profiles: crouch on a configured thumbstick click, Reload Grab on trigger clicks, Tactical Ability on left X/A.
 - Suggested bindings are limited to profiles the layer recognises (Touch, Index, Mixed Reality, Odyssey and Cosmos paths). Unknown profiles may receive no extra bindings.
-- The layer does not currently query the active runtime name or current interaction profile.
+- The layer classifies the runtime name returned by `xrGetInstanceProperties` and queries the current interaction profile per hand. Unknown profiles remain labelled as other; runtime-name strings are not sent to the UI.
 
 ### 7.2 Roadmap requirements
 
@@ -600,10 +604,10 @@ TF2VR Quality of Life
 
 | Research question | Why it matters | Current evidence |
 |---|---|---|
-| Can the layer read runtime/system identity through OpenXR and pass it to the plugin? | Diagnostics A and N | `xrGetInstanceProperties`, `xrGetSystemProperties` are standard OpenXR candidates but are not called in current source |
-| Can the current interaction profile be queried per hand? | Input tester B, binding diagnostics A | Not queried today; only suggested-profile strings are logged |
-| Can grip/aim poses be tracked per controller without interfering with game actions? | Controller visualization B | Aim pose is tracked; per-hand grip poses are not |
-| Can the plugin expose compact live state to the UI at an acceptable rate? | A, B, D, L | No layer-to-UI bridge; ConVars/INI bridge exists for settings |
+| Can the layer read runtime/system identity through OpenXR and pass it to the plugin? | Diagnostics A and N | Runtime class/version is now read and published as an integer; system properties and report export remain unverified |
+| Can the current interaction profile be queried per hand? | Input tester B, binding diagnostics A | Now queried per hand; unknown paths are classified as other and runtime-untested |
+| Can grip/aim poses be tracked per controller without interfering with game actions? | Controller visualization B | Aim pose flags are tracked per hand; grip poses and graphical visualization remain unverified |
+| Can the plugin expose compact live state to the UI at an acceptable rate? | A, B, D, L | A throttled at-15-Hz integer ConVar bridge now exists; runtime cost is unmeasured |
 | Can `NSDeleteFile` be used safely for presets? | Preset manager E, storage K | Not used or verified |
 | Can arbitrary world objects be created and destroyed? | World editor G, scenarios J | `CreateProp` is unverified and deliberately blocked by the static verifier |
 | Can campaign levels be changed without corrupting checkpoints? | Map travel F | `ChangeLevel` exists but is untested and blocked |

@@ -101,27 +101,42 @@ void* FindConVarGuarded(const char* name, int* status)
 }
 }
 
+bool GameVar::Resolve()
+{
+    if (m_conVar)
+        return true;
+
+    ULONGLONG now = GetTickCount64();
+    if (now < m_nextAttempt)
+        return false;
+    m_nextAttempt = now + kRetryIntervalMs;
+
+    int status = kFault;
+    void* conVar = FindConVarGuarded(m_name, &status);
+    if (status != m_lastStatus)
+    {
+        m_lastStatus = status;
+        Log("game var %s: %s", m_name, StatusText(status));
+    }
+    if (!conVar)
+        return false;
+    m_conVar = static_cast<unsigned char*>(conVar);
+    return true;
+}
+
 bool GameVar::ReadInt(int& value)
 {
-    if (!m_conVar)
-    {
-        ULONGLONG now = GetTickCount64();
-        if (now < m_nextAttempt)
-            return false;
-        m_nextAttempt = now + kRetryIntervalMs;
-
-        int status = kFault;
-        void* conVar = FindConVarGuarded(m_name, &status);
-        if (status != m_lastStatus)
-        {
-            m_lastStatus = status;
-            Log("game var %s: %s", m_name, StatusText(status));
-        }
-        if (!conVar)
-            return false;
-        m_conVar = static_cast<unsigned char*>(conVar);
-    }
+    if (!Resolve())
+        return false;
     value = *reinterpret_cast<const volatile int*>(m_conVar + kIntValueOffset);
+    return true;
+}
+
+bool GameVar::WriteInt(int value)
+{
+    if (!Resolve())
+        return false;
+    *reinterpret_cast<volatile int*>(m_conVar + kIntValueOffset) = value;
     return true;
 }
 }

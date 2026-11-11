@@ -10,8 +10,11 @@ public:
     explicit GameVar(const char* name) : m_name(name) {}
 
     bool ReadInt(int& value);
+    bool WriteInt(int value);
 
 private:
+    bool Resolve();
+
     const char* m_name;
     unsigned char* m_conVar = nullptr;
     ULONGLONG m_nextAttempt = 0;

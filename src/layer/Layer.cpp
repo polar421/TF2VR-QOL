@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cctype>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -51,6 +52,10 @@ constexpr std::chrono::milliseconds kGunGrabWindow{500};
 constexpr std::chrono::milliseconds kReloadEndGrace{200};
 constexpr std::chrono::milliseconds kGrenadeMinPress{150};
 constexpr int kMaxLoggedQueries = 8;
+constexpr int kDiagIntervalFrames = 6;
+constexpr int kDiagProfileIntervalFrames = 45;
+constexpr int kDiagPoseStaleFrames = 90;
+constexpr int kProfileOther = 99;
 
 struct NextFunctions
 {
@@ -70,6 +75,8 @@ struct NextFunctions
     PFN_xrLocateSpace locateSpace = nullptr;
     PFN_xrLocateSpaces locateSpaces = nullptr;
     PFN_xrLocateViews locateViews = nullptr;
+    PFN_xrGetInstanceProperties getInstanceProperties = nullptr;
+    PFN_xrGetCurrentInteractionProfile getCurrentInteractionProfile = nullptr;
 };
 
 struct AimSpace
@@ -108,6 +115,8 @@ struct GripSlot
     std::chrono::steady_clock::time_point pressAt;
     bool grenadeHeld = false;
     bool waitRelease = false;
+    bool rawActive = false;
+    float raw = 0.0f;
 };
 
 struct ButtonState
@@ -116,6 +125,14 @@ struct ButtonState
     bool pressed = false;
     bool changed = false;
     XrTime changeTime = 0;
+};
+
+struct HandPoseState
+{
+    bool seen = false;
+    uint64_t frame = 0;
+    XrTime time = 0;
+    XrSpaceLocationFlags flags = 0;
 };
 
 struct CrouchState
@@ -174,6 +191,13 @@ struct LayerState
     float headHeight = 0.0f;
     XrSpace headBase = XR_NULL_HANDLE;
     XrTime headTime = 0;
+    HandPoseState leftPose;
+    HandPoseState rightPose;
+    int runtimeKind = 0;
+    XrVersion runtimeVersion = 0;
+    XrVersion appApiVersion = 0;
+    int profileLeft = 0;
+    int profileRight = 0;
     uint64_t gunPoseLoggedFrame = 0;
     bool loggedBaseMismatch = false;
     bool loggedAimLocate = false;
@@ -213,6 +237,38 @@ struct LayerState
     int loggedBooleanQueries = 0;
     int loggedStickQueries = 0;
     bool loggedFirstSync = false;
+    GameVar diagEnabledVar{"tf2vrbb_diag_enabled"};
+    GameVar diagApiVar{"tf2vrbb_diag_api"};
+    GameVar diagSeqVar{"tf2vrbb_diag_seq"};
+    GameVar diagRuntimeKindVar{"tf2vrbb_diag_runtime_kind"};
+    GameVar diagRuntimeVersionVar{"tf2vrbb_diag_runtime_version"};
+    GameVar diagApiVersionVar{"tf2vrbb_diag_api_version"};
+    GameVar diagProfileLeftVar{"tf2vrbb_diag_profile_left"};
+    GameVar diagProfileRightVar{"tf2vrbb_diag_profile_right"};
+    GameVar diagTrackingLeftVar{"tf2vrbb_diag_tracking_left"};
+    GameVar diagTrackingRightVar{"tf2vrbb_diag_tracking_right"};
+    GameVar diagTriggerLeftVar{"tf2vrbb_diag_trigger_left"};
+    GameVar diagTriggerRightVar{"tf2vrbb_diag_trigger_right"};
+    GameVar diagTriggerLeftActiveVar{"tf2vrbb_diag_trigger_left_active"};
+    GameVar diagTriggerRightActiveVar{"tf2vrbb_diag_trigger_right_active"};
+    GameVar diagGripLeftVar{"tf2vrbb_diag_grip_left"};
+    GameVar diagGripRightVar{"tf2vrbb_diag_grip_right"};
+    GameVar diagGripLeftActiveVar{"tf2vrbb_diag_grip_left_active"};
+    GameVar diagGripRightActiveVar{"tf2vrbb_diag_grip_right_active"};
+    GameVar diagStickLeftXVar{"tf2vrbb_diag_stick_left_x"};
+    GameVar diagStickLeftYVar{"tf2vrbb_diag_stick_left_y"};
+    GameVar diagStickLeftActiveVar{"tf2vrbb_diag_stick_left_active"};
+    GameVar diagStickRightXVar{"tf2vrbb_diag_stick_right_x"};
+    GameVar diagStickRightYVar{"tf2vrbb_diag_stick_right_y"};
+    GameVar diagStickRightActiveVar{"tf2vrbb_diag_stick_right_active"};
+    GameVar diagStickClickLeftVar{"tf2vrbb_diag_stick_click_left"};
+    GameVar diagStickClickRightVar{"tf2vrbb_diag_stick_click_right"};
+    GameVar diagPrimaryVar{"tf2vrbb_diag_primary"};
+    GameVar diagCrouchVar{"tf2vrbb_diag_crouch"};
+    GameVar diagTacticalVar{"tf2vrbb_diag_tactical"};
+    GameVar diagReloadLeftVar{"tf2vrbb_diag_reload_left"};
+    GameVar diagReloadRightVar{"tf2vrbb_diag_reload_right"};
+    int diagSeq = 0;
 };
 
 LayerState& State()
@@ -345,6 +401,70 @@ std::string PathText(LayerState& s, XrPath path)
     return buffer;
 }
 
+int EncodeVersion(XrVersion version)
+{
+    if (version == 0)
+        return 0;
+    uint32_t patch = std::min<uint32_t>(XR_VERSION_PATCH(version), 99);
+    return static_cast<int>(XR_VERSION_MAJOR(version) * 10000 + XR_VERSION_MINOR(version) * 100 + patch);
+}
+
+int RuntimeKind(const char* name)
+{
+    if (!name || !name[0])
+        return 0;
+    std::string lower(name);
+    for (char& character : lower)
+        character = static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
+    if (lower.find("wivrn") != std::string::npos)
+        return 2;
+    if (lower.find("monado") != std::string::npos)
+        return 1;
+    if (lower.find("steamvr") != std::string::npos)
+        return 3;
+    if (lower.find("oculus") != std::string::npos || lower.find("meta") != std::string::npos)
+        return 4;
+    if (lower.find("windows mixed reality") != std::string::npos || lower.find("wmr") != std::string::npos)
+        return 5;
+    if (lower.find("pico") != std::string::npos)
+        return 6;
+    return kProfileOther;
+}
+
+int ProfileKind(const std::string& profile)
+{
+    if (profile.empty() || profile == "(null)" || profile == "(invalid)")
+        return 0;
+    if (profile.find("/khr/simple_controller") != std::string::npos)
+        return 1;
+    if (profile.find("/oculus/") != std::string::npos || profile.find("/meta/") != std::string::npos)
+        return 2;
+    if (profile.find("/valve/index_controller") != std::string::npos)
+        return 3;
+    if (profile.find("/htc/") != std::string::npos)
+        return 4;
+    if (profile.find("/microsoft/") != std::string::npos)
+        return 5;
+    if (profile.find("/bytedance/pico") != std::string::npos)
+        return 6;
+    return kProfileOther;
+}
+
+int TrackingCode(const LayerState& s, const HandPoseState& pose)
+{
+    if (!pose.seen || s.frame < pose.frame || s.frame - pose.frame > kDiagPoseStaleFrames)
+        return 0;
+    bool orientationValid = (pose.flags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0;
+    bool positionValid = (pose.flags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0;
+    bool orientationTracked = (pose.flags & XR_SPACE_LOCATION_ORIENTATION_TRACKED_BIT) != 0;
+    bool positionTracked = (pose.flags & XR_SPACE_LOCATION_POSITION_TRACKED_BIT) != 0;
+    if (orientationValid && positionValid && orientationTracked && positionTracked)
+        return 3;
+    if (orientationValid && positionValid)
+        return 2;
+    return 1;
+}
+
 XrAction CreateLayerAction(LayerState& s, XrActionSet actionSet, const char* name, const char* localizedName, const std::vector<XrPath>& subactionPaths)
 {
     XrActionCreateInfo info{XR_TYPE_ACTION_CREATE_INFO};
@@ -427,6 +547,8 @@ void UpdateSqueeze(LayerState& s, XrSession session)
         XrActionStateFloat squeeze{XR_TYPE_ACTION_STATE_FLOAT};
         bool squeezeActive = XR_SUCCEEDED(s.next.getActionStateFloat(session, &get, &squeeze)) && squeeze.isActive;
         float raw = squeezeActive ? squeeze.currentState : 0.0f;
+        grip.rawActive = squeezeActive;
+        grip.raw = raw;
 
         bool grabbing = false;
         XrTime grabTime = 0;
@@ -794,6 +916,17 @@ void RecordAimPose(LayerState& s, XrSpace space, XrSpace baseSpace, XrTime time,
     auto it = std::find_if(s.aimSpaces.begin(), s.aimSpaces.end(), [space](const AimSpace& aim) { return aim.space == space; });
     if (it == s.aimSpaces.end())
         return;
+    if (it->hand == s.leftHand || it->hand == s.rightHand)
+    {
+        HandPoseState& hand = it->hand == s.leftHand ? s.leftPose : s.rightPose;
+        if (!hand.seen || time >= hand.time)
+        {
+            hand.seen = true;
+            hand.frame = s.frame;
+            hand.time = time;
+            hand.flags = flags;
+        }
+    }
     if (!s.loggedAimLocate)
     {
         s.loggedAimLocate = true;
@@ -826,6 +959,8 @@ void UpdateSprint(LayerState& s, XrSession session)
 {
     SprintState& sprint = s.sprint;
     sprint.changed = false;
+    if (!s.config.sprintEnabled)
+        return;
     if (s.stickClick == XR_NULL_HANDLE || s.sprintHand == XR_NULL_PATH)
         return;
 
@@ -932,6 +1067,15 @@ XrResult XRAPI_CALL HookDestroyInstance(XrInstance instance)
     s.gunPoseTime = 0;
     s.headValid = false;
     s.headTime = 0;
+    s.leftPose = {};
+    s.rightPose = {};
+    s.profileLeft = 0;
+    s.profileRight = 0;
+    s.runtimeKind = 0;
+    s.runtimeVersion = 0;
+    s.appApiVersion = 0;
+    s.diagApiVar.WriteInt(0);
+    s.diagSeq = 0;
     s.sprint = {};
     s.instance = XR_NULL_HANDLE;
     Log("instance destroyed (%d)", result);
@@ -1143,9 +1287,9 @@ XrResult XRAPI_CALL HookCreateAction(XrActionSet actionSet, const XrActionCreate
         s.aim = *action;
     else if (createInfo->actionType == XR_ACTION_TYPE_BOOLEAN_INPUT && std::strcmp(createInfo->actionName, kJumpActionName) == 0)
         s.jump = *action;
-    else if (createInfo->actionType == XR_ACTION_TYPE_VECTOR2F_INPUT && std::strcmp(createInfo->actionName, kStickActionName) == 0 && s.config.sprintEnabled)
+    else if (createInfo->actionType == XR_ACTION_TYPE_VECTOR2F_INPUT && std::strcmp(createInfo->actionName, kStickActionName) == 0)
         s.stick = *action;
-    else if (createInfo->actionType == XR_ACTION_TYPE_BOOLEAN_INPUT && std::strcmp(createInfo->actionName, kStickClickActionName) == 0 && s.config.sprintEnabled)
+    else if (createInfo->actionType == XR_ACTION_TYPE_BOOLEAN_INPUT && std::strcmp(createInfo->actionName, kStickClickActionName) == 0)
         s.stickClick = *action;
     if (createInfo->actionType != XR_ACTION_TYPE_FLOAT_INPUT)
         return result;
@@ -1226,6 +1370,156 @@ XrResult XRAPI_CALL HookLocateViews(XrSession session, const XrViewLocateInfo* v
     return result;
 }
 
+struct FloatSample
+{
+    bool active = false;
+    float value = 0.0f;
+};
+
+struct BooleanSample
+{
+    bool active = false;
+    bool pressed = false;
+};
+
+struct VectorSample
+{
+    bool active = false;
+    XrVector2f value{};
+};
+
+FloatSample SampleFloat(LayerState& s, XrSession session, XrAction action, XrPath path)
+{
+    FloatSample sample;
+    if (action == XR_NULL_HANDLE || !s.next.getActionStateFloat)
+        return sample;
+    XrActionStateGetInfo get{XR_TYPE_ACTION_STATE_GET_INFO};
+    get.action = action;
+    get.subactionPath = path;
+    XrActionStateFloat state{XR_TYPE_ACTION_STATE_FLOAT};
+    if (XR_FAILED(s.next.getActionStateFloat(session, &get, &state)))
+        return sample;
+    sample.active = state.isActive == XR_TRUE;
+    sample.value = sample.active ? state.currentState : 0.0f;
+    return sample;
+}
+
+BooleanSample SampleBoolean(LayerState& s, XrSession session, XrAction action, XrPath path)
+{
+    BooleanSample sample;
+    if (action == XR_NULL_HANDLE || !s.next.getActionStateBoolean)
+        return sample;
+    XrActionStateGetInfo get{XR_TYPE_ACTION_STATE_GET_INFO};
+    get.action = action;
+    get.subactionPath = path;
+    XrActionStateBoolean state{XR_TYPE_ACTION_STATE_BOOLEAN};
+    if (XR_FAILED(s.next.getActionStateBoolean(session, &get, &state)))
+        return sample;
+    sample.active = state.isActive == XR_TRUE;
+    sample.pressed = sample.active && state.currentState == XR_TRUE;
+    return sample;
+}
+
+VectorSample SampleVector(LayerState& s, XrSession session, XrAction action, XrPath path)
+{
+    VectorSample sample;
+    if (action == XR_NULL_HANDLE || !s.next.getActionStateVector2f)
+        return sample;
+    XrActionStateGetInfo get{XR_TYPE_ACTION_STATE_GET_INFO};
+    get.action = action;
+    get.subactionPath = path;
+    XrActionStateVector2f state{XR_TYPE_ACTION_STATE_VECTOR2F};
+    if (XR_FAILED(s.next.getActionStateVector2f(session, &get, &state)))
+        return sample;
+    sample.active = state.isActive == XR_TRUE;
+    sample.value = sample.active ? state.currentState : XrVector2f{};
+    return sample;
+}
+
+int Percent(float value)
+{
+    return static_cast<int>(std::lround(std::clamp(value, 0.0f, 1.0f) * 100.0f));
+}
+
+int SignedPercent(float value)
+{
+    return static_cast<int>(std::lround(std::clamp(value, -1.0f, 1.0f) * 100.0f));
+}
+
+int BooleanCode(const BooleanSample& sample)
+{
+    return !sample.active ? 0 : sample.pressed ? 2 : 1;
+}
+
+int CurrentProfile(LayerState& s, XrSession session, XrPath hand)
+{
+    if (!s.next.getCurrentInteractionProfile || hand == XR_NULL_PATH)
+        return 0;
+    XrInteractionProfileState state{XR_TYPE_INTERACTION_PROFILE_STATE};
+    if (XR_FAILED(s.next.getCurrentInteractionProfile(session, hand, &state)))
+        return 0;
+    return ProfileKind(PathText(s, state.interactionProfile));
+}
+
+void UpdateDiagnostics(LayerState& s, XrSession session)
+{
+    int enabled = 0;
+    if (!s.diagEnabledVar.ReadInt(enabled) || enabled != 1)
+        return;
+    if (s.frame % kDiagIntervalFrames != 0)
+        return;
+
+    if (s.frame == kDiagIntervalFrames || s.frame % kDiagProfileIntervalFrames == 0)
+    {
+        s.profileLeft = CurrentProfile(s, session, s.leftHand);
+        s.profileRight = CurrentProfile(s, session, s.rightHand);
+    }
+
+    FloatSample triggerLeft = SampleFloat(s, session, s.trigger, s.leftHand);
+    FloatSample triggerRight = SampleFloat(s, session, s.trigger, s.rightHand);
+    const GripSlot* gripLeft = FindGrip(s, s.leftHand);
+    const GripSlot* gripRight = FindGrip(s, s.rightHand);
+    VectorSample stickLeft = SampleVector(s, session, s.stick, s.leftHand);
+    VectorSample stickRight = SampleVector(s, session, s.stick, s.rightHand);
+
+    s.diagRuntimeKindVar.WriteInt(s.runtimeKind);
+    s.diagRuntimeVersionVar.WriteInt(EncodeVersion(s.runtimeVersion));
+    s.diagApiVersionVar.WriteInt(EncodeVersion(s.appApiVersion));
+    s.diagProfileLeftVar.WriteInt(s.profileLeft);
+    s.diagProfileRightVar.WriteInt(s.profileRight);
+    s.diagTrackingLeftVar.WriteInt(TrackingCode(s, s.leftPose));
+    s.diagTrackingRightVar.WriteInt(TrackingCode(s, s.rightPose));
+
+    s.diagTriggerLeftVar.WriteInt(triggerLeft.active ? Percent(triggerLeft.value) : 0);
+    s.diagTriggerRightVar.WriteInt(triggerRight.active ? Percent(triggerRight.value) : 0);
+    s.diagTriggerLeftActiveVar.WriteInt(triggerLeft.active ? 1 : 0);
+    s.diagTriggerRightActiveVar.WriteInt(triggerRight.active ? 1 : 0);
+
+    s.diagGripLeftVar.WriteInt(gripLeft && gripLeft->rawActive ? Percent(gripLeft->raw) : 0);
+    s.diagGripRightVar.WriteInt(gripRight && gripRight->rawActive ? Percent(gripRight->raw) : 0);
+    s.diagGripLeftActiveVar.WriteInt(gripLeft && gripLeft->rawActive ? 1 : 0);
+    s.diagGripRightActiveVar.WriteInt(gripRight && gripRight->rawActive ? 1 : 0);
+
+    s.diagStickLeftXVar.WriteInt(stickLeft.active ? SignedPercent(stickLeft.value.x) : 0);
+    s.diagStickLeftYVar.WriteInt(stickLeft.active ? SignedPercent(stickLeft.value.y) : 0);
+    s.diagStickLeftActiveVar.WriteInt(stickLeft.active ? 1 : 0);
+    s.diagStickRightXVar.WriteInt(stickRight.active ? SignedPercent(stickRight.value.x) : 0);
+    s.diagStickRightYVar.WriteInt(stickRight.active ? SignedPercent(stickRight.value.y) : 0);
+    s.diagStickRightActiveVar.WriteInt(stickRight.active ? 1 : 0);
+
+    s.diagStickClickLeftVar.WriteInt(BooleanCode(SampleBoolean(s, session, s.stickClick, s.leftHand)));
+    s.diagStickClickRightVar.WriteInt(BooleanCode(SampleBoolean(s, session, s.stickClick, s.rightHand)));
+    s.diagPrimaryVar.WriteInt(BooleanCode(SampleBoolean(s, session, s.jump, s.jumpHand)));
+    s.diagCrouchVar.WriteInt(BooleanCode(SampleBoolean(s, session, s.crouch, XR_NULL_PATH)));
+    s.diagTacticalVar.WriteInt(BooleanCode(SampleBoolean(s, session, s.tactical, XR_NULL_PATH)));
+    s.diagReloadLeftVar.WriteInt(BooleanCode(SampleBoolean(s, session, s.reloadGrab, s.leftHand)));
+    s.diagReloadRightVar.WriteInt(BooleanCode(SampleBoolean(s, session, s.reloadGrab, s.rightHand)));
+
+    s.diagApiVar.WriteInt(1);
+    ++s.diagSeq;
+    s.diagSeqVar.WriteInt(s.diagSeq);
+}
+
 XrResult XRAPI_CALL HookSyncActions(XrSession session, const XrActionsSyncInfo* syncInfo)
 {
     LayerState& s = State();
@@ -1257,6 +1551,7 @@ XrResult XRAPI_CALL HookSyncActions(XrSession session, const XrActionsSyncInfo* 
         UpdateTacticalHand(s);
         UpdateTriggerOverride(s, session);
         UpdateSprint(s, session);
+        UpdateDiagnostics(s, session);
     }
 
     for (const std::string& command : commands)
@@ -1331,7 +1626,7 @@ XrResult XRAPI_CALL HookGetActionStateBoolean(XrSession session, const XrActionS
         state->changedSinceLastSync = c.jumpChanged ? XR_TRUE : XR_FALSE;
         return result;
     }
-    if (s.stickClick == XR_NULL_HANDLE || getInfo->action != s.stickClick || getInfo->subactionPath != s.sprintHand)
+    if (!s.config.sprintEnabled || s.stickClick == XR_NULL_HANDLE || getInfo->action != s.stickClick || getInfo->subactionPath != s.sprintHand)
         return result;
     const SprintState& sprint = s.sprint;
     if (!sprint.pressed && !sprint.changed)
@@ -1357,7 +1652,7 @@ XrResult XRAPI_CALL HookGetActionStateVector2f(XrSession session, const XrAction
         ++s.loggedStickQueries;
         Log("app queried stick with subaction path %s", PathText(s, getInfo->subactionPath).c_str());
     }
-    if (s.stick == XR_NULL_HANDLE || getInfo->action != s.stick || getInfo->subactionPath != s.sprintHand)
+    if (!s.config.sprintEnabled || s.stick == XR_NULL_HANDLE || getInfo->action != s.stick || getInfo->subactionPath != s.sprintHand)
         return result;
     if (s.sprint.stickZeroed)
     {
@@ -1439,6 +1734,9 @@ XrResult XRAPI_CALL LayerCreateApiLayerInstance(const XrInstanceCreateInfo* info
     s.instance = *instance;
     s.next = {};
     s.next.getInstanceProcAddr = layerInfo->nextInfo->nextGetInstanceProcAddr;
+    s.appApiVersion = info ? info->applicationInfo.apiVersion : XR_CURRENT_API_VERSION;
+    s.runtimeKind = 0;
+    s.runtimeVersion = 0;
     if (!s.active)
         return result;
 
@@ -1465,6 +1763,26 @@ XrResult XRAPI_CALL LayerCreateApiLayerInstance(const XrInstanceCreateInfo* info
         s.active = false;
         return result;
     }
+
+    PFN_xrVoidFunction instanceProperties = nullptr;
+    if (XR_SUCCEEDED(s.next.getInstanceProcAddr(s.instance, "xrGetInstanceProperties", &instanceProperties)) && instanceProperties)
+        s.next.getInstanceProperties = reinterpret_cast<PFN_xrGetInstanceProperties>(instanceProperties);
+    PFN_xrVoidFunction currentProfile = nullptr;
+    if (XR_SUCCEEDED(s.next.getInstanceProcAddr(s.instance, "xrGetCurrentInteractionProfile", &currentProfile)) && currentProfile)
+        s.next.getCurrentInteractionProfile = reinterpret_cast<PFN_xrGetCurrentInteractionProfile>(currentProfile);
+    if (s.next.getInstanceProperties)
+    {
+        XrInstanceProperties properties{XR_TYPE_INSTANCE_PROPERTIES};
+        if (XR_SUCCEEDED(s.next.getInstanceProperties(s.instance, &properties)))
+        {
+            s.runtimeKind = RuntimeKind(properties.runtimeName);
+            s.runtimeVersion = properties.runtimeVersion;
+            Log("runtime '%s' kind %d version %llu", properties.runtimeName, s.runtimeKind,
+                static_cast<unsigned long long>(s.runtimeVersion));
+        }
+    }
+    if (!s.next.getInstanceProperties || !s.next.getCurrentInteractionProfile)
+        Log("diagnostics: optional identity/profile queries unavailable");
 
     s.leftHand = ToPath(s, "/user/hand/left");
     s.rightHand = ToPath(s, "/user/hand/right");

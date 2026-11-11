@@ -12,7 +12,7 @@ global function TF2VRBB_AddMenu
 global function TF2VRBB_AddMainMenuFooter
 
 // Keep in sync with the project version in CMakeLists.txt.
-const string TF2VRBB_VERSION = "1.5.0"
+const string TF2VRBB_VERSION = "1.7.0"
 
 const string TF2VRBB_MENU_ROOT = "TF2VRBBRoot"
 const string TF2VRBB_MENU_CONTROLS = "TF2VRBBControls"
@@ -20,13 +20,14 @@ const string TF2VRBB_MENU_ACTIONS = "TF2VRBBActions"
 const string TF2VRBB_MENU_GENERAL = "TF2VRBBGeneral"
 const string TF2VRBB_MENU_ABOUT = "TF2VRBBAbout"
 const string TF2VRBB_MENU_RESTORE = "TF2VRBBRestore"
+const string TF2VRBB_MENU_DIAGNOSTICS = "TF2VRBBDiagnostics"
 
 // Set to 1 by the 1.5.0 plugin once it can read and write the ini.
 const string TF2VRBB_API_CONVAR = "tf2vrbb_settings_api"
 
 const int TF2VRBB_ACTION_ROW_COUNT = 9
 const int TF2VRBB_GENERAL_ROW_COUNT = 3
-const int TF2VRBB_ROOT_ROW_COUNT = 5
+const int TF2VRBB_ROOT_ROW_COUNT = 6
 
 struct TF2VRBBRow
 {
@@ -56,12 +57,39 @@ struct
 	var generalMenu
 	var aboutMenu
 	var restoreMenu
+	var diagnosticsMenu
 
 	var rootStatus
 	var actionStatus
 	var generalStatus
 	var restoreStatus
 	var aboutStorage
+
+	var diagLayerStatus
+	var diagSettingsStatus
+	var diagRuntime
+	var diagApi
+	var diagProfileLeft
+	var diagProfileRight
+	var diagTrackLeft
+	var diagTrackRight
+	var diagActionConfig
+	var diagSample
+	var diagTriggerLeft
+	var diagTriggerRight
+	var diagGripLeft
+	var diagGripRight
+	var diagStickLeft
+	var diagStickRight
+	var diagStickClick
+	var diagPrimary
+	var diagCrouch
+	var diagTactical
+	var diagReload
+	int diagRunId
+	int diagStartSeq
+	int diagLastSeq
+	int diagStaleFrames
 } file
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -78,6 +106,7 @@ void function TF2VRBB_AddMenu()
 	AddMenu( TF2VRBB_MENU_GENERAL, $"resource/ui/menus/tf2vrbb_general.menu", TF2VRBB_InitGeneral )
 	AddMenu( TF2VRBB_MENU_ABOUT, $"resource/ui/menus/tf2vrbb_about.menu", TF2VRBB_InitAbout )
 	AddMenu( TF2VRBB_MENU_RESTORE, $"resource/ui/menus/tf2vrbb_restore.menu", TF2VRBB_InitRestore )
+	AddMenu( TF2VRBB_MENU_DIAGNOSTICS, $"resource/ui/menus/tf2vrbb_diagnostics.menu", TF2VRBB_InitDiagnostics )
 }
 
 // Runs after every menu exists and is created, so footers can be added to the
@@ -201,8 +230,9 @@ void function TF2VRBB_InitRoot()
 	TF2VRBB_SetButtonLabel( file.rootMenu, "Row0", "CONTROLS" )
 	TF2VRBB_SetButtonLabel( file.rootMenu, "Row1", "ACTION SETTINGS" )
 	TF2VRBB_SetButtonLabel( file.rootMenu, "Row2", "GENERAL OPTIONS" )
-	TF2VRBB_SetButtonLabel( file.rootMenu, "Row3", "ABOUT" )
-	TF2VRBB_SetButtonLabel( file.rootMenu, "Row4", "RESTORE DEFAULTS" )
+	TF2VRBB_SetButtonLabel( file.rootMenu, "Row3", "VR DIAGNOSTICS" )
+	TF2VRBB_SetButtonLabel( file.rootMenu, "Row4", "ABOUT" )
+	TF2VRBB_SetButtonLabel( file.rootMenu, "Row5", "RESTORE DEFAULTS" )
 
 	TF2VRBB_WireNav( file.rootButtons )
 	TF2VRBB_BindRootRows()
@@ -262,6 +292,36 @@ void function TF2VRBB_InitAbout()
 
 	AddMenuFooterOption( file.aboutMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
 	AddMenuEventHandler( file.aboutMenu, eUIEvent.MENU_OPEN, TF2VRBB_OnAboutOpen )
+}
+
+void function TF2VRBB_InitDiagnostics()
+{
+	file.diagnosticsMenu = GetMenu( TF2VRBB_MENU_DIAGNOSTICS )
+	file.diagLayerStatus = Hud_GetChild( file.diagnosticsMenu, "LayerStatus" )
+	file.diagSettingsStatus = Hud_GetChild( file.diagnosticsMenu, "SettingsStatus" )
+	file.diagRuntime = Hud_GetChild( file.diagnosticsMenu, "RuntimeInfo" )
+	file.diagApi = Hud_GetChild( file.diagnosticsMenu, "ApiInfo" )
+	file.diagProfileLeft = Hud_GetChild( file.diagnosticsMenu, "ProfileLeft" )
+	file.diagProfileRight = Hud_GetChild( file.diagnosticsMenu, "ProfileRight" )
+	file.diagTrackLeft = Hud_GetChild( file.diagnosticsMenu, "TrackingLeft" )
+	file.diagTrackRight = Hud_GetChild( file.diagnosticsMenu, "TrackingRight" )
+	file.diagActionConfig = Hud_GetChild( file.diagnosticsMenu, "ActionConfig" )
+	file.diagSample = Hud_GetChild( file.diagnosticsMenu, "SampleState" )
+	file.diagTriggerLeft = Hud_GetChild( file.diagnosticsMenu, "TriggerLeft" )
+	file.diagTriggerRight = Hud_GetChild( file.diagnosticsMenu, "TriggerRight" )
+	file.diagGripLeft = Hud_GetChild( file.diagnosticsMenu, "GripLeft" )
+	file.diagGripRight = Hud_GetChild( file.diagnosticsMenu, "GripRight" )
+	file.diagStickLeft = Hud_GetChild( file.diagnosticsMenu, "StickLeft" )
+	file.diagStickRight = Hud_GetChild( file.diagnosticsMenu, "StickRight" )
+	file.diagStickClick = Hud_GetChild( file.diagnosticsMenu, "StickClick" )
+	file.diagPrimary = Hud_GetChild( file.diagnosticsMenu, "Primary" )
+	file.diagCrouch = Hud_GetChild( file.diagnosticsMenu, "Crouch" )
+	file.diagTactical = Hud_GetChild( file.diagnosticsMenu, "Tactical" )
+	file.diagReload = Hud_GetChild( file.diagnosticsMenu, "ReloadGrab" )
+
+	Hud_AddEventHandler( Hud_GetChild( file.diagnosticsMenu, "BtnBack" ), UIE_CLICK, TF2VRBB_OnBackButton )
+	AddMenuFooterOption( file.diagnosticsMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
+	AddMenuEventHandler( file.diagnosticsMenu, eUIEvent.MENU_OPEN, TF2VRBB_OnDiagnosticsOpen )
 }
 
 void function TF2VRBB_InitRestore()
@@ -595,6 +655,181 @@ void function TF2VRBB_CycleRow( TF2VRBBRow row, var button )
 // Callbacks
 ////////////////////////////////////////////////////////////////////////////////
 
+string function TF2VRBB_DiagTwoDigits( int value )
+{
+	return value < 10 ? "0" + string( value ) : string( value )
+}
+
+string function TF2VRBB_DiagVersion( int encoded )
+{
+	if ( encoded <= 0 )
+		return "NOT REPORTED"
+	return string( encoded / 10000 ) + "." + TF2VRBB_DiagTwoDigits( ( encoded / 100 ) % 100 ) + "." + TF2VRBB_DiagTwoDigits( encoded % 100 )
+}
+
+string function TF2VRBB_DiagRuntime( int code )
+{
+	if ( code == 1 )
+		return "MONADO"
+	if ( code == 2 )
+		return "WIVRN"
+	if ( code == 3 )
+		return "STEAMVR"
+	if ( code == 4 )
+		return "OCULUS/META"
+	if ( code == 5 )
+		return "WMR"
+	if ( code == 6 )
+		return "PICO"
+	if ( code == 99 )
+		return "OTHER RUNTIME"
+	return "NOT REPORTED"
+}
+
+string function TF2VRBB_DiagProfile( int code )
+{
+	if ( code == 1 )
+		return "KHR SIMPLE"
+	if ( code == 2 )
+		return "OCULUS/META TOUCH"
+	if ( code == 3 )
+		return "VALVE INDEX"
+	if ( code == 4 )
+		return "HTC VIVE"
+	if ( code == 5 )
+		return "WMR"
+	if ( code == 6 )
+		return "PICO"
+	if ( code == 99 )
+		return "OTHER PROFILE"
+	return "NO PROFILE"
+}
+
+string function TF2VRBB_DiagTracking( int code )
+{
+	if ( code == 3 )
+		return "TRACKED"
+	if ( code == 2 )
+		return "POSE VALID"
+	if ( code == 1 )
+		return "NOT TRACKED"
+	return "NO POSE DATA"
+}
+
+string function TF2VRBB_DiagAction( int code )
+{
+	if ( code == 2 )
+		return "PRESSED"
+	if ( code == 1 )
+		return "READY"
+	return "NO SIGNAL"
+}
+
+string function TF2VRBB_DiagOnOff( int value )
+{
+	return value == 1 ? "ON" : "OFF"
+}
+
+string function TF2VRBB_DiagBar( int value )
+{
+	int clamped = value
+	if ( clamped < 0 )
+		clamped = 0
+	if ( clamped > 100 )
+		clamped = 100
+	int filled = ( clamped + 5 ) / 10
+	string bar = ""
+	for ( int i = 0; i < 10; i++ )
+	{
+		if ( i < filled )
+			bar += "#"
+		else
+			bar += "-"
+	}
+	return "[" + bar + "] " + string( clamped ) + "%"
+}
+
+string function TF2VRBB_DiagInput( string label, string valueVar, string activeVar )
+{
+	if ( GetConVarInt( activeVar ) != 1 )
+		return label + "  NO ACTIVE BINDING"
+	return label + "  " + TF2VRBB_DiagBar( GetConVarInt( valueVar ) )
+}
+
+string function TF2VRBB_DiagStick( string label, string xVar, string yVar, string activeVar )
+{
+	if ( GetConVarInt( activeVar ) != 1 )
+		return label + "  NO ACTIVE BINDING"
+	int x = GetConVarInt( xVar )
+	int y = GetConVarInt( yVar )
+	return label + "  X " + ( x > 0 ? "+" + string( x ) : string( x ) ) + "  Y " + ( y > 0 ? "+" + string( y ) : string( y ) )
+}
+
+string function TF2VRBB_DiagReloadLine()
+{
+	return "RELOAD GRAB  L " + TF2VRBB_DiagAction( GetConVarInt( "tf2vrbb_diag_reload_left" ) )
+		+ "  R " + TF2VRBB_DiagAction( GetConVarInt( "tf2vrbb_diag_reload_right" ) )
+}
+
+void function TF2VRBB_RefreshDiagnostics()
+{
+	if ( file.diagnosticsMenu == null )
+		return
+
+	int apiConnected = GetConVarInt( "tf2vrbb_diag_api" ) == 1 ? 1 : 0
+	int sequence = GetConVarInt( "tf2vrbb_diag_seq" )
+	Hud_SetText( file.diagLayerStatus, "LAYER: " + ( apiConnected == 1 ? "CONNECTED" : "NO DATA" ) )
+	Hud_SetText( file.diagSettingsStatus, "SETTINGS BRIDGE: " + ( GetConVarInt( "tf2vrbb_settings_api" ) == 1 ? "CONNECTED" : "NOT CONNECTED" ) )
+	int runtimeKind = GetConVarInt( "tf2vrbb_diag_runtime_kind" )
+	int runtimeVersion = GetConVarInt( "tf2vrbb_diag_runtime_version" )
+	if ( runtimeKind == 0 && runtimeVersion == 0 )
+		Hud_SetText( file.diagRuntime, "RUNTIME: NOT REPORTED" )
+	else
+		Hud_SetText( file.diagRuntime, "RUNTIME: " + TF2VRBB_DiagRuntime( runtimeKind ) + " / " + TF2VRBB_DiagVersion( runtimeVersion ) )
+	Hud_SetText( file.diagApi, "APP API " + TF2VRBB_DiagVersion( GetConVarInt( "tf2vrbb_diag_api_version" ) ) )
+	Hud_SetText( file.diagProfileLeft, "PROFILE L: " + TF2VRBB_DiagProfile( GetConVarInt( "tf2vrbb_diag_profile_left" ) ) )
+	Hud_SetText( file.diagProfileRight, "PROFILE R: " + TF2VRBB_DiagProfile( GetConVarInt( "tf2vrbb_diag_profile_right" ) ) )
+	Hud_SetText( file.diagTrackLeft, "TRACK L: " + TF2VRBB_DiagTracking( GetConVarInt( "tf2vrbb_diag_tracking_left" ) ) )
+	Hud_SetText( file.diagTrackRight, "TRACK R: " + TF2VRBB_DiagTracking( GetConVarInt( "tf2vrbb_diag_tracking_right" ) ) )
+	Hud_SetText( file.diagActionConfig, "CONFIGURED: RELOAD " + TF2VRBB_DiagOnOff( GetConVarInt( "tf2vrbb_reload_grab" ) )
+		+ " / CROUCH " + TF2VRBB_DiagOnOff( GetConVarInt( "tf2vrbb_crouch_enabled" ) )
+		+ " / TACTICAL " + TF2VRBB_DiagOnOff( GetConVarInt( "tf2vrbb_tactical_enabled" ) ) )
+	if ( apiConnected != 1 )
+	{
+		file.diagStaleFrames = 0
+		Hud_SetText( file.diagSample, "SAMPLE: NONE - LAYER NOT PUBLISHING" )
+	}
+	else if ( sequence != file.diagLastSeq )
+	{
+		file.diagLastSeq = sequence
+		file.diagStaleFrames = 0
+		Hud_SetText( file.diagSample, "SAMPLE: LIVE #" + string( sequence ) )
+	}
+	else
+	{
+		file.diagStaleFrames += 1
+		if ( sequence == file.diagStartSeq && file.diagStaleFrames < 100 )
+			Hud_SetText( file.diagSample, "SAMPLE: WAITING FOR NEXT SYNC" )
+		else if ( file.diagStaleFrames < 100 )
+			Hud_SetText( file.diagSample, "SAMPLE: LIVE #" + string( sequence ) )
+		else
+			Hud_SetText( file.diagSample, "SAMPLE: STALE - NO NEW SYNC" )
+	}
+
+	Hud_SetText( file.diagTriggerLeft, TF2VRBB_DiagInput( "TRIGGER L", "tf2vrbb_diag_trigger_left", "tf2vrbb_diag_trigger_left_active" ) )
+	Hud_SetText( file.diagTriggerRight, TF2VRBB_DiagInput( "TRIGGER R", "tf2vrbb_diag_trigger_right", "tf2vrbb_diag_trigger_right_active" ) )
+	Hud_SetText( file.diagGripLeft, TF2VRBB_DiagInput( "GRIP L", "tf2vrbb_diag_grip_left", "tf2vrbb_diag_grip_left_active" ) )
+	Hud_SetText( file.diagGripRight, TF2VRBB_DiagInput( "GRIP R", "tf2vrbb_diag_grip_right", "tf2vrbb_diag_grip_right_active" ) )
+	Hud_SetText( file.diagStickLeft, TF2VRBB_DiagStick( "STICK L", "tf2vrbb_diag_stick_left_x", "tf2vrbb_diag_stick_left_y", "tf2vrbb_diag_stick_left_active" ) )
+	Hud_SetText( file.diagStickRight, TF2VRBB_DiagStick( "STICK R", "tf2vrbb_diag_stick_right_x", "tf2vrbb_diag_stick_right_y", "tf2vrbb_diag_stick_right_active" ) )
+	Hud_SetText( file.diagStickClick, "STICK CLICK  L " + TF2VRBB_DiagAction( GetConVarInt( "tf2vrbb_diag_stick_click_left" ) )
+		+ "  R " + TF2VRBB_DiagAction( GetConVarInt( "tf2vrbb_diag_stick_click_right" ) ) )
+	Hud_SetText( file.diagPrimary, "PRIMARY (JUMP)  " + TF2VRBB_DiagAction( GetConVarInt( "tf2vrbb_diag_primary" ) ) )
+	Hud_SetText( file.diagCrouch, "CROUCH  " + TF2VRBB_DiagAction( GetConVarInt( "tf2vrbb_diag_crouch" ) ) )
+	Hud_SetText( file.diagTactical, "TACTICAL  " + TF2VRBB_DiagAction( GetConVarInt( "tf2vrbb_diag_tactical" ) ) )
+	Hud_SetText( file.diagReload, TF2VRBB_DiagReloadLine() )
+}
+
 void function TF2VRBB_OnOpenFromMainMenu( var button )
 {
 	TF2VRBB_RefreshAll()
@@ -606,6 +841,32 @@ void function TF2VRBB_OnRootOpen()
 	TF2VRBB_RefreshAll()
 	FocusDefaultMenuItem( file.rootMenu )
 	thread TF2VRBB_LogRootLayout()
+}
+
+void function TF2VRBB_OnDiagnosticsOpen()
+{
+	file.diagRunId += 1
+	file.diagStartSeq = GetConVarInt( "tf2vrbb_diag_seq" )
+	file.diagLastSeq = file.diagStartSeq
+	file.diagStaleFrames = 0
+	SetConVarInt( "tf2vrbb_diag_enabled", 1 )
+	TF2VRBB_RefreshDiagnostics()
+	FocusDefaultMenuItem( file.diagnosticsMenu )
+	thread TF2VRBB_DiagnosticsThink( file.diagRunId )
+}
+
+void function TF2VRBB_DiagnosticsThink( int runId )
+{
+	WaitFrame()
+	WaitFrame()
+	while ( file.diagRunId == runId && GetActiveMenu() == file.diagnosticsMenu )
+	{
+		TF2VRBB_RefreshDiagnostics()
+		WaitFrame()
+		WaitFrame()
+	}
+	if ( file.diagRunId == runId )
+		SetConVarInt( "tf2vrbb_diag_enabled", 0 )
 }
 
 void function TF2VRBB_OnListPageOpen()
@@ -695,10 +956,15 @@ void function TF2VRBB_OpenRootPage( int index )
 	}
 	if ( index == 3 )
 	{
-		AdvanceMenu( GetMenu( TF2VRBB_MENU_ABOUT ) )
+		AdvanceMenu( GetMenu( TF2VRBB_MENU_DIAGNOSTICS ) )
 		return
 	}
 	if ( index == 4 )
+	{
+		AdvanceMenu( GetMenu( TF2VRBB_MENU_ABOUT ) )
+		return
+	}
+	if ( index == 5 )
 	{
 		AdvanceMenu( GetMenu( TF2VRBB_MENU_RESTORE ) )
 	}

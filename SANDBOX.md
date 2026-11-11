@@ -29,7 +29,7 @@ To open it:
 
 The entry is appended to the campaign `InGameSPMenu`. Vanilla pause entries
 such as Resume, Restart, Settings and Quit are not replaced. The main-menu
-**TF2VR Quality of life** settings page is a separate feature and is unchanged.
+**TF2VR Quality of life** settings page is a separate feature; the VR diagnostics page added there in 1.7.0 is not part of the campaign sandbox.
 
 ## Pages
 

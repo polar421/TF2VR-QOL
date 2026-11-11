@@ -12,6 +12,7 @@ allowed to change more campaign state.
   stable managed-NPC IDs, individual removal, a position bookmark, three saved
   presets, fly/noclip and a read-only map catalog.
 - Layout logging, an on-screen bounds overlay, and saved overlay opacity.
+- A read-only VR diagnostics page and live text action tester in the settings menu, built from verified OpenXR action-state and pose hooks.
 - A Linux/MinGW cross-build with a static package and menu verifier.
 
 ## Design filters
@@ -37,6 +38,7 @@ Before a feature goes on the implementation list, it should pass these checks:
 |---|---|---:|---|---|
 | 0 | Validate the current build in game | M | None | Everything else depends on a trustworthy baseline |
 | 1 | Setup Check page | M | Low | Installation mistakes are the most common support problem |
+| 1 | VR diagnostics and text input tester | M | Low | Implemented in 1.7.0; needs headset validation before report export |
 | 1 | Preset management | S | Low | Completes the most visible gap in the sandbox |
 | 1 | NPC catalog runtime validation | M | Medium | The 1.6.0 catalog and managed roster have not been exercised in game |
 | 1 | Overlay accessibility | S | Low | The diagnostic overlay is already useful; make it readable for more people |
@@ -63,15 +65,30 @@ matrix with the game version, TF2VR version, headset and runtime. At minimum:
 - Toggle fly, verify the status label and movement, then land.
 - Toggle the bounds overlay, cycle opacity, and confirm both values survive a
   clean restart.
+- Open **VR DIAGNOSTICS**, confirm the layer/runtime/profile/tracking rows, and move every tested action while watching the live values.
 - Check the new `Hud_SetAlpha` behavior at 10% and 100% in the headset.
 - Repeat the menu and comfort checks through WiVRn on the Quest 3S.
 
 **Exit criteria:** every shipped control either passes or is clearly labelled
-unsupported in the README. Fix blockers in a small `1.6.x` release before adding
+unsupported in the README. Fix blockers in a small `1.7.x` release before adding
 new surface area. Do not add another OpenXR action until the current three have
 been exercised in the headset.
 
 ## Phase 1 — Finish the edges
+
+### VR diagnostics and input tester (implemented in 1.7.0)
+
+The 1.7.0 settings menu has a read-only **VR DIAGNOSTICS** page. It reports the
+layer publication state, settings bridge, runtime class/version, app API
+version, per-hand interaction profile, pose validity and configured optional
+actions. Its live column samples trigger, grip, stick, stick click, primary,
+crouch, tactical and reload action states from the layer. Unsupported queries,
+inactive controllers and unbound actions are labelled rather than guessed.
+
+This is a text v1, not the full diagnostics center. Report export, setup-health
+checks, calibration compatibility, graphical controller visualization, battery
+state and face/menu button reporting remain outstanding. The page has not been
+exercised in a headset.
 
 ### Setup Check page
 

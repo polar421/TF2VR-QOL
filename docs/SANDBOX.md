@@ -3,7 +3,7 @@
 For a practical walkthrough of the shipped sandbox, see
 [`SANDBOX.md`](../SANDBOX.md).
 
-This document records what the 1.6.0 sandbox actually implements, which
+This document records what the 1.7.0 sandbox actually implements, which
 interfaces were verified before use, and what remains blocked on runtime
 testing. It is a checklist, not a claim that every proposed PDF feature exists.
 
@@ -28,7 +28,7 @@ button or resource. The UI VM registers eight sandbox pages:
 | `TF2VRSBSandboxPresets` | `tf2vrsb_presets.menu` |
 | `TF2VRSBSandboxDeveloper` | `tf2vrsb_developer.menu` |
 
-The existing main-menu **TF2VR Quality of life** page is unchanged.
+The main-menu **TF2VR Quality of life** page is separate; 1.7.0 adds the read-only VR diagnostics page there, not in the sandbox.
 
 ## PDF requirement mapping
 
@@ -38,10 +38,10 @@ examples were treated as proposals, not APIs.
 `Implemented` below means the packaged source contains the wired action. No row has
 been run in Titanfall 2; the runtime test plan at the end is still outstanding.
 
-| Requirement | State in 1.6.0 | Evidence / limitation |
+| Requirement | State in 1.7.0 | Evidence / limitation |
 |---|---|---|
 | Campaign pause-menu entry | Implemented | `InGameSPMenu` is used by the installed TF2VR sources and the menu API is present in Northstar |
-| Dashboard / category navigation | Implemented | Six UI pages, explicit nav links, B footer, controller focus |
+| Dashboard / category navigation | Implemented | Eight UI pages, explicit nav links, B footer, controller focus |
 | Maps & Environments | Read-only catalog | 13 IDs cross-checked against the installed `tf2vr_memories.nut`; no map transition |
 | Safe map switching | Not implemented | `ChangeLevel` exists but campaign transition side effects are not runtime-tested |
 | World Editor | Not implemented | No verified `CreateProp` usage or object registry was found in the installed Northstar/campaign scripts; placement is withheld |
@@ -55,7 +55,7 @@ been run in Titanfall 2; the runtime test plan at the end is still outstanding.
 | Debug overlays / menu position | Implemented as logs + on-screen bounds | `[TF2VRSB][layout]` dumps geometry and text; **Y** tints the menu orange and focusable controls cyan using live HUD bounds |
 | Visual design | Implemented resources | Original dark industrial layout, orange accents, technical labels |
 | VR / WiVRn | Not physically tested | Native menu path is used; no separate OpenXR overlay was added |
-| Packaging | Implemented | CMake package, version 1.6.0, verifier covers files, seven scripts, 62 ConVars and 14 menu resources; `scripts/verify-sandbox.py` cross-checks controls, bridge targets, commands, allow-list entries and ConVars |
+| Packaging | Implemented | CMake package, version 1.7.0, verifier covers files, seven scripts, 93 ConVars and 15 menu resources; `scripts/verify-sandbox.py` cross-checks controls, bridge targets, commands, allow-list entries and ConVars |
 
 ## Verified interfaces
 

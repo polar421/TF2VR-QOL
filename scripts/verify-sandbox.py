@@ -34,11 +34,15 @@ def main() -> int:
     ui_path = mod / "mod/scripts/vscripts/ui/tf2vrsb_menu.nut"
     npc_ui_path = mod / "mod/scripts/vscripts/ui/tf2vrsb_npc_browser.nut"
     debug_path = mod / "mod/scripts/vscripts/ui/tf2vrsb_debug.nut"
+    settings_ui_path = mod / "mod/scripts/vscripts/ui/tf2vrbb_menu.nut"
+    diagnostics_path = mod / "mod/resource/ui/menus/tf2vrbb_diagnostics.menu"
     client_path = mod / "mod/scripts/vscripts/tf2vrsb_client.nut"
     server_path = mod / "mod/scripts/vscripts/tf2vrsb_server.nut"
     ui = read(ui_path)
     npc_ui = read(npc_ui_path)
     debug = read(debug_path)
+    settings_ui = read(settings_ui_path)
+    diagnostics = read(diagnostics_path)
     combined_ui = ui + "\n" + npc_ui
     client = read(client_path)
     server = read(server_path)
@@ -77,6 +81,32 @@ def main() -> int:
     ):
         if required not in ui:
             problems.append(f"tf2vrsb_menu.nut: missing {required}")
+
+    # Diagnostics labels and lifecycle. These are settings-menu controls, not
+    # part of the campaign sandbox, so they are checked separately.
+    diag_controls: set[str] = set()
+    diag_lines = diagnostics.splitlines()
+    for index, line in enumerate(diag_lines[:-1]):
+        match = re.match(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*$", line)
+        if match and diag_lines[index + 1].strip() == "{":
+            diag_controls.add(match.group(1))
+    for child in re.findall(r'Hud_GetChild\(\s*file\.diagnosticsMenu,\s*"([^"]+)"\s*\)', settings_ui):
+        if child not in diag_controls:
+            problems.append(f"tf2vrbb_diagnostics.menu: Hud_GetChild missing {child}")
+    for required in (
+        "TF2VRBB_InitDiagnostics",
+        "TF2VRBB_RefreshDiagnostics",
+        "TF2VRBB_DiagnosticsThink",
+        'SetConVarInt( "tf2vrbb_diag_enabled", 1 )',
+        'SetConVarInt( "tf2vrbb_diag_enabled", 0 )',
+        "GetActiveMenu() == file.diagnosticsMenu",
+    ):
+        if required not in settings_ui:
+            problems.append(f"tf2vrbb_menu.nut: missing diagnostics hook {required}")
+    root_resource = read(mod / "mod/resource/ui/menus/tf2vrbb_root.menu")
+    for row in range(6):
+        if not re.search(r"^\s*Row" + str(row) + r"\s*$", root_resource, re.MULTILINE):
+            problems.append(f"tf2vrbb_root.menu: missing diagnostics root row Row{row}")
 
     # Menu registrations and the resources they reference. The UI uses
     # string constants for menu IDs, so resolve those before comparing.
@@ -221,7 +251,7 @@ def main() -> int:
             problems.append(f"debug UI module must not call server/world API: {forbidden}")
 
     # ConVar declarations used by either script.
-    for label, text in (("UI", combined_ui), ("DEBUG", debug), ("CLIENT", client), ("SERVER", server)):
+    for label, text in (("UI", combined_ui), ("SETTINGS", settings_ui), ("DEBUG", debug), ("CLIENT", client), ("SERVER", server)):
         for match in re.finditer(
             r'(?:Get|Set)ConVar(?:String|Int|Float)\(\s*"((?:tf2vrbb|tf2vrsb)_[^"]+)"',
             text,
