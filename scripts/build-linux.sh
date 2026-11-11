@@ -153,6 +153,7 @@ expected = [
     f"{mod_dir}/mod/scripts/vscripts/tf2vrsb_client.nut",
     f"{mod_dir}/mod/scripts/vscripts/tf2vrsb_server.nut",
     f"{mod_dir}/mod/scripts/vscripts/ui/tf2vrsb_menu.nut",
+    f"{mod_dir}/mod/scripts/vscripts/ui/tf2vrsb_debug.nut",
 ]
 expected += [f"{mod_dir}/mod/resource/ui/menus/tf2vrbb_{page}.menu" for page in menu_pages]
 expected += [f"{mod_dir}/mod/resource/ui/menus/tf2vrsb_{page}.menu" for page in sandbox_pages]
@@ -171,7 +172,8 @@ required_convars = {
     "tf2vrbb_sprint_enabled", "tf2vrbb_sprint_start_cm", "tf2vrbb_sprint_stop_cm",
     "tf2vrsb_map", "tf2vrsb_mode", "tf2vrsb_ready", "tf2vrsb_x", "tf2vrsb_y",
     "tf2vrsb_z", "tf2vrsb_yaw", "tf2vrsb_npc_count", "tf2vrsb_entity_count",
-    "tf2vrsb_managed_count", "tf2vrsb_bookmark", "tf2vrsb_result", "tf2vrsb_cap",
+    "tf2vrsb_managed_count", "tf2vrsb_bookmark", "tf2vrsb_fly", "tf2vrsb_debug",
+    "tf2vrsb_result", "tf2vrsb_cap",
     "tf2vrsb_spawn_distance", "tf2vrsb_request_map", "tf2vrsb_request_x",
     "tf2vrsb_request_y", "tf2vrsb_request_z", "tf2vrsb_request_yaw",
 }
@@ -308,8 +310,8 @@ else:
         problems.append(f"mod.json is missing ConVar {name}")
 
     scripts = mod.get("Scripts", [])
-    if len(scripts) != 5:
-        problems.append(f"mod.json lists {len(scripts)} scripts, expected 5")
+    if len(scripts) != 6:
+        problems.append(f"mod.json lists {len(scripts)} scripts, expected 6")
     for script in scripts:
         run_on = script.get("RunOn")
         if run_on not in ("UI", "CLIENT", "SERVER"):
@@ -353,16 +355,24 @@ else:
     client_nut = read(pkg / mod_dir / "mod/scripts/vscripts/tf2vrsb_client.nut")
     if client_nut.count("{") != client_nut.count("}"):
         problems.append("tf2vrsb_client.nut: unbalanced braces")
-    for required in ("GetLocalClientPlayer(", "ClientCommand("):
+    for required in ("GetLocalClientPlayer(", "ClientCommand(", "tf2vrsb_toggle_fly"):
         if required not in client_nut:
             problems.append(f"tf2vrsb_client.nut: missing {required}")
 
     server_nut = read(pkg / mod_dir / "mod/scripts/vscripts/tf2vrsb_server.nut")
     if server_nut.count("{") != server_nut.count("}"):
         problems.append("tf2vrsb_server.nut: unbalanced braces")
-    for required in ("AddClientCommandCallback(", "CreateNPC(", "Destroy()", "SetOrigin("):
+    for required in ("AddClientCommandCallback(", "CreateNPC(", "Destroy()", "SetOrigin(",
+                     "IsNoclipping(", "SetPhysics(", "MOVETYPE_NOCLIP"):
         if required not in server_nut:
             problems.append(f"tf2vrsb_server.nut: missing {required}")
+
+    debug_nut = read(pkg / mod_dir / "mod/scripts/vscripts/ui/tf2vrsb_debug.nut")
+    if debug_nut.count("{") != debug_nut.count("}"):
+        problems.append("tf2vrsb_debug.nut: unbalanced braces")
+    for required in ("TF2VRSB_LogPage(", "TF2VRSB_LogState(", "TF2VRSB_LogEvent(", "Hud_GetAbsX("):
+        if required not in debug_nut:
+            problems.append(f"tf2vrsb_debug.nut: missing {required}")
 
     ini = {}
     section = None
@@ -408,7 +418,7 @@ if problems:
     sys.exit(1)
 
 print(f"verified {len(expected)} files: both DLLs x64, mod.json {version} with "
-      f"{len(required_convars)} ConVars, 5 UI/CLIENT/SERVER scripts and 12 menu resources, "
+      f"{len(required_convars)} ConVars, 6 UI/CLIENT/SERVER scripts and 12 menu resources, "
       f"ini and manifest consistent, zip complete")
 PY
 

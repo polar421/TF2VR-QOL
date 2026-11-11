@@ -1,6 +1,6 @@
 # TF2VR Northstar Campaign Sandbox
 
-This document records what the 1.4.0 sandbox actually implements, which
+This document records what the 1.5.0 sandbox actually implements, which
 interfaces were verified before use, and what remains blocked on runtime
 testing. It is a checklist, not a claim that every proposed PDF feature exists.
 
@@ -33,7 +33,7 @@ examples were treated as proposals, not APIs.
 `Implemented` below means the packaged source contains the wired action. No row has
 been run in Titanfall 2; the runtime test plan at the end is still outstanding.
 
-| Requirement | State in 1.4.0 | Evidence / limitation |
+| Requirement | State in 1.5.0 | Evidence / limitation |
 |---|---|---|
 | Campaign pause-menu entry | Implemented | `InGameSPMenu` is used by the installed TF2VR sources and the menu API is present in Northstar |
 | Dashboard / category navigation | Implemented | Six UI pages, explicit nav links, B footer, controller focus |
@@ -42,15 +42,15 @@ been run in Titanfall 2; the runtime test plan at the end is still outstanding.
 | World Editor | Not implemented | No verified `CreateProp` usage or object registry was found in the installed Northstar/campaign scripts; placement is withheld |
 | NPC Sandbox | Implemented slice | Hostile soldier, hostile spectre, friendly soldier, cap, clear managed |
 | NPC browser / individual removal | Not implemented | Only three server-validated NPC classes and bulk cleanup are exposed |
-| Player Utilities | Implemented slice | Session bookmark save/return/clear |
+| Player Utilities | Implemented slice | Session bookmark save/return/clear; noclip fly toggle with status |
 | Gauntlet Builder | Not implemented | Requires tested scenario markers, ordering, timing and a verified server think/trigger path; no inert page is shipped |
 | Save & Load | Implemented slice | Three map-locked position presets in mod-scoped Safe I/O |
 | Rename / duplicate / browse / delete presets | Not implemented | Three fixed slots; no file browser |
-| Developer Tools | Implemented readout | Map, mode, coordinates, entity/NPC/managed counts, limits |
-| Debug overlays | Not implemented | No unverified overlay API is used |
+| Developer Tools | Implemented readout + logs | Map, mode, coordinates, entity/NPC/managed counts, limits; layout dump and debug switch |
+| Debug overlays / menu position | Implemented as logs | `[TF2VRSB][layout]` dumps screen size, page and control geometry and text; no overlay API is used |
 | Visual design | Implemented resources | Original dark industrial layout, orange accents, technical labels |
 | VR / WiVRn | Not physically tested | Native menu path is used; no separate OpenXR overlay was added |
-| Packaging | Implemented | CMake package, version 1.4.0, verifier covers files, scripts, ConVars and menus; `scripts/verify-sandbox.py` cross-checks controls, bridge targets, commands and ConVars |
+| Packaging | Implemented | CMake package, version 1.5.0, verifier covers files, six scripts, 36 ConVars and menus; `scripts/verify-sandbox.py` cross-checks controls, bridge targets, commands, allow-list entries and ConVars |
 
 ## Verified interfaces
 
@@ -61,6 +61,9 @@ menu, and Northstar's public modding documentation before use:
   `AddMenuFooterOption`, `AddMenuEventHandler`, `FocusDefaultMenuItem`
 - `Hud_GetChild`, `Hud_SetText`, `Hud_AddEventHandler`, `Hud_SetNavUp`,
   `Hud_SetNavDown`, `SetButtonRuiText`
+- `Hud_GetX`, `Hud_GetY`, `Hud_GetAbsX`, `Hud_GetAbsY`, `Hud_GetWidth`,
+  `Hud_GetHeight`, `Hud_GetParent`, `Hud_IsVisible`, `Hud_IsEnabled`,
+  `Hud_GetScriptID`, `Hud_GetUTF8Text`, `GetScreenSize`, `WaitFrame`
 - `RunClientScript` from the UI VM
 - `player.ClientCommand` from the CLIENT VM
 - `AddClientCommandCallback(string, bool functionref(entity, array<string>))`
@@ -70,6 +73,7 @@ menu, and Northstar's public modding documentation before use:
 - `CreateNPC`, `DispatchSpawn`, `npc.Destroy`
 - `player.GetOrigin`, `GetAngles`, `GetTeam`, `EyePosition`, `SetOrigin`,
   `SetAngles`, `SetVelocity`, `IsOnGround`
+- `player.IsNoclipping`, `player.SetPhysics`, `MOVETYPE_NOCLIP`, `MOVETYPE_WALK`
 - `AnglesToForward`, `TraceLine`
 - `Entities_First`, `Entities_Next`
 - `NSSaveFile`, `NSLoadFile`, `NSDoesFileExist`, `split`
@@ -77,15 +81,19 @@ menu, and Northstar's public modding documentation before use:
 `NSSaveFile`/`NSLoadFile` are used only from the UI VM and resolve to the mod's
 own save directory. They are not pointed at campaign saves. `TraceLine` uses
 the documented five-argument form and rejects both a start-solid trace and a
-blocked forward trace before creating an NPC.
+blocked forward trace before creating an NPC. The HUD geometry getters are the
+same ones already used by the settings debug logger in `ui/tf2vrbb_menu.nut`;
+they are read-only here. `IsNoclipping`/`SetPhysics` and the two movement-type
+constants match the installed Northstar `_northstar_cheatcommands.nut`.
 
 ## Execution contexts
 
 | Script | Context | Responsibility |
 |---|---|---|
 | `ui/tf2vrsb_menu.nut` | UI | Menus, labels, controller navigation, Safe I/O preset text, status display |
+| `ui/tf2vrsb_debug.nut` | UI | Log-only layout, state and event diagnostics; no world access |
 | `tf2vrsb_client.nut` | CLIENT | Forwards an allow-listed UI command through `ClientCommand` |
-| `tf2vrsb_server.nut` | SERVER | Campaign validation, NPC creation/cleanup, teleport, counts |
+| `tf2vrsb_server.nut` | SERVER | Campaign validation, NPC creation/cleanup, teleport, fly, counts |
 
 The UI never creates or destroys entities and does not call the server VM
 directly. It calls `RunClientScript("TF2VRSB_SendCommand", ...)`; the CLIENT VM
@@ -99,6 +107,7 @@ checks a fixed allow-list and forwards one of these narrow commands:
 - `tf2vrsb_save_bookmark`
 - `tf2vrsb_return_bookmark`
 - `tf2vrsb_clear_bookmark`
+- `tf2vrsb_toggle_fly`
 - `tf2vrsb_load_preset`
 
 The SERVER VM checks all of the following before acting:
@@ -112,6 +121,28 @@ The SERVER VM checks all of the following before acting:
 7. Only recorded handles are destroyed.
 8. A preset's map ID matches the current map and its coordinates are bounded.
 
+The fly command uses a narrower check than NPC spawning: the player must be in
+a single-player campaign, on a map, valid and alive. It does not require ground
+contact.
+
+## Diagnostics
+
+`ui/tf2vrsb_debug.nut` is a separate UI module registered with the same mod. It
+writes these prefixes to Northstar's `nslog`:
+
+- `[TF2VRSB][layout] page=... screen=...` on each page open
+- `[TF2VRSB][layout] menu ... rel=... abs=... size=... visible=...`
+- `[TF2VRSB][layout] <control> ... text="..."` for each page control
+- `[TF2VRSB][state] source=... map=... mode=... pos=... fly=...`
+- `[TF2VRSB][event] <kind> <detail>` for navigation, commands and preset loads
+- `[TF2VRSB][server] ...` for accepted server actions
+
+`tf2vrsb_debug` defaults to `1`. Setting it to `0` suppresses every diagnostic
+line; setting it back to `1` restores them. Developer Information's **LOG
+CURRENT LAYOUT TO NSLOG** writes a fresh page dump only while logging is on.
+The module reads geometry and ConVars; it never moves a control, changes a
+menu resource or calls a server API.
+
 ## Data and safety
 
 - Sandbox NPC handles are kept in a separate array and capped at 20 even if a
@@ -120,6 +151,10 @@ The SERVER VM checks all of the following before acting:
 - Bookmarks disappear when the map changes.
 - Presets are stored as `sandbox_position_<slot>.txt` in the mod's Safe I/O
   directory. They contain `map x y z yaw` and no user or campaign data.
+- Fly changes only the local player's movement type. Noclip ignores collision
+  and can leave campaign bounds; it must be toggled off to land.
+- Diagnostics are log-only and contain menu geometry, ConVar state and action
+  names. They do not modify campaign data.
 - The map catalog cannot change levels.
 - No campaign map file, campaign save, Northstar core file, Proton prefix,
   launch option or XR runtime configuration is modified by this mod.
@@ -140,9 +175,15 @@ the development environment:
    bookmark is gone.
 6. Save a position preset, restart the game, load it on the same map, and
    confirm a different map rejects it.
-7. Check `tf2vrsb_*` ConVars and the server log for rejected actions.
-8. Repeat the menu and gameplay checks in the Quest 3S through WiVRn, looking
-   for readability, focus, input handoff, and frame-time regressions.
+7. Toggle **FLY (NOCLIP)** and confirm the label/status switches to ON, the
+   player ignores collision, and a second press returns to walking with velocity
+   cleared. Check `tf2vrsb_fly` follows the actual state.
+8. Open Developer Information and confirm the `[TF2VRSB][layout]` block contains
+   the page and control positions; use **LOG CURRENT LAYOUT TO NSLOG**, then turn
+   **DEBUG LOGGING** off and confirm new page opens stop logging.
+9. Check `tf2vrsb_*` ConVars and the server log for rejected actions.
+10. Repeat the menu and gameplay checks in the Quest 3S through WiVRn, looking
+    for readability, focus, input handoff, fly comfort, and frame-time regressions.
 
 Only after those tests should the map/world/Gauntlet features be considered for
 implementation. They are intentionally absent rather than shipped as unverified

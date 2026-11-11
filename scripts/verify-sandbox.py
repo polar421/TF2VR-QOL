@@ -31,9 +31,11 @@ def main() -> int:
     convars = {entry.get("Name") for entry in manifest.get("ConVars", [])}
 
     ui_path = mod / "mod/scripts/vscripts/ui/tf2vrsb_menu.nut"
+    debug_path = mod / "mod/scripts/vscripts/ui/tf2vrsb_debug.nut"
     client_path = mod / "mod/scripts/vscripts/tf2vrsb_client.nut"
     server_path = mod / "mod/scripts/vscripts/tf2vrsb_server.nut"
     ui = read(ui_path)
+    debug = read(debug_path)
     client = read(client_path)
     server = read(server_path)
     problems: list[str] = []
@@ -121,9 +123,20 @@ def main() -> int:
         problems.append(f"UI command has no SERVER callback: {command}")
     for command in sorted(server_commands - ui_commands):
         problems.append(f"SERVER command is unused by the UI: {command}")
+    for command in sorted(server_commands):
+        if f'"{command}"' not in client:
+            problems.append(f"CLIENT allow-list is missing SERVER command: {command}")
+
+    # The diagnostic module must stay log-only and expose the expected hooks.
+    for required in ("TF2VRSB_LogPage(", "TF2VRSB_LogState(", "TF2VRSB_LogEvent(", "Hud_GetAbsX("):
+        if required not in debug:
+            problems.append(f"debug UI module is missing {required}")
+    for forbidden in ("RunClientScript(", "ClientCommand(", "SetOrigin(", "CreateNPC("):
+        if forbidden in debug:
+            problems.append(f"debug UI module must stay log-only: {forbidden}")
 
     # ConVar declarations used by either script.
-    for label, text in (("UI", ui), ("CLIENT", client), ("SERVER", server)):
+    for label, text in (("UI", ui), ("DEBUG", debug), ("CLIENT", client), ("SERVER", server)):
         for match in re.finditer(
             r'(?:Get|Set)ConVar(?:String|Int|Float)\(\s*"((?:tf2vrbb|tf2vrsb)_[^"]+)"',
             text,
@@ -160,7 +173,7 @@ def main() -> int:
     print(
         f"sandbox cross-references: {len(convars)} ConVars, "
         f"{len(menu_paths)} menus, {len(ui_commands)} commands, "
-        f"{len(controls_by_path)} resources"
+        f"{len(controls_by_path)} resources, 6 scripts"
     )
     return 0
 

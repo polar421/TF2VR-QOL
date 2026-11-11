@@ -35,6 +35,7 @@ void function TF2VRSB_ServerInit()
 	AddClientCommandCallback( "tf2vrsb_save_bookmark", TF2VRSB_CommandSaveBookmark )
 	AddClientCommandCallback( "tf2vrsb_return_bookmark", TF2VRSB_CommandReturnBookmark )
 	AddClientCommandCallback( "tf2vrsb_clear_bookmark", TF2VRSB_CommandClearBookmark )
+	AddClientCommandCallback( "tf2vrsb_toggle_fly", TF2VRSB_CommandToggleFly )
 	AddClientCommandCallback( "tf2vrsb_load_preset", TF2VRSB_CommandLoadPreset )
 
 	print( "[TF2VRSB] server sandbox commands registered\n" )
@@ -86,6 +87,7 @@ bool function TF2VRSB_CommandClearManaged( entity player, array<string> args )
 		}
 	}
 	file.managed = []
+	TF2VRSB_ServerLog( "clear-managed removed=" + string( removed ) )
 	SetConVarString( "tf2vrsb_result", "CLEARED " + string( removed ) + " SANDBOX NPCs" )
 	TF2VRSB_UpdateStatus( player )
 	return true
@@ -104,6 +106,8 @@ bool function TF2VRSB_CommandSaveBookmark( entity player, array<string> args )
 	file.bookmarkOrigin = player.GetOrigin()
 	file.bookmarkAngles = player.GetAngles()
 	file.bookmarkSet = true
+	TF2VRSB_ServerLog( "bookmark-save origin=" + string( int( file.bookmarkOrigin.x ) ) + ","
+		+ string( int( file.bookmarkOrigin.y ) ) + "," + string( int( file.bookmarkOrigin.z ) ) )
 	SetConVarString( "tf2vrsb_result", "POSITION BOOKMARK SAVED" )
 	TF2VRSB_UpdateStatus( player )
 	return true
@@ -128,6 +132,7 @@ bool function TF2VRSB_CommandReturnBookmark( entity player, array<string> args )
 	player.SetOrigin( file.bookmarkOrigin )
 	player.SetAngles( < 0, bookmarkYaw, 0 > )
 	player.SetVelocity( < 0, 0, 0 > )
+	TF2VRSB_ServerLog( "bookmark-return" )
 	SetConVarString( "tf2vrsb_result", "RETURNED TO POSITION BOOKMARK" )
 	TF2VRSB_UpdateStatus( player )
 	return true
@@ -136,7 +141,39 @@ bool function TF2VRSB_CommandReturnBookmark( entity player, array<string> args )
 bool function TF2VRSB_CommandClearBookmark( entity player, array<string> args )
 {
 	file.bookmarkSet = false
+	TF2VRSB_ServerLog( "bookmark-clear" )
 	SetConVarString( "tf2vrsb_result", "POSITION BOOKMARK CLEARED" )
+	TF2VRSB_UpdateStatus( player )
+	return true
+}
+
+bool function TF2VRSB_CommandToggleFly( entity player, array<string> args )
+{
+	string reason = TF2VRSB_RecoveryReason( player )
+	if ( reason != "" )
+	{
+		TF2VRSB_Reject( player, reason )
+		return false
+	}
+
+	TF2VRSB_SyncSession()
+	if ( player.IsNoclipping() )
+	{
+		player.SetPhysics( MOVETYPE_WALK )
+		player.SetVelocity( < 0, 0, 0 > )
+		SetConVarInt( "tf2vrsb_fly", 0 )
+		TF2VRSB_ServerLog( "fly-off" )
+		SetConVarString( "tf2vrsb_result", "FLY OFF - WALKING" )
+	}
+	else
+	{
+		player.SetPhysics( MOVETYPE_NOCLIP )
+		player.SetVelocity( < 0, 0, 0 > )
+		SetConVarInt( "tf2vrsb_fly", 1 )
+		TF2VRSB_ServerLog( "fly-on" )
+		SetConVarString( "tf2vrsb_result", "FLY ON - NOCLIP ACTIVE" )
+	}
+
 	TF2VRSB_UpdateStatus( player )
 	return true
 }
@@ -174,6 +211,8 @@ bool function TF2VRSB_CommandLoadPreset( entity player, array<string> args )
 	player.SetOrigin( < x, y, z > )
 	player.SetAngles( < 0, yaw, 0 > )
 	player.SetVelocity( < 0, 0, 0 > )
+	TF2VRSB_ServerLog( "preset-load map=" + currentMap + " xyz=" + string( int( x ) ) + ","
+		+ string( int( y ) ) + "," + string( int( z ) ) )
 	SetConVarString( "tf2vrsb_result", "POSITION PRESET LOADED" )
 	TF2VRSB_UpdateStatus( player )
 	return true
@@ -230,6 +269,9 @@ bool function TF2VRSB_SpawnManagedNpc( entity player, string className, bool hos
 	}
 	DispatchSpawn( npc )
 	file.managed.append( npc )
+	TF2VRSB_ServerLog( "spawn class=" + className + " team=" + string( team )
+		+ " origin=" + string( int( origin.x ) ) + "," + string( int( origin.y ) ) + ","
+		+ string( int( origin.z ) ) + " count=" + string( file.managed.len() ) )
 	SetConVarString( "tf2vrsb_result", "SPAWNED " + label + " (" + string( file.managed.len() ) + "/" + string( cap ) + ")" )
 	TF2VRSB_UpdateStatus( player )
 	return true
@@ -260,7 +302,18 @@ void function TF2VRSB_UpdateStatus( entity player )
 	SetConVarInt( "tf2vrsb_entity_count", TF2VRSB_CountEntities() )
 	SetConVarInt( "tf2vrsb_managed_count", file.managed.len() )
 	SetConVarInt( "tf2vrsb_bookmark", file.bookmarkSet ? 1 : 0 )
+	if ( IsValid( player ) )
+		SetConVarInt( "tf2vrsb_fly", player.IsNoclipping() ? 1 : 0 )
+	else
+		SetConVarInt( "tf2vrsb_fly", 0 )
 	SetConVarInt( "tf2vrsb_ready", 1 )
+}
+
+void function TF2VRSB_ServerLog( string message )
+{
+	if ( GetConVarInt( "tf2vrsb_debug" ) != 1 )
+		return
+	print( "[TF2VRSB][server] " + message + "\n" )
 }
 
 void function TF2VRSB_Reject( entity player, string message )
@@ -306,6 +359,7 @@ void function TF2VRSB_SyncSession()
 
 	if ( file.mapName != "" )
 	{
+		TF2VRSB_ServerLog( "map-change from=" + file.mapName + " to=" + currentMap )
 		// Level teardown invalidates handles. Do not touch the old entities.
 		file.managed = []
 		file.bookmarkSet = false

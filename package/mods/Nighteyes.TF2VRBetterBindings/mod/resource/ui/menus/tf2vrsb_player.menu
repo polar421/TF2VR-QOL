@@ -159,7 +159,7 @@
 			scriptID "2"
 		}
 
-		BtnBack
+		ToggleFly
 		{
 			ControlName RuiButton
 			InheritProperties RuiSmallButton
@@ -170,6 +170,19 @@
 			xpos 152
 			ypos 623
 			scriptID "3"
+		}
+
+		BtnBack
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 836
+			tall 48
+			xpos 152
+			ypos 679
+			scriptID "4"
 		}
 
 		Status
@@ -183,20 +196,20 @@
 			tall 34
 			wrap 1
 			xpos 152
-			ypos 685
+			ypos 741
 		}
 
 		HintText
 		{
 			ControlName Label
-			labelText "Bookmarks are cleared when the map changes. Position presets are stored separately under the mod's Safe I/O folder."
+			labelText "Noclip fly can pass through geometry and leave campaign bounds; toggle it off to land. Bookmarks are cleared when the map changes. Position presets live under the mod's Safe I/O folder."
 			font Default_16
 			fgcolor_override "150 156 162 255"
 			wide 836
-			tall 34
+			tall 50
 			wrap 1
 			xpos 152
-			ypos 735
+			ypos 791
 		}
 
 		FooterButtons

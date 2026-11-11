@@ -1,6 +1,6 @@
 {
     "Name": "Nighteyes.TF2VRBetterBindings",
-    "Description": "Extra OpenXR actions for Titanfall 2 VR (Reload Grab, Crouch, Tactical Ability) plus an in-game settings menu and an experimental campaign pause-menu sandbox with NPC spawning, position bookmarks, saved positions and developer telemetry. Menu changes are written back into the layer's TF2VRBetterBindings.ini.",
+    "Description": "Extra OpenXR actions for Titanfall 2 VR (Reload Grab, Crouch, Tactical Ability) plus an in-game settings menu and an experimental campaign pause-menu sandbox with NPC spawning, position bookmarks, saved positions, fly/noclip, and debug diagnostics. Menu changes are written back into the layer's TF2VRBetterBindings.ini.",
     "Version": "@PROJECT_VERSION@",
     "LoadPriority": 3,
     "Dependencies": {
@@ -33,6 +33,8 @@
         { "Name": "tf2vrsb_entity_count", "DefaultValue": "0" },
         { "Name": "tf2vrsb_managed_count", "DefaultValue": "0" },
         { "Name": "tf2vrsb_bookmark", "DefaultValue": "0" },
+        { "Name": "tf2vrsb_fly", "DefaultValue": "0" },
+        { "Name": "tf2vrsb_debug", "DefaultValue": "1" },
         { "Name": "tf2vrsb_result", "DefaultValue": "" },
         { "Name": "tf2vrsb_cap", "DefaultValue": "6" },
         { "Name": "tf2vrsb_spawn_distance", "DefaultValue": "150" },
@@ -63,6 +65,11 @@
                 "Before": "TF2VRSB_AddSandboxMenus",
                 "After": "TF2VRSB_AddPauseEntry"
             }
+        },
+        {
+            "Path": "ui/tf2vrsb_debug.nut",
+            "RunOn": "UI",
+            "UICallback": { "Before": "TF2VRSB_DebugInit" }
         },
         {
             "Path": "tf2vrsb_client.nut",

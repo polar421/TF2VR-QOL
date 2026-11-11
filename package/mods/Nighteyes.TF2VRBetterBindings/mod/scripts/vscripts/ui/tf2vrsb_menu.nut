@@ -9,7 +9,7 @@
 global function TF2VRSB_AddSandboxMenus
 global function TF2VRSB_AddPauseEntry
 
-const string TF2VRSB_VERSION = "1.4.0"
+const string TF2VRSB_VERSION = "1.5.0"
 const string TF2VRSB_PAUSE_MENU = "InGameSPMenu"
 
 const string TF2VRSB_ROOT = "TF2VRSBSandboxRoot"
@@ -31,6 +31,8 @@ const string TF2VRSB_NPC_COUNT = "tf2vrsb_npc_count"
 const string TF2VRSB_ENTITY_COUNT = "tf2vrsb_entity_count"
 const string TF2VRSB_MANAGED_COUNT = "tf2vrsb_managed_count"
 const string TF2VRSB_BOOKMARK = "tf2vrsb_bookmark"
+const string TF2VRSB_FLY = "tf2vrsb_fly"
+const string TF2VRSB_DEBUG = "tf2vrsb_debug"
 
 const string TF2VRSB_REQUEST_MAP = "tf2vrsb_request_map"
 const string TF2VRSB_REQUEST_X = "tf2vrsb_request_x"
@@ -87,6 +89,7 @@ struct
 
 	int selectedMap
 	bool clearArmed
+	string lastLoggedResult
 } file
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -124,6 +127,7 @@ void function TF2VRSB_AddPauseEntry()
 
 void function TF2VRSB_OpenSandbox( var button )
 {
+	TF2VRSB_LogEvent( "menu-open", "pause-footer" )
 	TF2VRSB_RequestStatus()
 	AdvanceMenu( GetMenu( TF2VRSB_ROOT ) )
 }
@@ -165,6 +169,7 @@ void function TF2VRSB_InitRoot()
 
 void function TF2VRSB_OnRootRow( int index )
 {
+	TF2VRSB_LogEvent( "navigate", "root row=" + string( index ) )
 	switch ( index )
 	{
 		case 0:
@@ -190,8 +195,10 @@ void function TF2VRSB_OnRootRow( int index )
 
 void function TF2VRSB_OnRootOpen()
 {
+	TF2VRSB_LogEvent( "menu-open", "root" )
 	TF2VRSB_RequestStatus()
 	FocusDefaultMenuItem( file.rootMenu )
+	thread TF2VRSB_LogRootLayout( file.rootMenu )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -239,9 +246,11 @@ void function TF2VRSB_InitMaps()
 
 void function TF2VRSB_OnMapsOpen()
 {
+	TF2VRSB_LogEvent( "menu-open", "maps" )
 	TF2VRSB_RequestStatus()
 	TF2VRSB_SelectMap( file.selectedMap )
 	FocusDefaultMenuItem( file.mapsMenu )
+	thread TF2VRSB_LogMapsLayout( file.mapsMenu )
 }
 
 void function TF2VRSB_SelectMap( int index )
@@ -249,6 +258,7 @@ void function TF2VRSB_SelectMap( int index )
 	if ( index < 0 || index >= file.mapIds.len() )
 		return
 	file.selectedMap = index
+	TF2VRSB_LogEvent( "map-select", "index=" + string( index ) + " id=" + file.mapIds[ index ] )
 
 	string current = GetConVarString( TF2VRSB_MAP )
 	string id = file.mapIds[ index ]
@@ -327,8 +337,10 @@ void function TF2VRSB_OnNpcsOpen()
 {
 	file.clearArmed = false
 	TF2VRSB_SetButtonLabel( file.npcsMenu, "ClearManaged", "CLEAR MANAGED NPCs" )
+	TF2VRSB_LogEvent( "menu-open", "npcs" )
 	TF2VRSB_RequestStatus()
 	FocusDefaultMenuItem( file.npcsMenu )
+	thread TF2VRSB_LogNpcsLayout( file.npcsMenu )
 }
 
 void function TF2VRSB_OnSpawnHostileSoldier( var button )
@@ -389,22 +401,26 @@ void function TF2VRSB_InitPlayer()
 	var saveButton = Hud_GetChild( file.playerMenu, "SaveBookmark" )
 	var returnButton = Hud_GetChild( file.playerMenu, "ReturnBookmark" )
 	var clearButton = Hud_GetChild( file.playerMenu, "ClearBookmark" )
+	var flyButton = Hud_GetChild( file.playerMenu, "ToggleFly" )
 	var backButton = Hud_GetChild( file.playerMenu, "BtnBack" )
 
 	TF2VRSB_SetButtonLabel( file.playerMenu, "SaveBookmark", "SAVE POSITION BOOKMARK" )
 	TF2VRSB_SetButtonLabel( file.playerMenu, "ReturnBookmark", "RETURN TO POSITION BOOKMARK" )
 	TF2VRSB_SetButtonLabel( file.playerMenu, "ClearBookmark", "CLEAR POSITION BOOKMARK" )
+	TF2VRSB_SetButtonLabel( file.playerMenu, "ToggleFly", "FLY (NOCLIP): OFF - TAP TO FLY" )
 	TF2VRSB_SetButtonLabel( file.playerMenu, "BtnBack", "BACK TO MISSION CONTROL" )
 
 	Hud_AddEventHandler( saveButton, UIE_CLICK, TF2VRSB_OnSaveBookmark )
 	Hud_AddEventHandler( returnButton, UIE_CLICK, TF2VRSB_OnReturnBookmark )
 	Hud_AddEventHandler( clearButton, UIE_CLICK, TF2VRSB_OnClearBookmark )
+	Hud_AddEventHandler( flyButton, UIE_CLICK, TF2VRSB_OnToggleFly )
 	Hud_AddEventHandler( backButton, UIE_CLICK, TF2VRSB_OnBack )
 
 	file.playerButtons = []
 	file.playerButtons.append( saveButton )
 	file.playerButtons.append( returnButton )
 	file.playerButtons.append( clearButton )
+	file.playerButtons.append( flyButton )
 	file.playerButtons.append( backButton )
 	TF2VRSB_WireVertical( file.playerButtons )
 
@@ -414,8 +430,10 @@ void function TF2VRSB_InitPlayer()
 
 void function TF2VRSB_OnPlayerOpen()
 {
+	TF2VRSB_LogEvent( "menu-open", "player" )
 	TF2VRSB_RequestStatus()
 	FocusDefaultMenuItem( file.playerMenu )
+	thread TF2VRSB_LogPlayerLayout( file.playerMenu )
 }
 
 void function TF2VRSB_OnSaveBookmark( var button )
@@ -431,6 +449,11 @@ void function TF2VRSB_OnReturnBookmark( var button )
 void function TF2VRSB_OnClearBookmark( var button )
 {
 	TF2VRSB_BeginAction( "tf2vrsb_clear_bookmark", "CLEARING POSITION BOOKMARK" )
+}
+
+void function TF2VRSB_OnToggleFly( var button )
+{
+	TF2VRSB_BeginAction( "tf2vrsb_toggle_fly", "TOGGLING NOCLIP FLY" )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -485,9 +508,11 @@ void function TF2VRSB_InitPresets()
 
 void function TF2VRSB_OnPresetsOpen()
 {
+	TF2VRSB_LogEvent( "menu-open", "presets" )
 	TF2VRSB_RequestStatus()
 	TF2VRSB_UpdatePresetLabels()
 	FocusDefaultMenuItem( file.presetsMenu )
+	thread TF2VRSB_LogPresetsLayout( file.presetsMenu )
 }
 
 string function TF2VRSB_PresetPath( int slot )
@@ -561,12 +586,14 @@ void function TF2VRSB_OnPresetLoaded( string content )
 	SetConVarString( TF2VRSB_REQUEST_Y, parts[ 2 ] )
 	SetConVarString( TF2VRSB_REQUEST_Z, parts[ 3 ] )
 	SetConVarString( TF2VRSB_REQUEST_YAW, parts[ 4 ] )
+	TF2VRSB_LogEvent( "preset-load", "slot map=" + mapName + " xyz=" + parts[ 1 ] + "," + parts[ 2 ] + "," + parts[ 3 ] )
 	RunClientScript( "TF2VRSB_SendCommand", "tf2vrsb_load_preset" )
 	thread TF2VRSB_RefreshAfterFrames( 8 )
 }
 
 void function TF2VRSB_OnPresetLoadFailed()
 {
+	TF2VRSB_LogEvent( "preset-load-failed", "Safe I/O callback" )
 	SetConVarString( TF2VRSB_RESULT, "PRESET COULD NOT BE READ - NO CHANGES MADE" )
 	TF2VRSB_UpdateStatusLabels()
 }
@@ -603,15 +630,21 @@ void function TF2VRSB_InitDeveloper()
 	file.devCap = Hud_GetChild( file.developerMenu, "CapValue" )
 	file.devLimits = Hud_GetChild( file.developerMenu, "LimitsValue" )
 
+	var logLayoutButton = Hud_GetChild( file.developerMenu, "LogLayout" )
 	var refreshButton = Hud_GetChild( file.developerMenu, "Refresh" )
+	var debugSwitch = Hud_GetChild( file.developerMenu, "SwitchDebug" )
 	var backButton = Hud_GetChild( file.developerMenu, "BtnBack" )
+	TF2VRSB_SetButtonLabel( file.developerMenu, "LogLayout", "LOG CURRENT LAYOUT TO NSLOG" )
 	TF2VRSB_SetButtonLabel( file.developerMenu, "Refresh", "REFRESH SESSION TELEMETRY" )
 	TF2VRSB_SetButtonLabel( file.developerMenu, "BtnBack", "BACK TO MISSION CONTROL" )
+	Hud_AddEventHandler( logLayoutButton, UIE_CLICK, TF2VRSB_OnLogLayout )
 	Hud_AddEventHandler( refreshButton, UIE_CLICK, TF2VRSB_OnRefreshDeveloper )
 	Hud_AddEventHandler( backButton, UIE_CLICK, TF2VRSB_OnBack )
 
 	file.developerButtons = []
+	file.developerButtons.append( logLayoutButton )
 	file.developerButtons.append( refreshButton )
+	file.developerButtons.append( debugSwitch )
 	file.developerButtons.append( backButton )
 	TF2VRSB_WireVertical( file.developerButtons )
 
@@ -621,13 +654,29 @@ void function TF2VRSB_InitDeveloper()
 
 void function TF2VRSB_OnDeveloperOpen()
 {
+	TF2VRSB_LogEvent( "menu-open", "developer" )
 	TF2VRSB_RequestStatus()
 	FocusDefaultMenuItem( file.developerMenu )
+	thread TF2VRSB_LogDeveloperLayout( file.developerMenu )
 }
 
 void function TF2VRSB_OnRefreshDeveloper( var button )
 {
+	TF2VRSB_LogEvent( "telemetry-refresh", "developer" )
 	TF2VRSB_RequestStatus()
+}
+
+void function TF2VRSB_OnLogLayout( var button )
+{
+	if ( GetConVarInt( TF2VRSB_DEBUG ) != 1 )
+	{
+		SetConVarString( TF2VRSB_RESULT, "DEBUG LOGGING IS OFF - ENABLE THE SWITCH BELOW" )
+		TF2VRSB_UpdateStatusLabels()
+		return
+	}
+
+	TF2VRSB_LogEvent( "layout-request", "developer" )
+	thread TF2VRSB_LogDeveloperLayout( file.developerMenu )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -636,6 +685,7 @@ void function TF2VRSB_OnRefreshDeveloper( var button )
 
 void function TF2VRSB_RequestStatus()
 {
+	TF2VRSB_LogEvent( "status-request", "ready=" + string( GetConVarInt( TF2VRSB_READY ) ) )
 	if ( GetConVarInt( TF2VRSB_READY ) != 1 )
 		SetConVarString( TF2VRSB_RESULT, "CONTACTING CAMPAIGN SESSION" )
 	RunClientScript( "TF2VRSB_SendCommand", "tf2vrsb_status" )
@@ -644,6 +694,7 @@ void function TF2VRSB_RequestStatus()
 
 void function TF2VRSB_BeginAction( string command, string pendingText )
 {
+	TF2VRSB_LogEvent( "command", command + " pending=\"" + pendingText + "\"" )
 	SetConVarString( TF2VRSB_RESULT, pendingText )
 	TF2VRSB_UpdateStatusLabels()
 	RunClientScript( "TF2VRSB_SendCommand", command )
@@ -665,6 +716,7 @@ void function TF2VRSB_UpdateStatusLabels()
 	string result = GetConVarString( TF2VRSB_RESULT )
 	bool ready = GetConVarInt( TF2VRSB_READY ) == 1
 	bool bookmark = GetConVarInt( TF2VRSB_BOOKMARK ) == 1
+	bool flying = GetConVarInt( TF2VRSB_FLY ) == 1
 	string coords = GetConVarString( TF2VRSB_X ) + ", " + GetConVarString( TF2VRSB_Y ) + ", " + GetConVarString( TF2VRSB_Z )
 
 	if ( file.rootSession != null )
@@ -694,9 +746,14 @@ void function TF2VRSB_UpdateStatusLabels()
 	if ( file.playerBookmark != null )
 		Hud_SetText( file.playerBookmark, "BOOKMARK: " + ( bookmark ? "SAVED IN THIS SESSION" : "NOT SET" ) )
 	if ( file.playerPosition != null )
-		Hud_SetText( file.playerPosition, "POSITION: " + coords + "    YAW: " + GetConVarString( TF2VRSB_YAW ) )
+		Hud_SetText( file.playerPosition, "POSITION: " + coords + "    YAW: " + GetConVarString( TF2VRSB_YAW )
+			+ "    FLY: " + ( flying ? "ON" : "OFF" ) )
 	if ( file.playerStatus != null )
 		Hud_SetText( file.playerStatus, result )
+	if ( file.playerMenu != null )
+		TF2VRSB_SetButtonLabel( file.playerMenu, "ToggleFly", flying
+			? "FLY (NOCLIP): ON - TAP TO LAND"
+			: "FLY (NOCLIP): OFF - TAP TO FLY" )
 
 	if ( file.devMap != null )
 		Hud_SetText( file.devMap, "MAP ID: " + mapName + "    DISPLAY: " + display )
@@ -712,12 +769,21 @@ void function TF2VRSB_UpdateStatusLabels()
 		Hud_SetText( file.devCap, "NPC CAP: " + string( GetConVarInt( "tf2vrsb_cap" ) )
 			+ "    SPAWN DISTANCE: " + string( GetConVarInt( "tf2vrsb_spawn_distance" ) ) + " UNITS" )
 	if ( file.devLimits != null )
-		Hud_SetText( file.devLimits, "TF2VR SANDBOX " + TF2VRSB_VERSION + " // AVAILABLE: PAUSE MENU, SESSION INFO, MAP CATALOG, NPCs, BOOKMARK, POSITION PRESETS.\n"
+		Hud_SetText( file.devLimits, "TF2VR SANDBOX " + TF2VRSB_VERSION
+			+ " // FLY=" + ( flying ? "ON" : "OFF" )
+			+ " DEBUG=" + ( GetConVarInt( TF2VRSB_DEBUG ) == 1 ? "ON" : "OFF" ) + "\n"
+			+ "AVAILABLE: PAUSE MENU, SESSION INFO, MAP CATALOG, NPCs, BOOKMARK, FLY, POSITION PRESETS.\n"
 			+ "NOT AVAILABLE: MAP TRAVEL, WORLD OBJECTS, GAUNTLET MARKERS. THESE REQUIRE IN-GAME VALIDATION." )
 
 	if ( file.presetStatus != null )
 		Hud_SetText( file.presetStatus, result )
 	TF2VRSB_UpdatePresetLabels()
+
+	if ( result != file.lastLoggedResult )
+	{
+		file.lastLoggedResult = result
+		TF2VRSB_LogState( "result-changed" )
+	}
 }
 
 string function TF2VRSB_DisplayMap( string mapName )

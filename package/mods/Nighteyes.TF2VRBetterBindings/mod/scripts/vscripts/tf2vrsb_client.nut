@@ -23,6 +23,7 @@ void function TF2VRSB_SendCommand( string command )
 		"tf2vrsb_save_bookmark",
 		"tf2vrsb_return_bookmark",
 		"tf2vrsb_clear_bookmark",
+		"tf2vrsb_toggle_fly",
 		"tf2vrsb_load_preset"
 	]
 	if ( allowed.find( command ) == -1 )
