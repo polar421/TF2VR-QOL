@@ -996,6 +996,20 @@ const char* TacticalBindingPath(const std::string& profile)
     return nullptr;
 }
 
+bool AddLayerBinding(LayerState& s, std::vector<XrActionSuggestedBinding>& bindings, const std::string& profile, const char* actionName,
+                     XrAction action, const char* pathText)
+{
+    XrPath path = ToPath(s, pathText);
+    if (path == XR_NULL_PATH)
+    {
+        Log("binding skip: profile=%s action=%s path=%s reason=xrStringToPath failed", profile.c_str(), actionName, pathText);
+        return false;
+    }
+    bindings.push_back({action, path});
+    Log("binding add: profile=%s action=%s path=%s", profile.c_str(), actionName, pathText);
+    return true;
+}
+
 // WiVRn's dashboard has no per-app OpenXR binding editor, and xrizer is an
 // OpenVR compatibility layer, so neither can bind an action created here.
 // Submit suggested bindings alongside the game's own suggestions instead.
@@ -1004,84 +1018,109 @@ XrResult XRAPI_CALL HookSuggestInteractionProfileBindings(XrInstance instance, c
 {
     LayerState& s = State();
     if (!s.next.suggestInteractionProfileBindings)
+    {
+        Log("bindings: next xrSuggestInteractionProfileBindings is missing");
         return XR_ERROR_FUNCTION_UNSUPPORTED;
-    if (!suggested || !suggested->suggestedBindings || suggested->countSuggestedBindings == 0)
+    }
+    if (!suggested)
+    {
+        Log("bindings: null suggestion; passing through");
         return s.next.suggestInteractionProfileBindings(instance, suggested);
+    }
 
     std::string profile = PathText(s, suggested->interactionProfile);
-    if (std::find(s.suggestedProfiles.begin(), s.suggestedProfiles.end(), suggested->interactionProfile) != s.suggestedProfiles.end())
+    uint32_t gameCount = suggested->countSuggestedBindings;
+    if (!suggested->suggestedBindings || gameCount == 0)
+    {
+        Log("bindings: profile=%s game=%u no game bindings; passing through", profile.c_str(), static_cast<unsigned>(gameCount));
         return s.next.suggestInteractionProfileBindings(instance, suggested);
+    }
 
-    std::vector<XrActionSuggestedBinding> bindings(suggested->suggestedBindings, suggested->suggestedBindings + suggested->countSuggestedBindings);
+    Log("bindings: profile=%s game=%u wine=%d crouch_action=%d reload_action=%d tactical_action=%d crouch_binding=%s", profile.c_str(),
+        static_cast<unsigned>(gameCount), s.wine, s.crouch != XR_NULL_HANDLE, s.reloadGrab != XR_NULL_HANDLE, s.tactical != XR_NULL_HANDLE,
+        s.config.crouchBinding.c_str());
+
+    if (std::find(s.suggestedProfiles.begin(), s.suggestedProfiles.end(), suggested->interactionProfile) != s.suggestedProfiles.end())
+    {
+        Log("bindings: profile=%s already suggested; passing through", profile.c_str());
+        return s.next.suggestInteractionProfileBindings(instance, suggested);
+    }
+
+    std::vector<XrActionSuggestedBinding> bindings(suggested->suggestedBindings, suggested->suggestedBindings + gameCount);
     bool crouchAdded = false;
     bool reloadAdded = false;
     bool tacticalAdded = false;
 
-    if (s.crouch != XR_NULL_HANDLE && s.config.crouchBinding != "none" && SupportsThumbstickClick(profile))
+    if (s.crouch == XR_NULL_HANDLE)
+    {
+        Log("binding skip: profile=%s action=crouch reason=disabled", profile.c_str());
+    }
+    else if (s.config.crouchBinding == "none")
+    {
+        Log("binding skip: profile=%s action=crouch reason=binding is none", profile.c_str());
+    }
+    else if (!SupportsThumbstickClick(profile))
+    {
+        Log("binding skip: profile=%s action=crouch reason=profile has no thumbstick click", profile.c_str());
+    }
+    else
     {
         if (s.config.crouchBinding == "right_thumbstick_click" || s.config.crouchBinding == "both_thumbstick_click")
-        {
-            XrPath path = ToPath(s, "/user/hand/right/input/thumbstick/click");
-            if (path != XR_NULL_PATH)
-            {
-                bindings.push_back({s.crouch, path});
-                crouchAdded = true;
-            }
-        }
+            crouchAdded |= AddLayerBinding(s, bindings, profile, "crouch", s.crouch, "/user/hand/right/input/thumbstick/click");
         if (s.config.crouchBinding == "left_thumbstick_click" || s.config.crouchBinding == "both_thumbstick_click")
-        {
-            XrPath path = ToPath(s, "/user/hand/left/input/thumbstick/click");
-            if (path != XR_NULL_PATH)
-            {
-                bindings.push_back({s.crouch, path});
-                crouchAdded = true;
-            }
-        }
+            crouchAdded |= AddLayerBinding(s, bindings, profile, "crouch", s.crouch, "/user/hand/left/input/thumbstick/click");
     }
 
-    if (s.wine)
+    if (!s.wine)
     {
-        if (s.reloadGrab != XR_NULL_HANDLE && SupportsTriggerClick(profile))
+        Log("binding skip: profile=%s action=reload_grab,tactical reason=not running under Wine", profile.c_str());
+    }
+    else
+    {
+        if (s.reloadGrab == XR_NULL_HANDLE)
+            Log("binding skip: profile=%s action=reload_grab reason=disabled", profile.c_str());
+        else if (!SupportsTriggerClick(profile))
+            Log("binding skip: profile=%s action=reload_grab reason=profile has no trigger click", profile.c_str());
+        else
         {
-            XrPath left = ToPath(s, "/user/hand/left/input/trigger/click");
-            XrPath right = ToPath(s, "/user/hand/right/input/trigger/click");
-            if (left != XR_NULL_PATH)
-            {
-                bindings.push_back({s.reloadGrab, left});
-                reloadAdded = true;
-            }
-            if (right != XR_NULL_PATH)
-            {
-                bindings.push_back({s.reloadGrab, right});
-                reloadAdded = true;
-            }
+            reloadAdded |= AddLayerBinding(s, bindings, profile, "reload_grab", s.reloadGrab, "/user/hand/left/input/trigger/click");
+            reloadAdded |= AddLayerBinding(s, bindings, profile, "reload_grab", s.reloadGrab, "/user/hand/right/input/trigger/click");
         }
-        const char* tacticalPath = s.tactical != XR_NULL_HANDLE ? TacticalBindingPath(profile) : nullptr;
-        if (tacticalPath)
-        {
-            XrPath path = ToPath(s, tacticalPath);
-            if (path != XR_NULL_PATH)
-            {
-                bindings.push_back({s.tactical, path});
-                tacticalAdded = true;
-            }
-        }
+
+        const char* tacticalPath = s.tactical == XR_NULL_HANDLE ? nullptr : TacticalBindingPath(profile);
+        if (s.tactical == XR_NULL_HANDLE)
+            Log("binding skip: profile=%s action=tactical reason=disabled", profile.c_str());
+        else if (!tacticalPath)
+            Log("binding skip: profile=%s action=tactical reason=profile has no Touch X / Index A", profile.c_str());
+        else
+            tacticalAdded = AddLayerBinding(s, bindings, profile, "tactical", s.tactical, tacticalPath);
     }
 
     if (!crouchAdded && !reloadAdded && !tacticalAdded)
-        return s.next.suggestInteractionProfileBindings(instance, suggested);
-
-    XrInteractionProfileSuggestedBinding copy = *suggested;
-    copy.suggestedBindings = bindings.data();
-    copy.countSuggestedBindings = static_cast<uint32_t>(bindings.size());
-    XrResult result = s.next.suggestInteractionProfileBindings(instance, &copy);
-    if (XR_FAILED(result))
     {
-        Log("suggested bindings for %s were rejected (%d); using the game's bindings", profile.c_str(), result);
+        Log("bindings: profile=%s no layer bindings; passing through", profile.c_str());
         return s.next.suggestInteractionProfileBindings(instance, suggested);
     }
 
+    uint32_t totalCount = static_cast<uint32_t>(bindings.size());
+    Log("bindings: profile=%s suggesting %u total (%u game + %u layer)", profile.c_str(), static_cast<unsigned>(totalCount),
+        static_cast<unsigned>(gameCount), static_cast<unsigned>(totalCount - gameCount));
+
+    XrInteractionProfileSuggestedBinding copy = *suggested;
+    copy.suggestedBindings = bindings.data();
+    copy.countSuggestedBindings = totalCount;
+    XrResult result = s.next.suggestInteractionProfileBindings(instance, &copy);
+    if (XR_FAILED(result))
+    {
+        Log("bindings: runtime rejected batch for %s result=%d; retrying with game's %u", profile.c_str(), result,
+            static_cast<unsigned>(gameCount));
+        XrResult fallback = s.next.suggestInteractionProfileBindings(instance, suggested);
+        Log("bindings: fallback for %s result=%d", profile.c_str(), fallback);
+        return fallback;
+    }
+
     s.suggestedProfiles.push_back(suggested->interactionProfile);
+    Log("bindings: runtime accepted %u bindings for %s result=%d", static_cast<unsigned>(totalCount), profile.c_str(), result);
     if (crouchAdded)
         Log("suggested crouch binding '%s' for %s", s.config.crouchBinding.c_str(), profile.c_str());
     if (reloadAdded)
