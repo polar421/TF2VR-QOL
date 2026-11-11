@@ -160,7 +160,7 @@ expected += [
 required_convars = {
     "tf2vrbb_menu_active", "tf2vrbb_startup_phase", "tf2vrbb_settings_api",
     "tf2vrbb_reload_grab", "tf2vrbb_grenade_toggle", "tf2vrbb_crouch_enabled",
-    "tf2vrbb_crouch_button_mode", "tf2vrbb_uncrouch_on_jump", "tf2vrbb_jump_delay_ms",
+    "tf2vrbb_crouch_button_mode", "tf2vrbb_crouch_binding", "tf2vrbb_uncrouch_on_jump", "tf2vrbb_jump_delay_ms",
     "tf2vrbb_tactical_enabled", "tf2vrbb_tactical_block_trigger",
     "tf2vrbb_sprint_enabled", "tf2vrbb_sprint_start_cm", "tf2vrbb_sprint_stop_cm",
 }
@@ -178,6 +178,7 @@ ini_expected = {
     ("grenade", "toggle"): "0",
     ("crouch", "enabled"): "1",
     ("crouch", "mode"): "toggle",
+    ("crouch", "binding"): "none",
     ("crouch", "uncrouch_on_jump"): "0",
     ("crouch", "jump_delay_ms"): "250",
     ("tactical", "enabled"): "1",

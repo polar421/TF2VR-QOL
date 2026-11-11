@@ -24,7 +24,7 @@ const string TF2VRBB_MENU_RESTORE = "TF2VRBBRestore"
 // Set to 1 by the 1.3.0 plugin once it can read and write the ini.
 const string TF2VRBB_API_CONVAR = "tf2vrbb_settings_api"
 
-const int TF2VRBB_ACTION_ROW_COUNT = 8
+const int TF2VRBB_ACTION_ROW_COUNT = 9
 const int TF2VRBB_GENERAL_ROW_COUNT = 3
 const int TF2VRBB_ROOT_ROW_COUNT = 5
 
@@ -132,6 +132,26 @@ TF2VRBBRow function TF2VRBB_MakeModeRow( string label, string conVar, int defaul
 	return row
 }
 
+TF2VRBBRow function TF2VRBB_MakeBindingRow( string label, string conVar, int defaultValue )
+{
+	TF2VRBBRow row
+	row.label = label
+	row.conVar = conVar
+	row.minValue = 0
+	row.maxValue = 3
+	row.step = 1
+
+	array<string> values = []
+	values.append( "NONE" )
+	values.append( "LEFT STICK CLICK" )
+	values.append( "RIGHT STICK CLICK" )
+	values.append( "BOTH STICK CLICKS" )
+	row.values = values
+	row.unit = ""
+	row.defaultValue = defaultValue
+	return row
+}
+
 TF2VRBBRow function TF2VRBB_MakeNumberRow( string label, string conVar, int minValue, int maxValue, int step, string unit, int defaultValue )
 {
 	TF2VRBBRow row
@@ -155,6 +175,7 @@ void function TF2VRBB_BuildRowData()
 	actions.append( TF2VRBB_MakeToggleRow( "GRENADE TOGGLE", "tf2vrbb_grenade_toggle", 0 ) )
 	actions.append( TF2VRBB_MakeToggleRow( "CROUCH ACTION", "tf2vrbb_crouch_enabled", 1 ) )
 	actions.append( TF2VRBB_MakeModeRow( "CROUCH MODE", "tf2vrbb_crouch_button_mode", 0 ) )
+	actions.append( TF2VRBB_MakeBindingRow( "CROUCH BINDING", "tf2vrbb_crouch_binding", 0 ) )
 	actions.append( TF2VRBB_MakeToggleRow( "UNCROUCH ON JUMP", "tf2vrbb_uncrouch_on_jump", 0 ) )
 	actions.append( TF2VRBB_MakeNumberRow( "JUMP DELAY", "tf2vrbb_jump_delay_ms", 0, 1000, 50, " MS", 250 ) )
 	actions.append( TF2VRBB_MakeToggleRow( "TACTICAL ACTION", "tf2vrbb_tactical_enabled", 1 ) )
@@ -208,6 +229,7 @@ void function TF2VRBB_InitActions()
 	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchGrenadeToggle", "GRENADE TOGGLE" )
 	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchCrouchAction", "CROUCH ACTION" )
 	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchCrouchMode", "CROUCH MODE" )
+	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchCrouchBinding", "CROUCH BINDING" )
 	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchUncrouchOnJump", "UNCROUCH ON JUMP" )
 	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchJumpDelay", "JUMP DELAY" )
 	TF2VRBB_SetButtonLabel( file.actionsMenu, "SwitchTacticalAction", "TACTICAL ACTION" )
@@ -388,6 +410,7 @@ void function TF2VRBB_LogActionsLayout()
 	names.append( "SwitchGrenadeToggle" )
 	names.append( "SwitchCrouchAction" )
 	names.append( "SwitchCrouchMode" )
+	names.append( "SwitchCrouchBinding" )
 	names.append( "SwitchUncrouchOnJump" )
 	names.append( "SwitchJumpDelay" )
 	names.append( "SwitchTacticalAction" )

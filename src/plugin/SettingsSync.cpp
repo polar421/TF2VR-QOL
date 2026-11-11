@@ -30,6 +30,7 @@ enum class ValueKind
     Toggle,
     Number,
     CrouchMode,
+    CrouchBinding,
 };
 
 struct Setting
@@ -48,6 +49,7 @@ const Setting kSettings[] = {
     {"tf2vrbb_grenade_toggle", L"grenade", L"toggle", ValueKind::Toggle, 0, 1, 0},
     {"tf2vrbb_crouch_enabled", L"crouch", L"enabled", ValueKind::Toggle, 0, 1, 1},
     {"tf2vrbb_crouch_button_mode", L"crouch", L"mode", ValueKind::CrouchMode, 0, 1, 0},
+    {"tf2vrbb_crouch_binding", L"crouch", L"binding", ValueKind::CrouchBinding, 0, 3, 0},
     {"tf2vrbb_uncrouch_on_jump", L"crouch", L"uncrouch_on_jump", ValueKind::Toggle, 0, 1, 0},
     {"tf2vrbb_jump_delay_ms", L"crouch", L"jump_delay_ms", ValueKind::Number, 0, 1000, 250},
     {"tf2vrbb_tactical_enabled", L"tactical", L"enabled", ValueKind::Toggle, 0, 1, 1},
@@ -142,6 +144,8 @@ void WriteSetting(const Setting& setting, int value)
     std::wstring text;
     if (setting.kind == ValueKind::CrouchMode)
         text = value == 1 ? L"button" : L"toggle";
+    else if (setting.kind == ValueKind::CrouchBinding)
+        text = value == 1 ? L"left_thumbstick_click" : value == 2 ? L"right_thumbstick_click" : value == 3 ? L"both_thumbstick_click" : L"none";
     else
         text = std::to_wstring(value);
 
@@ -163,6 +167,16 @@ void SeedFromConfig()
             GetPrivateProfileStringW(setting.section, setting.key, L"toggle", buffer, static_cast<DWORD>(sizeof(buffer) / sizeof(buffer[0])),
                                      g_state.configPath.c_str());
             value = _wcsicmp(buffer, L"button") == 0 ? 1 : 0;
+        }
+        else if (setting.kind == ValueKind::CrouchBinding)
+        {
+            wchar_t buffer[64] = {};
+            GetPrivateProfileStringW(setting.section, setting.key, L"none", buffer, static_cast<DWORD>(sizeof(buffer) / sizeof(buffer[0])),
+                                     g_state.configPath.c_str());
+            value = _wcsicmp(buffer, L"left_thumbstick_click") == 0 ? 1
+                  : _wcsicmp(buffer, L"right_thumbstick_click") == 0 ? 2
+                  : _wcsicmp(buffer, L"both_thumbstick_click") == 0 ? 3
+                  : 0;
         }
 
         value = Clamp(setting, value);

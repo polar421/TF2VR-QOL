@@ -6,7 +6,7 @@ Extra OpenXR actions and optional features for [CircuitLord's Titanfall 2 VR mod
 
 Bind them in SteamVR → Settings → Controllers → **Manage Controller Bindings** → Titanfall 2 VR → **Edit**. On Linux, bind them in the controller binding editor of the active OpenXR runtime if it exposes the app's actions; they are part of the Titanfall 2 VR **gameplay** action set.
 
-WiVRn's dashboard does not expose per-app OpenXR actions, and xrizer is the OpenVR compatibility layer, so neither lists these actions. For those setups, the layer can submit a suggested binding itself. Set `[crouch] binding=right_thumbstick_click` in `TF2VR\packages\Nighteyes-TF2VRBetterBindings-<version>\plugins\layer\TF2VRBetterBindings.ini` (also `left_thumbstick_click`, `both_thumbstick_click`, or `none`). It is applied at startup, so restart the game after changing it.
+WiVRn's dashboard does not expose per-app OpenXR actions, and xrizer is the OpenVR compatibility layer, so neither lists these actions. For those setups, use **Action Settings → Crouch Binding** in the in-game menu, or set `[crouch] binding=right_thumbstick_click` in `TF2VR\packages\Nighteyes-TF2VRBetterBindings-<version>\plugins\layer\TF2VRBetterBindings.ini` (also `left_thumbstick_click`, `both_thumbstick_click`, or `none`). It is applied at startup, so restart the game after changing it.
 
 | Action | What it does | Bind it to |
 |---|---|---|
@@ -31,7 +31,7 @@ To recalibrate on purpose, delete `TF2VRBetterBindings.calibration.ini` and star
 | Page | What it does |
 |---|---|
 | **Controls** | Lists the actions this add-on adds and what to bind them to |
-| **Action Settings** | Reload Grab, Grenade Toggle, Crouch, Crouch Mode, Uncrouch on Jump, Jump Delay, Tactical Ability, Tactical trigger blocking |
+| **Action Settings** | Reload Grab, Grenade Toggle, Crouch, Crouch Binding, Crouch Mode, Uncrouch on Jump, Jump Delay, Tactical Ability, Tactical trigger blocking |
 | **General Options** | Sprint, and the two sprint heights |
 | **About** | Version, what the add-on is, and whether the settings file is connected |
 | **Restore Defaults** | Puts every setting above back to its default after a confirmation click |

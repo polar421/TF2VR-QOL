@@ -14,6 +14,7 @@
         { "Name": "tf2vrbb_grenade_toggle", "DefaultValue": "0" },
         { "Name": "tf2vrbb_crouch_enabled", "DefaultValue": "1" },
         { "Name": "tf2vrbb_crouch_button_mode", "DefaultValue": "0" },
+        { "Name": "tf2vrbb_crouch_binding", "DefaultValue": "0" },
         { "Name": "tf2vrbb_uncrouch_on_jump", "DefaultValue": "0" },
         { "Name": "tf2vrbb_jump_delay_ms", "DefaultValue": "250" },
         { "Name": "tf2vrbb_tactical_enabled", "DefaultValue": "1" },

@@ -170,12 +170,32 @@
 			xpos 152
 			ypos 618
 			navUp SwitchCrouchAction
-			navDown SwitchUncrouchOnJump
+			navDown SwitchCrouchBinding
 			ConVar "tf2vrbb_crouch_button_mode"
 			list
 			{
 				"TOGGLE" 0
 				"BUTTON" 1
+			}
+		}
+
+		SwitchCrouchBinding
+		{
+			ControlName RuiButton
+			InheritProperties SwitchButton
+			style DialogListButton
+			wide 696
+			xpos 152
+			ypos 680
+			navUp SwitchCrouchMode
+			navDown SwitchUncrouchOnJump
+			ConVar "tf2vrbb_crouch_binding"
+			list
+			{
+				"NONE" 0
+				"LEFT STICK CLICK" 1
+				"RIGHT STICK CLICK" 2
+				"BOTH STICK CLICKS" 3
 			}
 		}
 
@@ -186,8 +206,8 @@
 			style DialogListButton
 			wide 696
 			xpos 152
-			ypos 680
-			navUp SwitchCrouchMode
+			ypos 742
+			navUp SwitchCrouchBinding
 			navDown SwitchJumpDelay
 			ConVar "tf2vrbb_uncrouch_on_jump"
 			list
@@ -204,7 +224,7 @@
 			style DialogListButton
 			wide 696
 			xpos 152
-			ypos 742
+			ypos 804
 			navUp SwitchUncrouchOnJump
 			navDown SwitchTacticalAction
 			ConVar "tf2vrbb_jump_delay_ms"
@@ -241,7 +261,7 @@
 			style DialogListButton
 			wide 696
 			xpos 152
-			ypos 804
+			ypos 866
 			navUp SwitchJumpDelay
 			navDown SwitchTacticalBlockTrigger
 			ConVar "tf2vrbb_tactical_enabled"
@@ -259,7 +279,7 @@
 			style DialogListButton
 			wide 696
 			xpos 152
-			ypos 866
+			ypos 928
 			navUp SwitchTacticalAction
 			navDown SwitchReloadGrab
 			ConVar "tf2vrbb_tactical_block_trigger"
@@ -272,14 +292,14 @@
 		HintText
 		{
 			ControlName Label
-			labelText "Crouch mode must match how CROUCH is bound: TOGGLE for a toggle binding, BUTTON for a hold binding."
+			labelText "Crouch Binding is applied by the OpenXR layer after a restart. Crouch Mode controls toggle vs hold."
 			font Default_16
 			fgcolor_override "150 156 162 255"
 			wide 696
 			tall 30
 			wrap 1
 			xpos 152
-			ypos 920
+			ypos 982
 		}
 
 		Status
@@ -292,7 +312,7 @@
 			wide 696
 			tall 30
 			xpos 152
-			ypos 950
+			ypos 1012
 		}
 
 		FooterButtons
