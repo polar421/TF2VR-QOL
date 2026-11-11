@@ -213,7 +213,7 @@
 		HintText
 		{
 			ControlName Label
-			labelText "Y opens this screen from the campaign pause menu. B returns to the pause menu. Crouch and other VR settings remain in TF2VR Better Bindings."
+			labelText "Y opens this screen from the campaign pause menu. B returns to the pause menu. Crouch and other VR settings remain in TF2VR Quality of life."
 			font Default_16
 			fgcolor_override "150 156 162 255"
 			wide 1036

@@ -23,7 +23,7 @@ button or resource. The same UI VM registers six sandbox pages:
 | `TF2VRSBSandboxPresets` | `tf2vrsb_presets.menu` |
 | `TF2VRSBSandboxDeveloper` | `tf2vrsb_developer.menu` |
 
-The existing main-menu **TF2VR Better Bindings** page is unchanged.
+The existing main-menu **TF2VR Quality of life** page is unchanged.
 
 ## PDF requirement mapping
 

@@ -1,4 +1,4 @@
-// TF2VR Better Bindings - in-game settings menu.
+// TF2VR Quality of life - in-game settings menu.
 //
 // Registered from mod.json:
 //   "Before": "TF2VRBB_AddMenu"          - creates the menu pages
@@ -88,7 +88,7 @@ void function TF2VRBB_AddMainMenuFooter()
 	if ( mainMenu == null )
 		return
 
-	AddMenuFooterOption( mainMenu, BUTTON_X, "%[X_BUTTON|]% TF2VR Better Bindings", "TF2VR Better Bindings",
+	AddMenuFooterOption( mainMenu, BUTTON_X, "%[X_BUTTON|]% TF2VR Quality of life", "TF2VR Quality of life",
 		TF2VRBB_OnOpenFromMainMenu )
 }
 
@@ -257,7 +257,7 @@ void function TF2VRBB_InitAbout()
 	file.aboutMenu = GetMenu( TF2VRBB_MENU_ABOUT )
 	file.aboutStorage = Hud_GetChild( file.aboutMenu, "StorageLabel" )
 
-	Hud_SetText( Hud_GetChild( file.aboutMenu, "VersionLabel" ), "TF2VR BETTER BINDINGS " + TF2VRBB_VERSION )
+	Hud_SetText( Hud_GetChild( file.aboutMenu, "VersionLabel" ), "TF2VR QUALITY OF LIFE " + TF2VRBB_VERSION )
 	Hud_AddEventHandler( Hud_GetChild( file.aboutMenu, "BtnBack" ), UIE_CLICK, TF2VRBB_OnBackButton )
 
 	AddMenuFooterOption( file.aboutMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )

@@ -32,7 +32,7 @@
 		{
 			ControlName Label
 			InheritProperties MenuTitle
-			labelText "TF2VR BETTER BINDINGS"
+			labelText "TF2VR QUALITY OF LIFE"
 		}
 
 		Screen
@@ -97,7 +97,7 @@
 		VersionLabel
 		{
 			ControlName Label
-			labelText "TF2VR BETTER BINDINGS"
+			labelText "TF2VR QUALITY OF LIFE"
 			font Default_21
 			fgcolor_override "242 141 28 255"
 			allcaps 1

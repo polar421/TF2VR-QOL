@@ -32,7 +32,7 @@
 		{
 			ControlName Label
 			InheritProperties MenuTitle
-			labelText "TF2VR BETTER BINDINGS"
+			labelText "TF2VR QUALITY OF LIFE"
 		}
 
 		Screen

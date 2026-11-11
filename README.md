@@ -1,4 +1,4 @@
-# TF2VR Better Bindings
+# TF2VR Quality of life
 
 Extra OpenXR actions and optional features for [CircuitLord's Titanfall 2 VR mod](https://github.com/CircuitLord/CircuitLordVRModInstaller). **On SteamVR, nothing changes until you bind an action or turn a feature on.** Under Wine/Proton the layer supplies Linux suggested bindings for the added actions. Works left-handed too.
 
@@ -59,7 +59,7 @@ To recalibrate on purpose, delete `TF2VRBetterBindings.calibration.ini` and star
 
 ## Settings menu
 
-**TF2VR BETTER BINDINGS** is a page in the game's own front end. Press **X** on the main menu, or click **TF2VR Better Bindings** in the footer.
+**TF2VR QUALITY OF LIFE** is a page in the game's own front end. Press **X** on the main menu, or click **TF2VR Quality of life** in the footer.
 
 | Page | What it does |
 |---|---|
