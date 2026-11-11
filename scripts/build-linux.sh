@@ -146,6 +146,8 @@ sandbox_pages = ["root", "maps", "npcs", "player", "presets", "developer"]
 expected = [
     "LICENSE",
     "README.md",
+    "ROADMAP.md",
+    "SANDBOX.md",
     "docs/SANDBOX.md",
     "unregister-layer.ps1",
     f"{mod_dir}/mod.json",

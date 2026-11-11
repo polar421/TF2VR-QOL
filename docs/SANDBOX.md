@@ -1,4 +1,7 @@
-# TF2VR Northstar Campaign Sandbox
+# TF2VR Northstar Campaign Sandbox — Engineering Notes
+
+For a practical walkthrough of the shipped sandbox, see
+[`SANDBOX.md`](../SANDBOX.md).
 
 This document records what the 1.5.0 sandbox actually implements, which
 interfaces were verified before use, and what remains blocked on runtime

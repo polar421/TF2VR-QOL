@@ -107,7 +107,12 @@ add_custom_target(dist_package
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/generated/mod.json" "${PACKAGE_DIR}/mods/${MOD_NAME}/mod.json"
     COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:tf2vrbb_plugin>" "${PACKAGE_DIR}/plugins/"
     COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:tf2vrbb_layer>" "${LAYER_MANIFEST}" "${LAYER_CONFIG}" "${PACKAGE_DIR}/plugins/layer/"
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/README.md" "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" "${PACKAGE_DIR}/"
+    COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
+        "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE"
+        "${CMAKE_CURRENT_SOURCE_DIR}/SANDBOX.md"
+        "${CMAKE_CURRENT_SOURCE_DIR}/ROADMAP.md"
+        "${PACKAGE_DIR}/"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/docs" "${PACKAGE_DIR}/docs"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/scripts/unregister.ps1" "${PACKAGE_DIR}/unregister-layer.ps1"
     COMMAND ${CMAKE_COMMAND} -E chdir "${PACKAGE_ROOT}" ${CMAKE_COMMAND} -E tar cf "${PACKAGE_ZIP}" --format=zip "${PACKAGE_NAME}"

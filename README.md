@@ -35,7 +35,7 @@ Map transitions, world-object placement/editing, individual NPC removal, and the
 
 The sandbox has been source-inspected, packaged and statically checked, but **has not been run in Titanfall 2 or a Quest 3S/WiVRn headset in this development environment**. The pause footer, NPC spawning, teleports, fly/noclip, layout logging, on-screen bounds, Safe I/O and native-menu VR presentation remain runtime tests. Treat the feature as experimental and start with a disposable campaign session.
 
-See [docs/SANDBOX.md](docs/SANDBOX.md) for the PDF-to-implementation checklist, API evidence, VM boundaries and test plan.
+See [SANDBOX.md](SANDBOX.md) for how the sandbox works, or [docs/SANDBOX.md](docs/SANDBOX.md) for the implementation checklist, API evidence, VM boundaries and runtime test plan.
 
 ## Actions
 
@@ -132,6 +132,10 @@ Titanfall 2 VR uses the Windows OpenXR loader with WineOpenXR as its runtime und
 - **Crouch is unbound on WiVRn/Monado**: set `[crouch] binding=right_thumbstick_click` in the layer INI and restart. The development log next to the layer DLL shows `suggested crouch binding ...` when the game submits its bindings.
 - **Reload Grab or Tactical is unbound on WiVRn/Monado**: the layer suggests both trigger clicks for Reload Grab and left X (Touch/Meta) or left A (Index) for Tactical. If the layer log says the suggestion was rejected, the runtime rejected the profile's paths; bind the action in the runtime editor or disable it.
 - **Running the game as administrator** stops the add-on from loading. Start it normally.
+
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for the proposed order of work, including the runtime-validation gate and the sandbox features that remain deliberately deferred.
 
 ## Uninstall
 
