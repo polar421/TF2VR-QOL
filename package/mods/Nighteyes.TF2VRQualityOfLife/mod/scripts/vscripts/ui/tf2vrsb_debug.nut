@@ -14,8 +14,12 @@ global function TF2VRSB_LogDeveloperLayout
 global function TF2VRSB_LogState
 global function TF2VRSB_LogEvent
 global function TF2VRSB_ToggleLayoutOverlay
+global function TF2VRSB_OverlayOpacityValue
+global function TF2VRSB_OverlayOpacityLabel
+global function TF2VRSB_CycleOverlayOpacity
 
 const string TF2VRSB_LAYOUT_OVERLAY = "tf2vrsb_overlay"
+const string TF2VRSB_LAYOUT_OPACITY = "tf2vrsb_overlay_opacity"
 
 void function TF2VRSB_DebugInit()
 {
@@ -25,6 +29,44 @@ void function TF2VRSB_DebugInit()
 bool function TF2VRSB_DebugEnabled()
 {
 	return GetConVarInt( "tf2vrsb_debug" ) == 1
+}
+
+int function TF2VRSB_OverlayOpacityValue()
+{
+	int value = GetConVarInt( TF2VRSB_LAYOUT_OPACITY )
+	if ( value < 0 )
+		value = 0
+	if ( value > 100 )
+		value = 100
+	return value
+}
+
+string function TF2VRSB_OverlayOpacityLabel()
+{
+	return "LAYOUT OPACITY: " + string( TF2VRSB_OverlayOpacityValue() ) + "%"
+}
+
+void function TF2VRSB_CycleOverlayOpacity( var button )
+{
+	int current = TF2VRSB_OverlayOpacityValue()
+	int next = 10
+	if ( current < 20 )
+		next = 20
+	else if ( current < 35 )
+		next = 35
+	else if ( current < 50 )
+		next = 50
+	else if ( current < 75 )
+		next = 75
+	else if ( current < 100 )
+		next = 100
+
+	SetConVarInt( TF2VRSB_LAYOUT_OPACITY, next )
+	if ( file.developerMenu != null )
+		TF2VRSB_SetButtonLabel( file.developerMenu, "OverlayOpacity", TF2VRSB_OverlayOpacityLabel() )
+	TF2VRSB_DrawLayoutOverlay( file.activeLayoutPage, file.activeLayoutMenu )
+	if ( TF2VRSB_DebugEnabled() )
+		print( "[TF2VRSB][overlay] opacity=" + string( next ) + "%\n" )
 }
 
 void function TF2VRSB_LogEvent( string kind, string detail )
@@ -174,6 +216,7 @@ array<string> function TF2VRSB_LayoutOverlayNames( string page )
 	{
 		names.append( "LogLayout" )
 		names.append( "Refresh" )
+		names.append( "OverlayOpacity" )
 		names.append( "SwitchDebug" )
 		names.append( "BtnBack" )
 		names.append( "FooterButtons" )
@@ -181,7 +224,7 @@ array<string> function TF2VRSB_LayoutOverlayNames( string page )
 	return names
 }
 
-bool function TF2VRSB_PlaceLayoutBox( var menu, string boxName, var target )
+bool function TF2VRSB_PlaceLayoutBox( var menu, string boxName, var target, int alpha )
 {
 	if ( menu == null || target == null || !Hud_IsVisible( target ) )
 		return false
@@ -195,6 +238,7 @@ bool function TF2VRSB_PlaceLayoutBox( var menu, string boxName, var target )
 	Hud_SetPos( box, Hud_GetAbsX( target ) - Hud_GetAbsX( menu ),
 		Hud_GetAbsY( target ) - Hud_GetAbsY( menu ) )
 	Hud_SetSize( box, width, height )
+	Hud_SetAlpha( box, alpha )
 	Hud_Show( box )
 	return true
 }
@@ -223,21 +267,25 @@ void function TF2VRSB_DrawLayoutOverlay( string page, var menu )
 	if ( GetConVarInt( TF2VRSB_LAYOUT_OVERLAY ) != 1 )
 		return
 
+	int opacity = TF2VRSB_OverlayOpacityValue()
+	int controlAlpha = opacity * 255 / 100
+	int menuAlpha = controlAlpha * 2 / 3
 	int drawn = 0
-	if ( TF2VRSB_PlaceLayoutBox( menu, "DebugMenu", Hud_GetChild( menu, "Panel" ) ) )
+	if ( TF2VRSB_PlaceLayoutBox( menu, "DebugMenu", Hud_GetChild( menu, "Panel" ), menuAlpha ) )
 		drawn++
 
 	array<string> names = TF2VRSB_LayoutOverlayNames( page )
 	for ( int i = 0; i < names.len() && i < 15; i++ )
 	{
-		if ( TF2VRSB_PlaceLayoutBox( menu, "Debug" + string( i ), Hud_GetChild( menu, names[ i ] ) ) )
+		if ( TF2VRSB_PlaceLayoutBox( menu, "Debug" + string( i ), Hud_GetChild( menu, names[ i ] ), controlAlpha ) )
 			drawn++
 	}
 
 	if ( drawn > 0 && legend != null )
 		Hud_Show( legend )
 	if ( TF2VRSB_DebugEnabled() )
-		print( "[TF2VRSB][overlay] page=" + page + " visible=1 boxes=" + string( drawn ) + "\n" )
+		print( "[TF2VRSB][overlay] page=" + page + " visible=1 boxes=" + string( drawn )
+			+ " opacity=" + string( opacity ) + "%\n" )
 }
 
 void function TF2VRSB_ToggleLayoutOverlay( var button )
@@ -322,7 +370,7 @@ void function TF2VRSB_LogDeveloperLayout( var menu )
 	array<string> names = [
 		"Panel", "AccentTop", "PanelHeader", "HeaderRule", "SubHeader",
 		"MapValue", "ModeValue", "PositionValue", "CountsValue", "CapValue",
-		"LimitsValue", "LogLayout", "Refresh", "SwitchDebug", "BtnBack",
+		"LimitsValue", "LogLayout", "Refresh", "OverlayOpacity", "SwitchDebug", "BtnBack",
 		"FooterButtons"
 	]
 	TF2VRSB_LogPage( "developer", menu, names )

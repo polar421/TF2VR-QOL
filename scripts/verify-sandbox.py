@@ -41,18 +41,39 @@ def main() -> int:
     server = read(server_path)
     problems: list[str] = []
 
-    overlay_convar = next(
-        (entry for entry in convar_entries if entry.get("Name") == "tf2vrsb_overlay"),
-        None,
-    )
-    if overlay_convar is None:
-        problems.append("missing overlay ConVar: tf2vrsb_overlay")
-    else:
-        if overlay_convar.get("DefaultValue") != "0":
-            problems.append("tf2vrsb_overlay must default to 0")
-        flags = overlay_convar.get("Flags")
+    for convar_name, default in (
+        ("tf2vrsb_overlay", "0"),
+        ("tf2vrsb_overlay_opacity", "20"),
+    ):
+        entry = next(
+            (item for item in convar_entries if item.get("Name") == convar_name),
+            None,
+        )
+        if entry is None:
+            problems.append(f"missing overlay ConVar: {convar_name}")
+            continue
+        if entry.get("DefaultValue") != default:
+            problems.append(f"{convar_name} must default to {default}")
+        flags = entry.get("Flags")
         if not isinstance(flags, int) or flags & 128 == 0:
-            problems.append("tf2vrsb_overlay must use FCVAR_ARCHIVE (128)")
+            problems.append(f"{convar_name} must use FCVAR_ARCHIVE (128)")
+
+    for required in (
+        "GetConVarInt( TF2VRSB_LAYOUT_OPACITY )",
+        "SetConVarInt( TF2VRSB_LAYOUT_OPACITY, next )",
+        "Hud_SetAlpha( box, alpha )",
+        "TF2VRSB_OverlayOpacityLabel()",
+        "TF2VRSB_CycleOverlayOpacity",
+    ):
+        if required not in debug:
+            problems.append(f"tf2vrsb_debug.nut: missing {required}")
+
+    for required in (
+        'Hud_GetChild( file.developerMenu, "OverlayOpacity" )',
+        "Hud_AddEventHandler( opacityButton, UIE_CLICK, TF2VRSB_CycleOverlayOpacity )",
+    ):
+        if required not in ui:
+            problems.append(f"tf2vrsb_menu.nut: missing {required}")
 
     # Menu registrations and the resources they reference. The UI uses
     # string constants for menu IDs, so resolve those before comparing.
@@ -81,6 +102,15 @@ def main() -> int:
                 problems.append(f"{rel}: duplicate control {name}")
             names.add(name)
         controls_by_path[rel] = names
+
+    for rel in sorted(set(menu_paths.values())):
+        if not Path(rel).name.startswith("tf2vrsb_") or not rel.endswith(".menu"):
+            continue
+        resource = read(mod / "mod" / rel)
+        if 'bgcolor_override "242 141 28 255"' not in resource:
+            problems.append(f"{rel}: menu overlay background must be fully opaque")
+        if resource.count('bgcolor_override "0 220 255 255"') != 15:
+            problems.append(f"{rel}: expected 15 fully opaque control overlay backgrounds")
 
     menu_vars = {
         "rootMenu": "TF2VRSBSandboxRoot",

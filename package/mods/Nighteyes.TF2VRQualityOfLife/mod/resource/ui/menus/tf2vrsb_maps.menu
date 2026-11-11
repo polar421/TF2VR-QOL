@@ -320,7 +320,7 @@
 			zpos 50
 			visible 0
 			paintbackground 1
-			bgcolor_override "242 141 28 32"
+			bgcolor_override "242 141 28 255"
 		}
 		Debug0
 		{
@@ -333,7 +333,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		Debug1
 		{
@@ -346,7 +346,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		Debug2
 		{
@@ -359,7 +359,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		Debug3
 		{
@@ -372,7 +372,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		Debug4
 		{
@@ -385,7 +385,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		Debug5
 		{
@@ -398,7 +398,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		Debug6
 		{
@@ -411,7 +411,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		Debug7
 		{
@@ -424,7 +424,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		Debug8
 		{
@@ -437,7 +437,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		Debug9
 		{
@@ -450,7 +450,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		Debug10
 		{
@@ -463,7 +463,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		Debug11
 		{
@@ -476,7 +476,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		Debug12
 		{
@@ -489,7 +489,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		Debug13
 		{
@@ -502,7 +502,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		Debug14
 		{
@@ -515,7 +515,7 @@
 			zpos 51
 			visible 0
 			paintbackground 1
-			bgcolor_override "0 220 255 52"
+			bgcolor_override "0 220 255 255"
 		}
 		DebugLegend
 		{

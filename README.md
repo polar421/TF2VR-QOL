@@ -15,7 +15,7 @@ This is a deliberately small, source-verified vertical slice. Pages are wired to
 | **NPC Sandbox** | Implemented; not run in game | Wires hostile IMC soldier, hostile IMC spectre, and friendly soldier spawns in front of the player. Enforces a 2-10 NPC cap and clears only NPCs this sandbox created |
 | **Player Utilities** | Implemented; not run in game | Wires save, return and clear for a position bookmark, plus a noclip fly toggle with a live status label |
 | **Position Presets** | Implemented; not run in game | Wires three position slots under the mod's own Safe I/O folder, map-locked on load |
-| **Developer Information** | Implemented; not run in game | Map ID, session mode, coordinates, counts, cap and spawn distance, plus a layout dump button, debug-log switch and on-screen bounds toggle |
+| **Developer Information** | Implemented; not run in game | Map ID, session mode, coordinates, counts, cap and spawn distance, plus a layout dump button, opacity control, debug-log switch and on-screen bounds toggle |
 
 The NPC path places NPCs 100-300 units ahead of the player, requires a clear trace and solid ground, and caps them with the `NPC CAP` switch. `CLEAR MANAGED NPCs` asks for a second click and only calls `Destroy()` on handles recorded by the sandbox. Campaign entities are never scanned and deleted.
 
@@ -27,7 +27,7 @@ Position presets are plain text in Northstar's mod-scoped Safe I/O folder. They 
 
 **DEBUG LOGGING** is on by default (`tf2vrsb_debug 1`). Opening a sandbox page writes `[TF2VRSB][layout]` lines containing the screen size, the page's own position and size, and each control's relative/absolute position, size, visibility, enabled state, parent geometry, script ID and text. `[state]` lines record the status ConVars, and `[event]` lines record page navigation, map selection, status requests, commands and preset loads. The SERVER VM adds `[TF2VRSB][server]` lines for accepted actions. **LOG CURRENT LAYOUT TO NSLOG** in Developer Information dumps the current page again, and the **DEBUG LOGGING** switch stops the diagnostics when you want a quiet log. Read them in `TF2VR\logs\nslog*.txt`.
 
-Press **Y** on any sandbox page to toggle an on-screen layout overlay. It draws the menu panel in orange and each focusable control and the footer in cyan from the live HUD bounds, so spacing and clipping can be checked without reading the log. The overlay is off by default, works independently of debug logging, and saves its state in the archived `tf2vrsb_overlay` ConVar so it survives UI reloads and game restarts.
+Press **Y** on any sandbox page to toggle an on-screen layout overlay. It draws the menu panel in orange and each focusable control and the footer in cyan from the live HUD bounds, so spacing and clipping can be checked without reading the log. The overlay is off by default, works independently of debug logging, and saves its state in the archived `tf2vrsb_overlay` ConVar so it survives UI reloads and game restarts. **LAYOUT OPACITY** in Developer Information cycles 10%, 20%, 35%, 50%, 75% and 100%, starting at 20%; the archived `tf2vrsb_overlay_opacity` ConVar restores the chosen opacity after a reload or restart.
 
 ### Not implemented in this build
 

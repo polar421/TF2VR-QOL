@@ -46,11 +46,11 @@ been run in Titanfall 2; the runtime test plan at the end is still outstanding.
 | Gauntlet Builder | Not implemented | Requires tested scenario markers, ordering, timing and a verified server think/trigger path; no inert page is shipped |
 | Save & Load | Implemented slice | Three map-locked position presets in mod-scoped Safe I/O |
 | Rename / duplicate / browse / delete presets | Not implemented | Three fixed slots; no file browser |
-| Developer Tools | Implemented readout + logs | Map, mode, coordinates, entity/NPC/managed counts, limits; layout dump, debug switch and on-screen bounds toggle |
+| Developer Tools | Implemented readout + logs | Map, mode, coordinates, entity/NPC/managed counts, limits; layout dump, opacity control, debug switch and on-screen bounds toggle |
 | Debug overlays / menu position | Implemented as logs + on-screen bounds | `[TF2VRSB][layout]` dumps geometry and text; **Y** tints the menu orange and focusable controls cyan using live HUD bounds |
 | Visual design | Implemented resources | Original dark industrial layout, orange accents, technical labels |
 | VR / WiVRn | Not physically tested | Native menu path is used; no separate OpenXR overlay was added |
-| Packaging | Implemented | CMake package, version 1.5.0, verifier covers files, six scripts, 37 ConVars and menus; `scripts/verify-sandbox.py` cross-checks controls, bridge targets, commands, allow-list entries and ConVars |
+| Packaging | Implemented | CMake package, version 1.5.0, verifier covers files, six scripts, 38 ConVars and menus; `scripts/verify-sandbox.py` cross-checks controls, bridge targets, commands, allow-list entries and ConVars |
 
 ## Verified interfaces
 
@@ -64,7 +64,7 @@ menu, and Northstar's public modding documentation before use:
 - `Hud_GetX`, `Hud_GetY`, `Hud_GetAbsX`, `Hud_GetAbsY`, `Hud_GetWidth`,
   `Hud_GetHeight`, `Hud_GetParent`, `Hud_IsVisible`, `Hud_IsEnabled`,
   `Hud_GetScriptID`, `Hud_GetUTF8Text`, `GetScreenSize`, `WaitFrame`
-- `Hud_SetPos`, `Hud_SetSize`, `Hud_Show`, `Hud_Hide` for the overlay's own labels
+- `Hud_SetPos`, `Hud_SetSize`, `Hud_SetAlpha`, `Hud_Show`, `Hud_Hide` for the overlay's own labels
 - `RunClientScript` from the UI VM
 - `player.ClientCommand` from the CLIENT VM
 - `AddClientCommandCallback(string, bool functionref(entity, array<string>))`
@@ -143,7 +143,11 @@ Press **Y** on any sandbox page to toggle the on-screen bounds overlay.
 `DebugMenu` follows the page's `Panel`; `Debug0`-`Debug14` follow its focusable
 controls. The overlay is off by default, independent of `tf2vrsb_debug`, and
 stores its state in the archived `tf2vrsb_overlay` ConVar so a UI reload or game
-restart restores it. It only resizes and displays its own HUD labels.
+restart restores it. The **LAYOUT OPACITY** button in Developer Information
+cycles 10%, 20%, 35%, 50%, 75% and 100%, starting at 20%. That choice uses the archived
+`tf2vrsb_overlay_opacity` ConVar and is restored after a reload or restart. The
+boxes are fully opaque in the menu resources; their HUD alpha is set on every
+overlay draw. It only resizes and displays its own HUD labels.
 
 `tf2vrsb_debug` defaults to `1`. Setting it to `0` suppresses every diagnostic
 line; setting it back to `1` restores them. It does not affect the on-screen
@@ -192,8 +196,9 @@ the development environment:
    the page and control positions; use **LOG CURRENT LAYOUT TO NSLOG**. Press
    **Y** and confirm the orange menu box and cyan control boxes align with the
    page while logging is on, then turn **DEBUG LOGGING** off and confirm new
-   page opens stop logging while the overlay still toggles. Restart the game and
-   confirm the overlay state is restored.
+   page opens stop logging while the overlay still toggles. Open **LAYOUT
+   OPACITY** and cycle it; confirm the boxes change opacity immediately. Restart
+   the game and confirm the overlay state and opacity are restored.
 9. Check `tf2vrsb_*` ConVars and the server log for rejected actions.
 10. Repeat the menu and gameplay checks in the Quest 3S through WiVRn, looking
     for readability, focus, input handoff, fly comfort, and frame-time regressions.

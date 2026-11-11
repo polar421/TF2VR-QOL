@@ -640,18 +640,22 @@ void function TF2VRSB_InitDeveloper()
 
 	var logLayoutButton = Hud_GetChild( file.developerMenu, "LogLayout" )
 	var refreshButton = Hud_GetChild( file.developerMenu, "Refresh" )
+	var opacityButton = Hud_GetChild( file.developerMenu, "OverlayOpacity" )
 	var debugSwitch = Hud_GetChild( file.developerMenu, "SwitchDebug" )
 	var backButton = Hud_GetChild( file.developerMenu, "BtnBack" )
 	TF2VRSB_SetButtonLabel( file.developerMenu, "LogLayout", "LOG CURRENT LAYOUT TO NSLOG" )
 	TF2VRSB_SetButtonLabel( file.developerMenu, "Refresh", "REFRESH SESSION TELEMETRY" )
+	TF2VRSB_SetButtonLabel( file.developerMenu, "OverlayOpacity", TF2VRSB_OverlayOpacityLabel() )
 	TF2VRSB_SetButtonLabel( file.developerMenu, "BtnBack", "BACK TO MISSION CONTROL" )
 	Hud_AddEventHandler( logLayoutButton, UIE_CLICK, TF2VRSB_OnLogLayout )
 	Hud_AddEventHandler( refreshButton, UIE_CLICK, TF2VRSB_OnRefreshDeveloper )
+	Hud_AddEventHandler( opacityButton, UIE_CLICK, TF2VRSB_CycleOverlayOpacity )
 	Hud_AddEventHandler( backButton, UIE_CLICK, TF2VRSB_OnBack )
 
 	file.developerButtons = []
 	file.developerButtons.append( logLayoutButton )
 	file.developerButtons.append( refreshButton )
+	file.developerButtons.append( opacityButton )
 	file.developerButtons.append( debugSwitch )
 	file.developerButtons.append( backButton )
 	TF2VRSB_WireVertical( file.developerButtons )
@@ -783,7 +787,10 @@ void function TF2VRSB_UpdateStatusLabels()
 			+ " DEBUG=" + ( GetConVarInt( TF2VRSB_DEBUG ) == 1 ? "ON" : "OFF" ) + "\n"
 			+ "AVAILABLE: PAUSE MENU, SESSION INFO, MAP CATALOG, NPCs, BOOKMARK, FLY, POSITION PRESETS.\n"
 			+ "NOT AVAILABLE: MAP TRAVEL, WORLD OBJECTS, GAUNTLET MARKERS. THESE REQUIRE IN-GAME VALIDATION.\n"
-			+ "Y TOGGLES ON-SCREEN LAYOUT BOUNDS: ORANGE=MENU, CYAN=CONTROLS. THE CHOICE IS SAVED." )
+			+ "Y TOGGLES ON-SCREEN LAYOUT BOUNDS: ORANGE=MENU, CYAN=CONTROLS. THE CHOICE AND OPACITY ARE SAVED." )
+
+	if ( file.developerMenu != null )
+		TF2VRSB_SetButtonLabel( file.developerMenu, "OverlayOpacity", TF2VRSB_OverlayOpacityLabel() )
 
 	if ( file.presetStatus != null )
 		Hud_SetText( file.presetStatus, result )
