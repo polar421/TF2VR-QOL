@@ -42,7 +42,7 @@ been run in Titanfall 2; the runtime test plan at the end is still outstanding.
 |---|---|---|
 | Campaign pause-menu entry | Implemented | `InGameSPMenu` is used by the installed TF2VR sources and the menu API is present in Northstar |
 | Dashboard / category navigation | Implemented | Eight UI pages, explicit nav links, B footer, controller focus |
-| Maps & Environments | Read-only catalog | 13 IDs cross-checked against the installed `tf2vr_memories.nut`; no map transition |
+| Maps & Environments | Searchable read-only catalog | 13 IDs cross-checked against the installed `tf2vr_memories.nut`; persistent favorites in mod-scoped Safe I/O; no map transition |
 | Safe map switching | Not implemented | `ChangeLevel` exists but campaign transition side effects are not runtime-tested |
 | World Editor | Not implemented | No verified `CreateProp` usage or object registry was found in the installed Northstar/campaign scripts; placement is withheld |
 | NPC catalog browser | Implemented; runtime untested | 62 catalog entries, six categories, search, paging, details, support status and restrictions |

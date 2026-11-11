@@ -36,7 +36,7 @@ such as Resume, Restart, Settings and Quit are not replaced. The main-menu
 | Page | What it does |
 |---|---|
 | **Mission Control** | Shows the live map, session state, NPC counts and the most recent action result. Also the navigation hub. |
-| **Maps & Environments** | Lists the 13 campaign map IDs, marks the current map and shows catalog details. Map travel is disabled. |
+| **Maps & Environments** | Searches the 13 campaign map IDs, marks the current map, saves favorites and shows catalog details. Map travel is disabled. |
 | **NPC Browser** | Searches and filters a 62-entry NPC catalog by category, opens details, and selects a spawn. |
 | **NPC Details** | Shows the class, AI settings ID, support status, restrictions, dependencies, team and spawn action. |
 | **Managed NPCs** | Lists tracked sandbox NPCs eight at a time, removes one by ID, and clears all tracked NPCs. |
@@ -53,8 +53,12 @@ count. The status line shows the last action result, including rejected actions.
 ### Maps & Environments
 
 The catalog is read-only. It lists the campaign map IDs used by the game and
-marks the current one with `>`. Selecting another entry only updates the details
-panel; it does not call `ChangeLevel` or start a transition.
+marks the current one with `>`. **SEARCH** matches a display name or map ID.
+`SHOW: FAVORITES ONLY` filters the catalog to starred maps, and
+`ADD SELECTED TO FAVORITES` / `REMOVE SELECTED FAVORITE` updates a short list of
+known map IDs in `sandbox_map_favorites.txt` under the mod's Safe I/O folder.
+Unknown IDs are ignored; clearing every favorite writes `none`. None of these
+controls loads a map.
 
 The page intentionally has no **TRAVEL** control. Campaign transitions have
 side effects that have not been validated, so map switching remains outside this

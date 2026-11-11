@@ -1,6 +1,6 @@
 # TF2VR-QOL Comprehensive Development Roadmap
 
-**Status:** planning document plus the source-verified 1.7.0 VR diagnostics/input-tester slice and 1.6.0 NPC browser/managed-roster slice. Every other item remains proposed and requires separate approval and runtime testing.
+**Status:** planning document plus the source-verified 1.7.0 VR diagnostics/input-tester and searchable map-favorites slices, and the 1.6.0 NPC browser/managed-roster slice. Every other item remains proposed and requires separate approval and runtime testing.
 
 **Source baseline:** TF2VR Quality of Life 1.7.0.
 
@@ -10,7 +10,7 @@
 
 > **1.6.0 implementation note.** The NPC catalog, browser, details page and managed roster were implemented before live VR diagnostics because they could be validated against extracted game scripts, while OpenXR/controller diagnostics require a running headset and runtime that are unavailable here. This is a dependency-driven ordering change, not a claim that the NPC slice has passed runtime testing.
 
-> **1.7.0 implementation note.** The settings menu now has a read-only VR diagnostics page and text action tester fed by layer-published ConVars. It reports runtime class/version, app API version, current interaction profiles, pose validity, configured actions and live trigger/grip/stick/button action states. It has not been run in Titanfall 2 or a headset. Report export, setup-health checks, calibration compatibility and graphical controller visualization remain planned.
+> **1.7.0 implementation note.** The settings menu now has a read-only VR diagnostics page and text action tester fed by layer-published ConVars. It reports runtime class/version, app API version, current interaction profiles, pose validity, configured actions and live trigger/grip/stick/button action states. It has not been run in Titanfall 2 or a headset. The sandbox map catalog also gained search by name/ID and persistent favorites in 1.7.0. Report export, setup-health checks, calibration compatibility and graphical controller visualization remain planned.
 
 ## 1. Project vision
 
@@ -114,7 +114,7 @@ The requested phase order is kept, with two adjustments:
 | NPC catalog and managed roster | Implemented; runtime untested | 62 catalog entries, six categories, search, details, 24 server-accepted AI settings, stable IDs, individual removal and bulk clear |
 | Player bookmark and fly/noclip | Implemented; runtime untested | Session bookmark; movement-type toggle |
 | Three position presets | Implemented; runtime untested | Fixed slots in mod-safe I/O, map-locked load |
-| Campaign map catalog | Implemented; runtime untested | 13 hard-coded campaign IDs; no transitions |
+| Campaign map catalog | Implemented; runtime untested | 13 known campaign IDs, search by name/ID and persistent favorites; no transitions |
 | Developer telemetry, layout logs and overlay | Implemented; runtime untested | Read-only UI diagnostics; fixed overlay boxes |
 | Build and package verification | Implemented | 93 ConVars, seven scripts, 15 menus, static package cross-checks only |
 | Automated tests / CI | Not implemented | No test project is present and no CI workflow exists |
@@ -188,7 +188,7 @@ The requested phase order is kept, with two adjustments:
 
 **Goal:** make the existing sandbox a dependable campaign tool.
 
-- Advanced map catalog and metadata.
+- Map catalog metadata and richer discovery; search and favorites are already implemented.
 - Managed NPC roster and individual removal.
 - Player utility profiles.
 - Save/load format v1 for presets and sandbox data.
@@ -341,16 +341,16 @@ Do not promise a visual silhouette until RUI image/layout capabilities and a reu
 
 ### F. Advanced Map Browser
 
-**Phase 3 · Priority P2 · Feasibility HIGH for catalog UI, MEDIUM for custom metadata, LOW for transitions · Complexity L · Status Partial**
+**Phase 3 · Priority P2 · Feasibility HIGH for catalog UI, MEDIUM for custom metadata, LOW for transitions · Complexity L · Status Partial — search and favorites implemented**
 
 **Purpose.** Make the existing 13-map catalog a useful reference and navigation tool without implying unsafe map travel.
 
-**User experience.** Categories, search, favorites, recently viewed, map descriptions, compatibility badges, dependency notes and optional preview images. Travel remains a separately gated action.
+**User experience.** Search by name or map ID, persistent favorites, categories, recently viewed, map descriptions, compatibility badges, dependency notes and optional preview images. Travel remains a separately gated action.
 
 | Planning area | Detail |
 |---|---|
-| Existing | 13 hard-coded campaign IDs, current-map marker, details panel, no transition |
-| Add | Metadata model, search/filter, favorites, recent list, map-specific notes; custom-map discovery only if a verified source exists |
+| Existing | 13 known campaign IDs, current-map marker, details panel, name/ID search and Safe I/O favorites; no transition |
+| Add | Metadata model, categories, recent list, map-specific notes; custom-map discovery only if a verified source exists |
 | Likely files | `tf2vrsb_map*.nut/menu`, Safe I/O metadata, possibly C++ file scanning |
 | APIs to verify | No verified custom-map registry; `GetMapName` is current-map only; preview images need an asset source and RUI image support |
 | Dependencies | E/K for saved metadata; transition research separate |

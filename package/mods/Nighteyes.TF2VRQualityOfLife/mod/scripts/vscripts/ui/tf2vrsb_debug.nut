@@ -172,6 +172,10 @@ array<string> function TF2VRSB_LayoutOverlayNames( string page )
 	}
 	if ( page == "maps" )
 	{
+		names.append( "SearchEntry" )
+		names.append( "FavoritesSwitch" )
+		names.append( "FavoriteSelected" )
+		names.append( "ResultSummary" )
 		for ( int i = 0; i < 13; i++ )
 			names.append( "Map" + string( i ) )
 		names.append( "FooterButtons" )
@@ -267,7 +271,7 @@ void function TF2VRSB_DrawLayoutOverlay( string page, var menu )
 	if ( menu == null )
 		return
 
-	for ( int i = 0; i < 15; i++ )
+	for ( int i = 0; i < 20; i++ )
 	{
 		var box = Hud_GetChild( menu, "Debug" + string( i ) )
 		if ( box != null )
@@ -292,7 +296,7 @@ void function TF2VRSB_DrawLayoutOverlay( string page, var menu )
 		drawn++
 
 	array<string> names = TF2VRSB_LayoutOverlayNames( page )
-	for ( int i = 0; i < names.len() && i < 15; i++ )
+	for ( int i = 0; i < names.len() && i < 20; i++ )
 	{
 		if ( TF2VRSB_PlaceLayoutBox( menu, "Debug" + string( i ), Hud_GetChild( menu, names[ i ] ), controlAlpha ) )
 			drawn++
@@ -333,6 +337,7 @@ void function TF2VRSB_LogMapsLayout( var menu )
 	WaitFrame()
 	array<string> names = [
 		"Panel", "AccentTop", "PanelHeader", "HeaderRule", "SubHeader",
+		"SearchEntry", "FavoritesSwitch", "FavoriteSelected", "ResultSummary",
 		"CurrentMapValue",
 		"Map0", "Map1", "Map2", "Map3", "Map4", "Map5", "Map6",
 		"Map7", "Map8", "Map9", "Map10", "Map11", "Map12",

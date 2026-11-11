@@ -1,6 +1,6 @@
 {
     "Name": "Nighteyes.TF2VRQualityOfLife",
-    "Description": "TF2VR Quality of life: extra OpenXR actions for Titanfall 2 VR (Reload Grab, Crouch, Tactical Ability), a live OpenXR diagnostics and controller tester, plus an in-game settings menu and an experimental campaign pause-menu sandbox with NPC spawning, position bookmarks, saved positions, fly/noclip, and debug diagnostics. Menu changes are written back into the layer's TF2VRBetterBindings.ini.",
+    "Description": "TF2VR Quality of life: extra OpenXR actions for Titanfall 2 VR (Reload Grab, Crouch, Tactical Ability), a live OpenXR diagnostics and controller tester, plus an in-game settings menu and an experimental campaign pause-menu sandbox with a searchable map catalog and favorites, NPC spawning, position bookmarks, saved positions, fly/noclip, and debug diagnostics. Menu changes are written back into the layer's TF2VRBetterBindings.ini.",
     "Version": "@PROJECT_VERSION@",
     "LoadPriority": 3,
     "Dependencies": {

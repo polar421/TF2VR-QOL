@@ -82,6 +82,30 @@ def main() -> int:
         if required not in ui:
             problems.append(f"tf2vrsb_menu.nut: missing {required}")
 
+    # Map catalog search and favorites. The catalog stays read-only; favorites
+    # are a bounded list of known map IDs in the mod-scoped Safe I/O folder.
+    for required in (
+        "TF2VRSB_OnMapSearchChanged",
+        "TF2VRSB_OnMapFavoritesFilter",
+        "TF2VRSB_OnToggleMapFavorite",
+        "TF2VRSB_LoadMapFavorites",
+        "TF2VRSB_OnMapFavoritesLoaded",
+        "TF2VRSB_SaveMapFavoritesThread",
+        "TF2VRSB_RefreshMapCatalog",
+        "TF2VRSB_MapFavoritesPath",
+        'return "sandbox_map_favorites.txt"',
+    ):
+        if required not in ui:
+            problems.append(f"tf2vrsb_menu.nut: missing map catalog hook {required}")
+    for map_id in (
+        "sp_training", "sp_crashsite", "sp_sewers1", "sp_boomtown_start",
+        "sp_boomtown", "sp_boomtown_end", "sp_hub_timeshift",
+        "sp_timeshift_spoke02", "sp_beacon", "sp_beacon_spoke0",
+        "sp_tday", "sp_s2s", "sp_skyway_v1",
+    ):
+        if f'"{map_id}"' not in ui:
+            problems.append(f"tf2vrsb_menu.nut: missing map catalog ID {map_id}")
+
     # Diagnostics labels and lifecycle. These are settings-menu controls, not
     # part of the campaign sandbox, so they are checked separately.
     diag_controls: set[str] = set()
@@ -144,8 +168,11 @@ def main() -> int:
         resource = read(mod / "mod" / rel)
         if 'bgcolor_override "242 141 28 255"' not in resource:
             problems.append(f"{rel}: menu overlay background must be fully opaque")
-        if resource.count('bgcolor_override "0 220 255 255"') != 15:
-            problems.append(f"{rel}: expected 15 fully opaque control overlay backgrounds")
+        overlay_count = 20 if Path(rel).name == "tf2vrsb_maps.menu" else 15
+        if resource.count('bgcolor_override "0 220 255 255"') != overlay_count:
+            problems.append(
+                f"{rel}: expected {overlay_count} fully opaque control overlay backgrounds"
+            )
 
     menu_vars = {
         "rootMenu": "TF2VRSBSandboxRoot",
@@ -177,7 +204,10 @@ def main() -> int:
         ):
             if match.group(1) not in controls:
                 problems.append(f"{rel}: SetButtonLabel missing {match.group(1)}")
-        missing_overlay = overlay_controls - controls
+        required_overlay = set(overlay_controls)
+        if Path(rel).name == "tf2vrsb_maps.menu":
+            required_overlay |= {f"Debug{index}" for index in range(15, 20)}
+        missing_overlay = required_overlay - controls
         if missing_overlay:
             problems.append(
                 f"{rel}: missing overlay controls {', '.join(sorted(missing_overlay))}"
@@ -278,10 +308,10 @@ def main() -> int:
     if "NSDeleteFile(" in combined_ui:
         problems.append("preset deletion is not implemented and must not be advertised")
 
-    # Preset path must stay inside the mod-scoped root.
-    for path in re.findall(r'return\s+"(sandbox_position_[^"]+)"', ui):
+    # Preset and favorite paths must stay inside the mod-scoped root.
+    for path in re.findall(r'return\s+"(sandbox_(?:position|map)_[^"]+)"', ui):
         if "/" in path or ".." in path or not path.endswith(".txt"):
-            problems.append(f"unsafe preset path: {path}")
+            problems.append(f"unsafe sandbox data path: {path}")
 
     if problems:
         print(f"FAIL: {len(problems)} sandbox cross-reference problem(s)", file=sys.stderr)

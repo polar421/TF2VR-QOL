@@ -58,6 +58,11 @@ struct
 
 	array<string> mapIds
 	array<string> mapNames
+	array<int> mapFiltered
+	array<int> mapFavorites
+	bool mapsFavoritesOnly
+	bool mapsFavoritesLoaded
+	bool mapsFavoritesLoading
 
 	var rootSession
 	var rootMap
@@ -67,6 +72,10 @@ struct
 	var mapsCurrent
 	var mapsDetails
 	var mapsStatus
+	var mapsSearch
+	var mapsFavoritesSwitch
+	var mapsFavoriteButton
+	var mapsSummary
 
 
 	var playerBookmark
@@ -212,6 +221,10 @@ void function TF2VRSB_InitMaps()
 	file.mapsCurrent = Hud_GetChild( file.mapsMenu, "CurrentMapValue" )
 	file.mapsDetails = Hud_GetChild( file.mapsMenu, "MapDetails" )
 	file.mapsStatus = Hud_GetChild( file.mapsMenu, "MapStatus" )
+	file.mapsSearch = Hud_GetChild( file.mapsMenu, "SearchEntry" )
+	file.mapsFavoritesSwitch = Hud_GetChild( file.mapsMenu, "FavoritesSwitch" )
+	file.mapsFavoriteButton = Hud_GetChild( file.mapsMenu, "FavoriteSelected" )
+	file.mapsSummary = Hud_GetChild( file.mapsMenu, "ResultSummary" )
 	file.mapButtons = TF2VRSB_GetButtons( file.mapsMenu, "Map", 13 )
 
 	array<string> ids = [
@@ -226,19 +239,33 @@ void function TF2VRSB_InitMaps()
 	]
 	file.mapIds = ids
 	file.mapNames = names
+	file.mapFiltered = []
+	file.mapFavorites = []
+	file.mapsFavoritesOnly = false
+	file.mapsFavoritesLoaded = false
+	file.mapsFavoritesLoading = false
 
-	for ( int i = 0; i < file.mapButtons.len() && i < names.len(); i++ )
-		SetButtonRuiText( file.mapButtons[ i ], names[ i ] )
+	if ( file.mapsSearch != null )
+		Hud_AddEventHandler( file.mapsSearch, UIE_CHANGE, TF2VRSB_OnMapSearchChanged )
+	if ( file.mapsFavoritesSwitch != null )
+		Hud_AddEventHandler( file.mapsFavoritesSwitch, UIE_CLICK, TF2VRSB_OnMapFavoritesFilter )
+	if ( file.mapsFavoriteButton != null )
+		Hud_AddEventHandler( file.mapsFavoriteButton, UIE_CLICK, TF2VRSB_OnToggleMapFavorite )
 
 	TF2VRSB_WireVertical( file.mapButtons )
+	if ( file.mapsSearch != null && file.mapButtons.len() > 0 )
+		Hud_SetNavUp( file.mapButtons[ 0 ], file.mapsSearch )
+	if ( file.mapsSearch != null && file.mapButtons.len() > 1 )
+		Hud_SetNavUp( file.mapButtons[ 1 ], file.mapsSearch )
+
 	for ( int i = 0; i < file.mapButtons.len(); i++ )
 	{
-		int index = i
+		int slot = i
 		var button = file.mapButtons[ i ]
 		Hud_AddEventHandler( button, UIE_CLICK,
-			void function( var clicked ) : ( index )
+			void function( var clicked ) : ( slot )
 			{
-				TF2VRSB_SelectMap( index )
+				TF2VRSB_SelectMapSlot( slot )
 			} )
 	}
 	AddMenuFooterOption( file.mapsMenu, BUTTON_B, "#B_BUTTON_BACK", "#BACK" )
@@ -250,45 +277,278 @@ void function TF2VRSB_OnMapsOpen()
 {
 	TF2VRSB_LogEvent( "menu-open", "maps" )
 	TF2VRSB_RequestStatus()
-	TF2VRSB_SelectMap( file.selectedMap )
+	if ( !file.mapsFavoritesLoaded && !file.mapsFavoritesLoading )
+		TF2VRSB_LoadMapFavorites()
+	TF2VRSB_RefreshMapCatalog()
 	FocusDefaultMenuItem( file.mapsMenu )
 	thread TF2VRSB_LogMapsLayout( file.mapsMenu )
 }
 
-void function TF2VRSB_SelectMap( int index )
+string function TF2VRSB_MapFavoritesPath()
 {
-	if ( index < 0 || index >= file.mapIds.len() )
+	return "sandbox_map_favorites.txt"
+}
+
+int function TF2VRSB_MapIndexById( string id )
+{
+	for ( int i = 0; i < file.mapIds.len(); i++ )
+	{
+		if ( file.mapIds[ i ] == id )
+			return i
+	}
+	return -1
+}
+
+bool function TF2VRSB_IsMapFavorite( int index )
+{
+	for ( int i = 0; i < file.mapFavorites.len(); i++ )
+	{
+		if ( file.mapFavorites[ i ] == index )
+			return true
+	}
+	return false
+}
+
+bool function TF2VRSB_MapSelectionVisible()
+{
+	for ( int i = 0; i < file.mapFiltered.len(); i++ )
+	{
+		if ( file.mapFiltered[ i ] == file.selectedMap )
+			return true
+	}
+	return false
+}
+
+void function TF2VRSB_OnMapSearchChanged( var button )
+{
+	TF2VRSB_RefreshMapCatalog()
+}
+
+void function TF2VRSB_OnMapFavoritesFilter( var button )
+{
+	file.mapsFavoritesOnly = !file.mapsFavoritesOnly
+	TF2VRSB_LogEvent( "map-filter", file.mapsFavoritesOnly ? "favorites-only" : "all-maps" )
+	TF2VRSB_RefreshMapCatalog()
+}
+
+void function TF2VRSB_LoadMapFavorites()
+{
+	if ( file.mapsFavoritesLoaded || file.mapsFavoritesLoading )
 		return
-	file.selectedMap = index
-	TF2VRSB_LogEvent( "map-select", "index=" + string( index ) + " id=" + file.mapIds[ index ] )
+
+	file.mapsFavoritesLoading = true
+	string path = TF2VRSB_MapFavoritesPath()
+	if ( !NSDoesFileExist( path ) )
+	{
+		file.mapsFavoritesLoaded = true
+		file.mapsFavoritesLoading = false
+		file.mapFavorites = []
+		TF2VRSB_RefreshMapCatalog()
+		return
+	}
+
+	NSLoadFile( path, TF2VRSB_OnMapFavoritesLoaded, TF2VRSB_OnMapFavoritesLoadFailed )
+}
+
+void function TF2VRSB_OnMapFavoritesLoaded( string content )
+{
+	file.mapFavorites = []
+	array<string> tokens = split( content, " " )
+	foreach ( string token in tokens )
+	{
+		int index = TF2VRSB_MapIndexById( token )
+		if ( index >= 0 && !TF2VRSB_IsMapFavorite( index ) )
+			file.mapFavorites.append( index )
+	}
+
+	file.mapsFavoritesLoaded = true
+	file.mapsFavoritesLoading = false
+	TF2VRSB_RefreshMapCatalog()
+}
+
+void function TF2VRSB_OnMapFavoritesLoadFailed()
+{
+	file.mapFavorites = []
+	file.mapsFavoritesLoaded = true
+	file.mapsFavoritesLoading = false
+	SetConVarString( TF2VRSB_RESULT, "MAP FAVORITES COULD NOT BE READ - STARTING EMPTY" )
+	TF2VRSB_RefreshMapCatalog()
+	TF2VRSB_UpdateStatusLabels()
+}
+
+void function TF2VRSB_OnToggleMapFavorite( var button )
+{
+	if ( !file.mapsFavoritesLoaded )
+	{
+		SetConVarString( TF2VRSB_RESULT, file.mapsFavoritesLoading
+			? "MAP FAVORITES ARE LOADING - TRY AGAIN"
+			: "MAP FAVORITES ARE NOT LOADED" )
+		TF2VRSB_UpdateStatusLabels()
+		return
+	}
+	if ( file.selectedMap < 0 || file.selectedMap >= file.mapIds.len() )
+	{
+		SetConVarString( TF2VRSB_RESULT, "SELECT A MAP BEFORE CHANGING FAVORITES" )
+		TF2VRSB_UpdateStatusLabels()
+		return
+	}
+
+	int selected = file.selectedMap
+	string id = file.mapIds[ selected ]
+	array<int> kept = []
+	bool wasFavorite = TF2VRSB_IsMapFavorite( selected )
+	if ( wasFavorite )
+	{
+		for ( int i = 0; i < file.mapFavorites.len(); i++ )
+		{
+			if ( file.mapFavorites[ i ] != selected )
+				kept.append( file.mapFavorites[ i ] )
+		}
+		file.mapFavorites = kept
+		SetConVarString( TF2VRSB_RESULT, "REMOVED MAP FAVORITE: " + id )
+	}
+	else
+	{
+		file.mapFavorites.append( selected )
+		SetConVarString( TF2VRSB_RESULT, "ADDED MAP FAVORITE: " + id )
+	}
+
+	TF2VRSB_LogEvent( "map-favorite", ( wasFavorite ? "removed " : "added " ) + id )
+	TF2VRSB_RefreshMapCatalog()
+	TF2VRSB_UpdateStatusLabels()
+	thread TF2VRSB_SaveMapFavoritesThread()
+}
+
+void function TF2VRSB_SaveMapFavoritesThread()
+{
+	string payload = "none"
+	if ( file.mapFavorites.len() > 0 )
+	{
+		payload = ""
+		for ( int i = 0; i < file.mapFavorites.len(); i++ )
+		{
+			if ( i > 0 )
+				payload += " "
+			payload += file.mapIds[ file.mapFavorites[ i ] ]
+		}
+	}
+
+	NSSaveFile( TF2VRSB_MapFavoritesPath(), payload )
+	WaitFrame()
+	if ( NSDoesFileExist( TF2VRSB_MapFavoritesPath() ) )
+		SetConVarString( TF2VRSB_RESULT, "MAP FAVORITES SAVED" )
+	else
+		SetConVarString( TF2VRSB_RESULT, "MAP FAVORITES UPDATED THIS SESSION - SAFE I/O UNAVAILABLE" )
+
+	TF2VRSB_RefreshMapCatalog()
+	TF2VRSB_UpdateStatusLabels()
+}
+
+void function TF2VRSB_RefreshMapCatalog()
+{
+	if ( file.mapsMenu == null )
+		return
+
+	string query = ""
+	if ( file.mapsSearch != null )
+		query = Hud_GetUTF8Text( file.mapsSearch ).tolower()
+
+	file.mapFiltered = []
+	for ( int i = 0; i < file.mapIds.len(); i++ )
+	{
+		if ( file.mapsFavoritesOnly && !TF2VRSB_IsMapFavorite( i ) )
+			continue
+		if ( query != "" )
+		{
+			string haystack = ( file.mapNames[ i ] + " " + file.mapIds[ i ] ).tolower()
+			if ( haystack.find( query ) == null )
+				continue
+		}
+		file.mapFiltered.append( i )
+	}
+
+	if ( !TF2VRSB_MapSelectionVisible() )
+		file.selectedMap = file.mapFiltered.len() > 0 ? file.mapFiltered[ 0 ] : -1
 
 	string current = GetConVarString( TF2VRSB_MAP )
+	for ( int slot = 0; slot < file.mapButtons.len(); slot++ )
+	{
+		if ( slot < file.mapFiltered.len() )
+		{
+			int index = file.mapFiltered[ slot ]
+			string label = ""
+			if ( file.mapIds[ index ] == current )
+				label += "> "
+			if ( TF2VRSB_IsMapFavorite( index ) )
+				label += "* "
+			label += file.mapNames[ index ]
+			SetButtonRuiText( file.mapButtons[ slot ], label )
+			Hud_SetEnabled( file.mapButtons[ slot ], true )
+		}
+		else
+		{
+			SetButtonRuiText( file.mapButtons[ slot ], "-- NO MATCH --" )
+			Hud_SetEnabled( file.mapButtons[ slot ], false )
+		}
+	}
+
+	if ( file.mapsSummary != null )
+	{
+		Hud_SetText( file.mapsSummary, "SHOWING " + string( file.mapFiltered.len() ) + "/"
+			+ string( file.mapIds.len() ) + "  //  "
+			+ ( file.mapsFavoritesOnly ? "FAVORITES ONLY" : "ALL MAPS" ) + "  //  "
+			+ string( file.mapFavorites.len() ) + " FAVORITES  //  * = FAVORITE" )
+	}
+	if ( file.mapsFavoritesSwitch != null )
+		SetButtonRuiText( file.mapsFavoritesSwitch, file.mapsFavoritesOnly
+			? "SHOW: FAVORITES ONLY"
+			: "SHOW: ALL MAPS" )
+	if ( file.mapsFavoriteButton != null )
+	{
+		bool hasSelection = file.selectedMap >= 0
+		Hud_SetEnabled( file.mapsFavoriteButton, hasSelection )
+		if ( hasSelection && TF2VRSB_IsMapFavorite( file.selectedMap ) )
+			SetButtonRuiText( file.mapsFavoriteButton, "REMOVE SELECTED FAVORITE" )
+		else
+			SetButtonRuiText( file.mapsFavoriteButton, "ADD SELECTED TO FAVORITES" )
+	}
+
+	if ( file.mapsCurrent != null )
+		Hud_SetText( file.mapsCurrent, "CURRENT MAP: " + TF2VRSB_DisplayMap( current ) + "  [" + current + "]" )
+	TF2VRSB_UpdateMapDetails()
+}
+
+void function TF2VRSB_UpdateMapDetails()
+{
+	if ( file.mapsDetails == null )
+		return
+
+	if ( file.selectedMap < 0 || file.selectedMap >= file.mapIds.len() )
+	{
+		Hud_SetText( file.mapsDetails, "NO MAPS MATCH THIS SEARCH OR FILTER.\nCLEAR THE SEARCH OR SWITCH TO ALL MAPS." )
+		return
+	}
+
+	string current = GetConVarString( TF2VRSB_MAP )
+	int index = file.selectedMap
 	string id = file.mapIds[ index ]
 	string text = file.mapNames[ index ] + "  [" + id + "]\n"
 	if ( id == current )
 		text += "CURRENT SESSION MAP\n"
 	else
 		text += "CATALOG CANDIDATE - NOT LOADED BY THIS BUILD\n"
-	text += "Map travel is disabled until campaign transitions are runtime-tested."
-
-	if ( file.mapsDetails != null )
-		Hud_SetText( file.mapsDetails, text )
-	TF2VRSB_UpdateMapButtons()
+	text += "FAVORITE: " + ( TF2VRSB_IsMapFavorite( index ) ? "YES" : "NO" )
+	text += "  //  MAP TRAVEL DISABLED"
+	Hud_SetText( file.mapsDetails, text )
 }
 
-void function TF2VRSB_UpdateMapButtons()
+void function TF2VRSB_SelectMapSlot( int slot )
 {
-	string current = GetConVarString( TF2VRSB_MAP )
-	for ( int i = 0; i < file.mapButtons.len() && i < file.mapNames.len(); i++ )
-	{
-		string label = file.mapNames[ i ]
-		if ( file.mapIds[ i ] == current )
-			label = "> " + label
-		SetButtonRuiText( file.mapButtons[ i ], label )
-	}
-
-	if ( file.mapsCurrent != null )
-		Hud_SetText( file.mapsCurrent, "CURRENT MAP: " + TF2VRSB_DisplayMap( current ) + "  [" + current + "]" )
+	if ( slot < 0 || slot >= file.mapFiltered.len() )
+		return
+	file.selectedMap = file.mapFiltered[ slot ]
+	TF2VRSB_LogEvent( "map-select", "index=" + string( file.selectedMap ) + " id=" + file.mapIds[ file.selectedMap ] )
+	TF2VRSB_RefreshMapCatalog()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -642,10 +902,15 @@ void function TF2VRSB_UpdateStatusLabels()
 		Hud_SetText( file.rootStatus, result )
 
 	if ( file.mapsStatus != null )
-		Hud_SetText( file.mapsStatus, ready ? "SESSION MAP DATA ONLINE // LOADING DISABLED" : "WAITING FOR SERVER VM" )
+	{
+		string mapStatus = ready ? "SESSION MAP DATA ONLINE" : "WAITING FOR SERVER VM"
+		if ( result != "" )
+			mapStatus += " // " + result
+		Hud_SetText( file.mapsStatus, mapStatus + " // MAP TRAVEL DISABLED" )
+	}
 	if ( file.mapsCurrent != null )
 		Hud_SetText( file.mapsCurrent, "CURRENT MAP: " + display + "  [" + mapName + "]" )
-	TF2VRSB_UpdateMapButtons()
+	TF2VRSB_RefreshMapCatalog()
 
 	if ( file.playerBookmark != null )
 		Hud_SetText( file.playerBookmark, "BOOKMARK: " + ( bookmark ? "SAVED IN THIS SESSION" : "NOT SET" ) )

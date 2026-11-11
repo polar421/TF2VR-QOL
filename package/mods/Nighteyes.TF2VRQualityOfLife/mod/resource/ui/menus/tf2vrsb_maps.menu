@@ -88,12 +88,82 @@
 		SubHeader
 		{
 			ControlName Label
-			labelText "VERIFIED CAMPAIGN MAP IDS // CATALOG ONLY IN THIS BUILD"
+			labelText "SEARCH BY NAME OR MAP ID // FAVORITES SAVE LOCALLY // TRAVEL DISABLED"
 			font Default_21
 			fgcolor_override "242 141 28 255"
 			allcaps 1
 			xpos 152
 			ypos 350
+		}
+
+		SearchEntry
+		{
+			ControlName TextEntry
+			xpos 152
+			ypos 376
+			zpos 100
+			wide 430
+			tall 36
+			visible 1
+			enabled 1
+			textHidden 0
+			editable 1
+			maxchars 48
+			NumericInputOnly 0
+			textAlignment west
+			font Default_21
+			keyboardTitle "SEARCH MAP CATALOG"
+			keyboardDescription "TYPE A MAP NAME OR IDENTIFIER"
+			allowRightClickMenu 0
+			allowSpecialCharacters 0
+			unicode 0
+			navDown Map0
+			navRight FavoritesSwitch
+		}
+
+		FavoritesSwitch
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 276
+			tall 36
+			xpos 602
+			ypos 376
+			labelText "SHOW: ALL MAPS"
+			navLeft SearchEntry
+			navRight FavoriteSelected
+			navDown Map0
+			scriptID "13"
+		}
+
+		FavoriteSelected
+		{
+			ControlName RuiButton
+			InheritProperties RuiSmallButton
+			classname ModButton
+			textAlignment west
+			wide 290
+			tall 36
+			xpos 898
+			ypos 376
+			labelText "ADD SELECTED TO FAVORITES"
+			navLeft FavoritesSwitch
+			navDown Map0
+			scriptID "14"
+		}
+
+		ResultSummary
+		{
+			ControlName Label
+			labelText "SHOWING 13/13 // ALL MAPS // 0 FAVORITES // * = FAVORITE"
+			font Default_21
+			fgcolor_override "255 255 255 255"
+			wide 1036
+			tall 24
+			xpos 152
+			ypos 420
 		}
 
 		CurrentMapValue
@@ -105,7 +175,7 @@
 			wide 1036
 			tall 26
 			xpos 152
-			ypos 382
+			ypos 444
 		}
 
 		Map0
@@ -115,9 +185,9 @@
 			classname ModButton
 			textAlignment west
 			wide 500
-			tall 42
+			tall 40
 			xpos 152
-			ypos 425
+			ypos 470
 			scriptID "0"
 		}
 
@@ -128,9 +198,9 @@
 			classname ModButton
 			textAlignment west
 			wide 500
-			tall 42
+			tall 40
 			xpos 684
-			ypos 425
+			ypos 470
 			scriptID "1"
 		}
 
@@ -141,9 +211,9 @@
 			classname ModButton
 			textAlignment west
 			wide 500
-			tall 42
+			tall 40
 			xpos 152
-			ypos 471
+			ypos 514
 			scriptID "2"
 		}
 
@@ -154,9 +224,9 @@
 			classname ModButton
 			textAlignment west
 			wide 500
-			tall 42
+			tall 40
 			xpos 684
-			ypos 471
+			ypos 514
 			scriptID "3"
 		}
 
@@ -167,9 +237,9 @@
 			classname ModButton
 			textAlignment west
 			wide 500
-			tall 42
+			tall 40
 			xpos 152
-			ypos 517
+			ypos 558
 			scriptID "4"
 		}
 
@@ -180,9 +250,9 @@
 			classname ModButton
 			textAlignment west
 			wide 500
-			tall 42
+			tall 40
 			xpos 684
-			ypos 517
+			ypos 558
 			scriptID "5"
 		}
 
@@ -193,9 +263,9 @@
 			classname ModButton
 			textAlignment west
 			wide 500
-			tall 42
+			tall 40
 			xpos 152
-			ypos 563
+			ypos 602
 			scriptID "6"
 		}
 
@@ -206,9 +276,9 @@
 			classname ModButton
 			textAlignment west
 			wide 500
-			tall 42
+			tall 40
 			xpos 684
-			ypos 563
+			ypos 602
 			scriptID "7"
 		}
 
@@ -219,9 +289,9 @@
 			classname ModButton
 			textAlignment west
 			wide 500
-			tall 42
+			tall 40
 			xpos 152
-			ypos 609
+			ypos 646
 			scriptID "8"
 		}
 
@@ -232,9 +302,9 @@
 			classname ModButton
 			textAlignment west
 			wide 500
-			tall 42
+			tall 40
 			xpos 684
-			ypos 609
+			ypos 646
 			scriptID "9"
 		}
 
@@ -245,9 +315,9 @@
 			classname ModButton
 			textAlignment west
 			wide 500
-			tall 42
+			tall 40
 			xpos 152
-			ypos 655
+			ypos 690
 			scriptID "10"
 		}
 
@@ -258,9 +328,9 @@
 			classname ModButton
 			textAlignment west
 			wide 500
-			tall 42
+			tall 40
 			xpos 684
-			ypos 655
+			ypos 690
 			scriptID "11"
 		}
 
@@ -271,9 +341,9 @@
 			classname ModButton
 			textAlignment west
 			wide 500
-			tall 42
+			tall 40
 			xpos 152
-			ypos 701
+			ypos 734
 			scriptID "12"
 		}
 
@@ -287,7 +357,7 @@
 			tall 74
 			wrap 1
 			xpos 152
-			ypos 770
+			ypos 788
 		}
 
 		MapStatus
@@ -298,10 +368,10 @@
 			fgcolor_override "242 141 28 255"
 			allcaps 1
 			wide 1036
-			tall 28
+			tall 42
 			wrap 1
 			xpos 152
-			ypos 860
+			ypos 872
 		}
 
 		FooterButtons
@@ -505,6 +575,71 @@
 			bgcolor_override "0 220 255 255"
 		}
 		Debug14
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 255"
+		}
+		Debug15
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 255"
+		}
+		Debug16
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 255"
+		}
+		Debug17
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 255"
+		}
+		Debug18
+		{
+			ControlName Label
+			labelText ""
+			wide 1
+			tall 1
+			xpos 0
+			ypos 0
+			zpos 51
+			visible 0
+			paintbackground 1
+			bgcolor_override "0 220 255 255"
+		}
+		Debug19
 		{
 			ControlName Label
 			labelText ""
